@@ -29,8 +29,26 @@ public class SlangDeclarationStatementImpl extends ASTWrapperPsiElement implemen
 
   @Override
   @NotNull
-  public List<SlangDeclaration> getDeclarationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangDeclaration.class);
+  public List<SlangArraySpecifier> getArraySpecifierList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangArraySpecifier.class);
+  }
+
+  @Override
+  @NotNull
+  public List<SlangInitializer> getInitializerList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangInitializer.class);
+  }
+
+  @Override
+  @NotNull
+  public SlangSingleDeclaration getSingleDeclaration() {
+    return findNotNullChildByClass(SlangSingleDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<SlangVariableIdentifier> getVariableIdentifierList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangVariableIdentifier.class);
   }
 
 }

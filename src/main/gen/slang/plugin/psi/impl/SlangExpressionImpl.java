@@ -28,15 +28,15 @@ public class SlangExpressionImpl extends ASTWrapperPsiElement implements SlangEx
   }
 
   @Override
-  @Nullable
-  public SlangExpression getExpression() {
-    return findChildByClass(SlangExpression.class);
+  @NotNull
+  public List<SlangExpressionAssignment> getExpressionAssignmentList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangExpressionAssignment.class);
   }
 
   @Override
-  @Nullable
-  public PsiElement getIdentifier() {
-    return findChildByType(IDENTIFIER);
+  @NotNull
+  public List<SlangExpressionNoAssignment> getExpressionNoAssignmentList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangExpressionNoAssignment.class);
   }
 
 }

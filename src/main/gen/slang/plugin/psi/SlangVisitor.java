@@ -7,7 +7,11 @@ import com.intellij.psi.PsiElement;
 
 public class SlangVisitor extends PsiElementVisitor {
 
-  public void visitDeclaration(@NotNull SlangDeclaration o) {
+  public void visitArraySpecifier(@NotNull SlangArraySpecifier o) {
+    visitPsiElement(o);
+  }
+
+  public void visitAssignmentOperator(@NotNull SlangAssignmentOperator o) {
     visitPsiElement(o);
   }
 
@@ -19,11 +23,59 @@ public class SlangVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitExpressionStatement(@NotNull SlangExpressionStatement o) {
+  public void visitExpressionAssignment(@NotNull SlangExpressionAssignment o) {
+    visitPsiElement(o);
+  }
+
+  public void visitExpressionNoAssignment(@NotNull SlangExpressionNoAssignment o) {
+    visitPsiElement(o);
+  }
+
+  public void visitFullType(@NotNull SlangFullType o) {
+    visitPsiElement(o);
+  }
+
+  public void visitInitializer(@NotNull SlangInitializer o) {
+    visitPsiElement(o);
+  }
+
+  public void visitLiteral(@NotNull SlangLiteral o) {
+    visitPsiElement(o);
+  }
+
+  public void visitPostfixExpression(@NotNull SlangPostfixExpression o) {
+    visitPsiElement(o);
+  }
+
+  public void visitPrimaryExpression(@NotNull SlangPrimaryExpression o) {
+    visitPsiElement(o);
+  }
+
+  public void visitPrimaryExpressionVariable(@NotNull SlangPrimaryExpressionVariable o) {
+    visitPsiElement(o);
+  }
+
+  public void visitSingleDeclaration(@NotNull SlangSingleDeclaration o) {
     visitPsiElement(o);
   }
 
   public void visitStatement(@NotNull SlangStatement o) {
+    visitPsiElement(o);
+  }
+
+  public void visitTypeName(@NotNull SlangTypeName o) {
+    visitPsiElement(o);
+  }
+
+  public void visitTypeSpecification(@NotNull SlangTypeSpecification o) {
+    visitPsiElement(o);
+  }
+
+  public void visitUnaryExpression(@NotNull SlangUnaryExpression o) {
+    visitPsiElement(o);
+  }
+
+  public void visitVariableIdentifier(@NotNull SlangVariableIdentifier o) {
     visitPsiElement(o);
   }
 

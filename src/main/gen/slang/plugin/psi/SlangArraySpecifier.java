@@ -5,15 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface SlangDeclaration extends PsiElement {
+public interface SlangArraySpecifier extends PsiElement {
 
   @Nullable
   SlangExpression getExpression();
-
-  @NotNull
-  SlangTypeSpecification getTypeSpecification();
-
-  @Nullable
-  PsiElement getIdentifier();
 
 }

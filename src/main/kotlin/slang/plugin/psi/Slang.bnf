@@ -1,5 +1,6 @@
 {
     parserClass="slang.plugin.language.parser.SlangParser"
+    parserUtilClass="slang.plugin.psi.SlangPsiUtil"
 
     psiClassPrefix="Slang"
     psiImplClassSuffix="Impl"
@@ -17,9 +18,30 @@
         RIGHT_BRACE="}"
         LEFT_PAREN="("
         RIGHT_PAREN=")"
+        LEFT_BRACKET="["
+        RIGHT_BRACKET="]"
         SEMICOLON=";"
         EQUALS="="
         COMMA=","
+        ADD_ASSIGN="+="
+        SUB_ASSIGN="-="
+        MUL_ASSIGN="*="
+        DIV_ASSIGN="/="
+        MOD_ASSIGN="%="
+        AND_ASSIGN="&="
+        OR_ASSIGN="|="
+        XOR_ASSIGN="^="
+        LEFT_SHIFT_ASSIGN="<<="
+        RIGHT_SHIFT_ASSIGN=">>="
+        // Types
+        VOID="void"
+        // Literals
+        UINT_LITERAL="regexp:(0x[\da-fA-F]+|\d+|Ob[01]+)u|U"
+        INT_LITERAL="regexp:(0x[\da-fA-F]+|\d+|Ob[01]+)"
+        FLOAT_LITERAL="regexp:((\d+[.]\d+)|(\d+[.])|([.]\d+))f"
+        DOUBLE_LITERAL="regexp:((\d+[.]\d+)|(\d+[.])|([.]\d+))"
+        BOOL_LITERAL="regexp:(true|false)"
+        // Identifiers
         IDENTIFIER="regexp:[_a-zA-Z][_a-zA-Z0-9]*"
     ]
 }
@@ -28,27 +50,87 @@ file ::= base*
 
 private base
     ::= PREDEFINED_MACROS
-    |   declaration
+    |   declaration-statement SEMICOLON
     |   statement
 
 statement
-    ::= expression-statement SEMICOLON
+    ::= expression SEMICOLON
     |   declaration-statement SEMICOLON
     |   SEMICOLON
 
-expression-statement
-    ::= expression (COMMA expression)*
-
 expression
-    ::= LEFT_PAREN expression RIGHT_PAREN
-    |   IDENTIFIER EQUALS expression
-    |   IDENTIFIER
-    |   LITERAL
+    ::= expression-assignment (COMMA expression-assignment)*
+    |   expression-no-assignment (COMMA expression-no-assignment)*
+
+expression-assignment
+    ::= unary-expression assignment-operator expression-no-assignment
+    { pin(".*")=assignment-operator }
+
+assignment-operator
+    ::= EQUALS
+    |   ADD_ASSIGN
+    |   SUB_ASSIGN
+    |   MUL_ASSIGN
+    |   DIV_ASSIGN
+    |   MOD_ASSIGN
+    |   AND_ASSIGN
+    |   OR_ASSIGN
+    |   XOR_ASSIGN
+    |   LEFT_SHIFT_ASSIGN
+    |   RIGHT_SHIFT_ASSIGN
+
+expression-no-assignment
+    ::= unary-expression
+
+unary-expression
+    ::= postfix-expression
+
+postfix-expression
+    ::= primary-expression
+
+primary-expression
+    ::= primary-expression-variable
+    |   LEFT_PAREN expression RIGHT_PAREN
+    |   literal
+
+primary-expression-variable
+    ::= IDENTIFIER
 
 declaration-statement
-    ::= declaration (COMMA declaration)*
+    ::= single-declaration (COMMA variable-identifier array-specifier? (EQUALS initializer)?)*
 
-declaration
-    ::= TYPE IDENTIFIER (EQUALS expression)?
+single-declaration
+    ::= full-type variable-identifier array-specifier? EQUALS initializer
+    |   full-type variable-identifier array-specifier
+    |   full-type variable-identifier?
+    { pin(".*")=4 }
+
+initializer
+    ::= LEFT_BRACE expression* RIGHT_BRACE
+    |   expression
+
+array-specifier
+    ::= LEFT_BRACKET expression? RIGHT_BRACKET
+
+full-type
+    ::= type-specification
+
+type-specification
+    ::= VOID
+    |   type-name
+
+variable-identifier
+    ::= IDENTIFIER
+
+type-name
+    ::= IDENTIFIER
+    |   USER_TYPE_NAME
+
+literal
+    ::= UINT_LITERAL
+    |   INT_LITERAL
+    |   FLOAT_LITERAL
+    |   DOUBLE_LITERAL
+    |   BOOL_LITERAL
 
 

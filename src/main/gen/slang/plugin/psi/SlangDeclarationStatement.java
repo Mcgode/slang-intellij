@@ -8,6 +8,15 @@ import com.intellij.psi.PsiElement;
 public interface SlangDeclarationStatement extends PsiElement {
 
   @NotNull
-  List<SlangDeclaration> getDeclarationList();
+  List<SlangArraySpecifier> getArraySpecifierList();
+
+  @NotNull
+  List<SlangInitializer> getInitializerList();
+
+  @NotNull
+  SlangSingleDeclaration getSingleDeclaration();
+
+  @NotNull
+  List<SlangVariableIdentifier> getVariableIdentifierList();
 
 }
