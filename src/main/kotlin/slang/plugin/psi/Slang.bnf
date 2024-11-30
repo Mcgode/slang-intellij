@@ -1,13 +1,12 @@
 {
-  parserClass="slang.plugin.language.parser.SlangParser"
-  parserUtilClass="slang.plugin.language.parser.SlangParserUtil"
+    parserClass="slang.plugin.parser.SlangParser"
 
     psiClassPrefix="Slang"
     psiImplClassSuffix="Impl"
-    psiPackage="slang.plugin.language.psi"
-    psiImplPackage="slang.plugin.language.psi.impl"
+    psiPackage="slang.plugin.psi"
+    psiImplPackage="slang.plugin.psi.impl"
 
-    elementTypeHolderClass="slang.plugin.language.psi.SlangTypes"
+    elementTypeHolderClass="slang.plugin.psi.SlangTypes"
     elementTypeClass="slang.plugin.psi.SlangElementType"
     tokenTypeClass="slang.plugin.psi.SlangTokenType"
 

@@ -1,6 +1,6 @@
 package slang.plugin.language
 
-import slang.plugin.language.parser.SlangParser
+import main.gen.slang.parser.SlangParser
 
 class SlangParserAdapter: SlangParser() {
 }
