@@ -5,7 +5,7 @@ import com.intellij.psi.TokenType;import com.intellij.psi.tree.IElementType;impo
 
 import static com.intellij.psi.TokenType.BAD_CHARACTER;
 import static com.intellij.psi.TokenType.WHITE_SPACE;
-import static slang.plugin.language.psi.SlangTypes.*;
+import static slang.plugin.psi.SlangTypes.*;
 
 %%
 
