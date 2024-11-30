@@ -1,4 +1,4 @@
-package slang.plugin.language.psi;
+package slang.plugin.psi;
 
 import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.TokenType;import com.intellij.psi.tree.IElementType;import com.intellij.psi.tree.TokenSet;
