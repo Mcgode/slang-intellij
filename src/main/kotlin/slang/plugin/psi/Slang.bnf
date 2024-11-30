@@ -1,0 +1,55 @@
+{
+  parserClass="slang.plugin.language.parser.SlangParser"
+  parserUtilClass="slang.plugin.language.parser.SlangParserUtil"
+
+    psiClassPrefix="Slang"
+    psiImplClassSuffix="Impl"
+    psiPackage="slang.plugin.language.psi"
+    psiImplPackage="slang.plugin.language.psi.impl"
+
+    elementTypeHolderClass="slang.plugin.language.psi.SlangTypes"
+    elementTypeClass="slang.plugin.psi.SlangElementType"
+    tokenTypeClass="slang.plugin.psi.SlangTokenType"
+
+    tokens=[
+        LINE_COMMENT="regexp://+.*"
+        MULTILINE_COMMENT="regexp:/\*([\s\S]*?)\*/[ \t\n\x0B\f\r]*"
+        LEFT_BRACE="{"
+        RIGHT_BRACE="}"
+        LEFT_PAREN="("
+        RIGHT_PAREN=")"
+        SEMICOLON=";"
+        EQUALS="="
+        COMMA=","
+        IDENTIFIER="regexp:[_a-zA-Z][_a-zA-Z0-9]*"
+    ]
+}
+
+file ::= base*
+
+private base
+    ::= PREDEFINED_MACROS
+    |   declaration
+    |   statement
+
+statement
+    ::= expression-statement SEMICOLON
+    |   declaration-statement SEMICOLON
+    |   SEMICOLON
+
+expression-statement
+    ::= expression (COMMA expression)*
+
+expression
+    ::= LEFT_PAREN expression RIGHT_PAREN
+    |   IDENTIFIER EQUALS expression
+    |   IDENTIFIER
+    |   LITERAL
+
+declaration-statement
+    ::= declaration (COMMA declaration)*
+
+declaration
+    ::= TYPE IDENTIFIER (EQUALS expression)?
+
+

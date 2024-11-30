@@ -155,3 +155,11 @@ intellijPlatformTesting {
         }
     }
 }
+
+sourceSets {
+    main {
+        java {
+            srcDir("src")
+        }
+    }
+}
