@@ -25,6 +25,7 @@ public interface SlangTypes {
   IElementType POSTFIX_EXPRESSION = new SlangElementType("POSTFIX_EXPRESSION");
   IElementType PRIMARY_EXPRESSION = new SlangElementType("PRIMARY_EXPRESSION");
   IElementType PRIMARY_EXPRESSION_VARIABLE = new SlangElementType("PRIMARY_EXPRESSION_VARIABLE");
+  IElementType SCALAR_TYPE = new SlangElementType("SCALAR_TYPE");
   IElementType SEMANTIC = new SlangElementType("SEMANTIC");
   IElementType SINGLE_DECLARATION = new SlangElementType("SINGLE_DECLARATION");
   IElementType STATEMENT = new SlangElementType("STATEMENT");
@@ -38,19 +39,27 @@ public interface SlangTypes {
 
   IElementType ADD_ASSIGN = new SlangTokenType("+=");
   IElementType AND_ASSIGN = new SlangTokenType("&=");
+  IElementType BOOL = new SlangTokenType("bool");
   IElementType BOOL_LITERAL = new SlangTokenType("BOOL_LITERAL");
   IElementType CLASS = new SlangTokenType("class");
   IElementType COLON = new SlangTokenType(":");
   IElementType COMMA = new SlangTokenType(",");
   IElementType CONST = new SlangTokenType("const");
   IElementType DIV_ASSIGN = new SlangTokenType("/=");
+  IElementType DOUBLE = new SlangTokenType("double");
   IElementType DOUBLE_LITERAL = new SlangTokenType("DOUBLE_LITERAL");
   IElementType ENUM = new SlangTokenType("enum");
   IElementType ENUM_CLASS = new SlangTokenType("ENUM_CLASS");
   IElementType EQUALS = new SlangTokenType("=");
+  IElementType FLOAT = new SlangTokenType("float");
   IElementType FLOAT_LITERAL = new SlangTokenType("FLOAT_LITERAL");
+  IElementType HALF = new SlangTokenType("half");
   IElementType IDENTIFIER = new SlangTokenType("IDENTIFIER");
   IElementType IN = new SlangTokenType("in");
+  IElementType INT16 = new SlangTokenType("int16_t");
+  IElementType INT32 = new SlangTokenType("int");
+  IElementType INT64 = new SlangTokenType("int64_t");
+  IElementType INT8 = new SlangTokenType("int8_t");
   IElementType INTERFACE = new SlangTokenType("interface");
   IElementType INT_LITERAL = new SlangTokenType("INT_LITERAL");
   IElementType LEFT_BRACE = new SlangTokenType("{");
@@ -72,6 +81,10 @@ public interface SlangTypes {
   IElementType SEMICOLON = new SlangTokenType(";");
   IElementType STRUCT = new SlangTokenType("struct");
   IElementType SUB_ASSIGN = new SlangTokenType("-=");
+  IElementType UINT16 = new SlangTokenType("uint16_t");
+  IElementType UINT32 = new SlangTokenType("uint");
+  IElementType UINT64 = new SlangTokenType("uint64_t");
+  IElementType UINT8 = new SlangTokenType("uint8_t");
   IElementType UINT_LITERAL = new SlangTokenType("UINT_LITERAL");
   IElementType USER_TYPE_NAME = new SlangTokenType("USER_TYPE_NAME");
   IElementType VOID = new SlangTokenType("void");
@@ -130,6 +143,9 @@ public interface SlangTypes {
       }
       else if (type == PRIMARY_EXPRESSION_VARIABLE) {
         return new SlangPrimaryExpressionVariableImpl(node);
+      }
+      else if (type == SCALAR_TYPE) {
+        return new SlangScalarTypeImpl(node);
       }
       else if (type == SEMANTIC) {
         return new SlangSemanticImpl(node);

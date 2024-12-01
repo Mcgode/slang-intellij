@@ -75,6 +75,10 @@ public class SlangVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitScalarType(@NotNull SlangScalarType o) {
+    visitPsiElement(o);
+  }
+
   public void visitSemantic(@NotNull SlangSemantic o) {
     visitPsiElement(o);
   }

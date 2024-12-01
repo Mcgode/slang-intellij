@@ -11,32 +11,20 @@ import static slang.plugin.psi.SlangTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import slang.plugin.psi.*;
 
-public class SlangTypeSpecificationImpl extends ASTWrapperPsiElement implements SlangTypeSpecification {
+public class SlangScalarTypeImpl extends ASTWrapperPsiElement implements SlangScalarType {
 
-  public SlangTypeSpecificationImpl(@NotNull ASTNode node) {
+  public SlangScalarTypeImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull SlangVisitor visitor) {
-    visitor.visitTypeSpecification(this);
+    visitor.visitScalarType(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof SlangVisitor) accept((SlangVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public SlangScalarType getScalarType() {
-    return findChildByClass(SlangScalarType.class);
-  }
-
-  @Override
-  @Nullable
-  public SlangTypeName getTypeName() {
-    return findChildByClass(SlangTypeName.class);
   }
 
 }

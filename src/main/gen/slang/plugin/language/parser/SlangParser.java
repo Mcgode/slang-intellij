@@ -599,6 +599,41 @@ public class SlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // VOID
+  //     |   BOOL
+  //     |   INT8
+  //     |   INT16
+  //     |   INT32
+  //     |   INT64
+  //     |   UINT8
+  //     |   UINT16
+  //     |   UINT32
+  //     |   UINT64
+  //     |   HALF
+  //     |   FLOAT
+  //     |   DOUBLE
+  public static boolean scalar_type(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "scalar_type")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, SCALAR_TYPE, "<scalar type>");
+    r = consumeToken(b, VOID);
+    if (!r) r = consumeToken(b, BOOL);
+    if (!r) r = consumeToken(b, INT8);
+    if (!r) r = consumeToken(b, INT16);
+    if (!r) r = consumeToken(b, INT32);
+    if (!r) r = consumeToken(b, INT64);
+    if (!r) r = consumeToken(b, UINT8);
+    if (!r) r = consumeToken(b, UINT16);
+    if (!r) r = consumeToken(b, UINT32);
+    if (!r) r = consumeToken(b, UINT64);
+    if (!r) r = consumeToken(b, HALF);
+    if (!r) r = consumeToken(b, FLOAT);
+    if (!r) r = consumeToken(b, DOUBLE);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
   // IDENTIFIER
   public static boolean semantic(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "semantic")) return false;
@@ -798,13 +833,13 @@ public class SlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // VOID
+  // scalar-type
   //     |   type-name
   public static boolean type_specification(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_specification")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, TYPE_SPECIFICATION, "<type specification>");
-    r = consumeToken(b, VOID);
+    r = scalar_type(b, l + 1);
     if (!r) r = type_name(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;

@@ -119,10 +119,22 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     "enum"              { afterStorageType = true; return ENUM; }
     {ENUM_CLASS}        { afterStorageType = true; return ENUM_CLASS; }
     "class"             { afterStorageType = true; return CLASS; }
-        "struct"        { afterStorageType = true; return STRUCT; }
+    "struct"            { afterStorageType = true; return STRUCT; }
     "interface"         { afterStorageType = true; return INTERFACE; }
 
     "void"              { afterType = true; return VOID; }
+    "bool"              { afterType = true; return BOOL; }
+    "int8_t"            { afterType = true; return INT8; }
+    "int16_t"           { afterType = true; return INT16; }
+    "int"               { afterType = true; return INT32; }
+    "int64_t"           { afterType = true; return INT64; }
+    "uint8_t"           { afterType = true; return UINT8; }
+    "uint16_t"          { afterType = true; return UINT16; }
+    "uint"              { afterType = true; return UINT32; }
+    "uint64_t"          { afterType = true; return UINT64; }
+    "half"              { afterType = true; return HALF; }
+    "float"             { afterType = true; return FLOAT; }
+    "double"            { afterType = true; return DOUBLE; }
 
     {PREDEFINED_MACROS} { return PREDEFINED_MACROS; }
 

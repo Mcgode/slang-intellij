@@ -5,12 +5,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface SlangTypeSpecification extends PsiElement {
-
-  @Nullable
-  SlangScalarType getScalarType();
-
-  @Nullable
-  SlangTypeName getTypeName();
+public interface SlangScalarType extends PsiElement {
 
 }

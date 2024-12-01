@@ -17,7 +17,7 @@ class SlangSyntaxHighlighter: SyntaxHighlighterBase() {
     object SlangTextAttributes {
         val SLANG_VARIABLE_TEXT = createTextAttributesKey("Slang.Variable", IDENTIFIER)
         val SLANG_USER_DEFINED_TYPE_TEXT = createTextAttributesKey("Slang.UserDefinedType", CLASS_NAME)
-        val SLANG_BUILTIN_NAME_TEXT = createTextAttributesKey("Slang.BuiltinName", IDENTIFIER)
+        val SLANG_BUILTIN_NAME_TEXT = createTextAttributesKey("Slang.BuiltinName", KEYWORD)
         val SLANG_KEYWORD_TEXT = createTextAttributesKey("Slang.Keyword", KEYWORD)
         val SLANG_NUMERIC_LITERALS_TEXT = createTextAttributesKey("Slang.Keyword", NUMBER)
         val SLANG_LINE_COMMENT_TEXT = createTextAttributesKey("Slang.LineComment", LINE_COMMENT)

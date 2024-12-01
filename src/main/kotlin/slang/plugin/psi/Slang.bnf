@@ -41,8 +41,20 @@
         CLASS="class"
         STRUCT="struct"
         INTERFACE="interface"
-        // Types
+        // Builtin types
         VOID="void"
+        BOOL="bool"
+        INT8="int8_t"
+        INT16="int16_t"
+        INT32="int"
+        INT64="int64_t"
+        UINT8="uint8_t"
+        UINT16="uint16_t"
+        UINT32="uint"
+        UINT64="uint64_t"
+        HALF="half"
+        FLOAT="float"
+        DOUBLE="double"
         // Literals
         UINT_LITERAL="regexp:(0x[\da-fA-F]+|\d+|Ob[01]+)u|U"
         INT_LITERAL="regexp:(0x[\da-fA-F]+|\d+|Ob[01]+)"
@@ -131,8 +143,23 @@ full-type
     ::=  type-qualifiers? type-specification
 
 type-specification
-    ::= VOID
+    ::= scalar-type
     |   type-name
+
+scalar-type
+    ::= VOID
+    |   BOOL
+    |   INT8
+    |   INT16
+    |   INT32
+    |   INT64
+    |   UINT8
+    |   UINT16
+    |   UINT32
+    |   UINT64
+    |   HALF
+    |   FLOAT
+    |   DOUBLE
 
 type-qualifiers
     ::= single-type-qualifier+
