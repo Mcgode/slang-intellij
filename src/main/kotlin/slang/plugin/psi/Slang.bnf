@@ -21,6 +21,7 @@
         LEFT_BRACKET="["
         RIGHT_BRACKET="]"
         SEMICOLON=";"
+        COLON=":"
         EQUALS="="
         COMMA=","
         ADD_ASSIGN="+="
@@ -33,6 +34,13 @@
         XOR_ASSIGN="^="
         LEFT_SHIFT_ASSIGN="<<="
         RIGHT_SHIFT_ASSIGN=">>="
+        // Storage types
+        NAMESPACE="namespace"
+        ENUM="enum"
+        ENUM_CLASS="regexp:enum\s+class"
+        CLASS="class"
+        STRUCT="struct"
+        INTERFACE="interface"
         // Types
         VOID="void"
         // Literals
@@ -41,6 +49,10 @@
         FLOAT_LITERAL="regexp:((\d+[.]\d+)|(\d+[.])|([.]\d+))f"
         DOUBLE_LITERAL="regexp:((\d+[.]\d+)|(\d+[.])|([.]\d+))"
         BOOL_LITERAL="regexp:(true|false)"
+        // Qualifiers
+        CONST="const"
+        IN="in"
+        OUT="out"
         // Identifiers
         IDENTIFIER="regexp:[_a-zA-Z][_a-zA-Z0-9]*"
     ]
@@ -50,12 +62,11 @@ file ::= base*
 
 private base
     ::= PREDEFINED_MACROS
-    |   declaration-statement SEMICOLON
+    |   declaration
     |   statement
 
 statement
     ::= expression SEMICOLON
-    |   declaration-statement SEMICOLON
     |   SEMICOLON
 
 expression
@@ -96,6 +107,10 @@ primary-expression
 primary-expression-variable
     ::= IDENTIFIER
 
+declaration
+    ::= declaration-statement SEMICOLON
+    |   storage-type-declaration
+
 declaration-statement
     ::= single-declaration (COMMA variable-identifier array-specifier? (EQUALS initializer)?)*
 
@@ -113,11 +128,20 @@ array-specifier
     ::= LEFT_BRACKET expression? RIGHT_BRACKET
 
 full-type
-    ::= type-specification
+    ::=  type-qualifiers? type-specification
 
 type-specification
     ::= VOID
     |   type-name
+
+type-qualifiers
+    ::= single-type-qualifier+
+
+private single-type-qualifier
+    ::= storage-qualifier
+
+storage-qualifier
+    ::= CONST | IN | OUT
 
 variable-identifier
     ::= IDENTIFIER
@@ -132,5 +156,34 @@ literal
     |   FLOAT_LITERAL
     |   DOUBLE_LITERAL
     |   BOOL_LITERAL
+
+private storage-type-declaration
+    ::= namespace-declaration
+    |   enum-declaration
+    |   struct-declaration
+
+namespace-declaration
+    ::= NAMESPACE type-name? LEFT_BRACE base* RIGHT_BRACE
+
+enum-declaration
+    ::= (ENUM|ENUM_CLASS) type-name LEFT_BRACE enum-members? RIGHT_BRACE SEMICOLON
+
+private enum-members
+    ::= enum-member (COMMA enum-member)* COMMA?
+
+enum-member
+    ::= IDENTIFIER (EQUALS expression)?
+
+struct-declaration
+    ::= STRUCT type-name? LEFT_BRACE member-declaration* RIGHT_BRACE SEMICOLON
+
+member-declaration
+    ::= full-type variable-identifier (COLON semantic)? SEMICOLON
+        { pin=2 }
+
+semantic
+    ::= IDENTIFIER
+
+
 
 

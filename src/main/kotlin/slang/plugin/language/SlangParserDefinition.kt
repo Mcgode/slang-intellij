@@ -17,7 +17,7 @@ import slang.plugin.psi.SlangIFileElementType
 import slang.plugin.psi.SlangLexerAdapter
 import slang.plugin.psi.SlangTokenSets
 
-class SlangParseDefinition: ParserDefinition {
+class SlangParserDefinition: ParserDefinition {
 
     override fun createLexer(project: Project?): Lexer {
         return SlangLexerAdapter()

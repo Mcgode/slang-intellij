@@ -7,6 +7,9 @@ import com.intellij.psi.PsiElement;
 
 public interface SlangFullType extends PsiElement {
 
+  @Nullable
+  SlangTypeQualifiers getTypeQualifiers();
+
   @NotNull
   SlangTypeSpecification getTypeSpecification();
 

@@ -89,22 +89,33 @@ public class SlangParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // PREDEFINED_MACROS
-  //     |   declaration-statement SEMICOLON
+  //     |   declaration
   //     |   statement
   static boolean base(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "base")) return false;
     boolean r;
-    Marker m = enter_section_(b);
     r = consumeToken(b, PREDEFINED_MACROS);
-    if (!r) r = base_1(b, l + 1);
+    if (!r) r = declaration(b, l + 1);
     if (!r) r = statement(b, l + 1);
-    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // declaration-statement SEMICOLON
+  //     |   storage-type-declaration
+  public static boolean declaration(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "declaration")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, DECLARATION, "<declaration>");
+    r = declaration_0(b, l + 1);
+    if (!r) r = storage_type_declaration(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   // declaration-statement SEMICOLON
-  private static boolean base_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "base_1")) return false;
+  private static boolean declaration_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "declaration_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = declaration_statement(b, l + 1);
@@ -172,6 +183,112 @@ public class SlangParser implements PsiParser, LightPsiParser {
     r = r && initializer(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
+  }
+
+  /* ********************************************************** */
+  // (ENUM|ENUM_CLASS) type-name LEFT_BRACE enum-members? RIGHT_BRACE SEMICOLON
+  public static boolean enum_declaration(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "enum_declaration")) return false;
+    if (!nextTokenIs(b, "<enum declaration>", ENUM, ENUM_CLASS)) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, ENUM_DECLARATION, "<enum declaration>");
+    r = enum_declaration_0(b, l + 1);
+    r = r && type_name(b, l + 1);
+    r = r && consumeToken(b, LEFT_BRACE);
+    r = r && enum_declaration_3(b, l + 1);
+    r = r && consumeTokens(b, 0, RIGHT_BRACE, SEMICOLON);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // ENUM|ENUM_CLASS
+  private static boolean enum_declaration_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "enum_declaration_0")) return false;
+    boolean r;
+    r = consumeToken(b, ENUM);
+    if (!r) r = consumeToken(b, ENUM_CLASS);
+    return r;
+  }
+
+  // enum-members?
+  private static boolean enum_declaration_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "enum_declaration_3")) return false;
+    enum_members(b, l + 1);
+    return true;
+  }
+
+  /* ********************************************************** */
+  // IDENTIFIER (EQUALS expression)?
+  public static boolean enum_member(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "enum_member")) return false;
+    if (!nextTokenIs(b, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, IDENTIFIER);
+    r = r && enum_member_1(b, l + 1);
+    exit_section_(b, m, ENUM_MEMBER, r);
+    return r;
+  }
+
+  // (EQUALS expression)?
+  private static boolean enum_member_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "enum_member_1")) return false;
+    enum_member_1_0(b, l + 1);
+    return true;
+  }
+
+  // EQUALS expression
+  private static boolean enum_member_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "enum_member_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, EQUALS);
+    r = r && expression(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // enum-member (COMMA enum-member)* COMMA?
+  static boolean enum_members(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "enum_members")) return false;
+    if (!nextTokenIs(b, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = enum_member(b, l + 1);
+    r = r && enum_members_1(b, l + 1);
+    r = r && enum_members_2(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // (COMMA enum-member)*
+  private static boolean enum_members_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "enum_members_1")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!enum_members_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "enum_members_1", c)) break;
+    }
+    return true;
+  }
+
+  // COMMA enum-member
+  private static boolean enum_members_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "enum_members_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, COMMA);
+    r = r && enum_member(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // COMMA?
+  private static boolean enum_members_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "enum_members_2")) return false;
+    consumeToken(b, COMMA);
+    return true;
   }
 
   /* ********************************************************** */
@@ -291,14 +408,22 @@ public class SlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // type-specification
+  // type-qualifiers? type-specification
   public static boolean full_type(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "full_type")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, FULL_TYPE, "<full type>");
-    r = type_specification(b, l + 1);
+    r = full_type_0(b, l + 1);
+    r = r && type_specification(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
+  }
+
+  // type-qualifiers?
+  private static boolean full_type_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "full_type_0")) return false;
+    type_qualifiers(b, l + 1);
+    return true;
   }
 
   /* ********************************************************** */
@@ -357,6 +482,73 @@ public class SlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // full-type variable-identifier (COLON semantic)? SEMICOLON
+  public static boolean member_declaration(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "member_declaration")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, MEMBER_DECLARATION, "<member declaration>");
+    r = full_type(b, l + 1);
+    r = r && variable_identifier(b, l + 1);
+    p = r; // pin = 2
+    r = r && report_error_(b, member_declaration_2(b, l + 1));
+    r = p && consumeToken(b, SEMICOLON) && r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // (COLON semantic)?
+  private static boolean member_declaration_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "member_declaration_2")) return false;
+    member_declaration_2_0(b, l + 1);
+    return true;
+  }
+
+  // COLON semantic
+  private static boolean member_declaration_2_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "member_declaration_2_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, COLON);
+    r = r && semantic(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // NAMESPACE type-name? LEFT_BRACE base* RIGHT_BRACE
+  public static boolean namespace_declaration(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "namespace_declaration")) return false;
+    if (!nextTokenIs(b, NAMESPACE)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, NAMESPACE);
+    r = r && namespace_declaration_1(b, l + 1);
+    r = r && consumeToken(b, LEFT_BRACE);
+    r = r && namespace_declaration_3(b, l + 1);
+    r = r && consumeToken(b, RIGHT_BRACE);
+    exit_section_(b, m, NAMESPACE_DECLARATION, r);
+    return r;
+  }
+
+  // type-name?
+  private static boolean namespace_declaration_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "namespace_declaration_1")) return false;
+    type_name(b, l + 1);
+    return true;
+  }
+
+  // base*
+  private static boolean namespace_declaration_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "namespace_declaration_3")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!base(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "namespace_declaration_3", c)) break;
+    }
+    return true;
+  }
+
+  /* ********************************************************** */
   // primary-expression
   public static boolean postfix_expression(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "postfix_expression")) return false;
@@ -403,6 +595,18 @@ public class SlangParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b);
     r = consumeToken(b, IDENTIFIER);
     exit_section_(b, m, PRIMARY_EXPRESSION_VARIABLE, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // IDENTIFIER
+  public static boolean semantic(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "semantic")) return false;
+    if (!nextTokenIs(b, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, SEMANTIC, r);
     return r;
   }
 
@@ -474,15 +678,19 @@ public class SlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // storage-qualifier
+  static boolean single_type_qualifier(PsiBuilder b, int l) {
+    return storage_qualifier(b, l + 1);
+  }
+
+  /* ********************************************************** */
   // expression SEMICOLON
-  //     |   declaration-statement SEMICOLON
   //     |   SEMICOLON
   public static boolean statement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "statement")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, STATEMENT, "<statement>");
     r = statement_0(b, l + 1);
-    if (!r) r = statement_1(b, l + 1);
     if (!r) r = consumeToken(b, SEMICOLON);
     exit_section_(b, l, m, r, false, null);
     return r;
@@ -499,15 +707,64 @@ public class SlangParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // declaration-statement SEMICOLON
-  private static boolean statement_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "statement_1")) return false;
+  /* ********************************************************** */
+  // CONST | IN | OUT
+  public static boolean storage_qualifier(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "storage_qualifier")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, STORAGE_QUALIFIER, "<storage qualifier>");
+    r = consumeToken(b, CONST);
+    if (!r) r = consumeToken(b, IN);
+    if (!r) r = consumeToken(b, OUT);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // namespace-declaration
+  //     |   enum-declaration
+  //     |   struct-declaration
+  static boolean storage_type_declaration(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "storage_type_declaration")) return false;
+    boolean r;
+    r = namespace_declaration(b, l + 1);
+    if (!r) r = enum_declaration(b, l + 1);
+    if (!r) r = struct_declaration(b, l + 1);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // STRUCT type-name? LEFT_BRACE member-declaration* RIGHT_BRACE SEMICOLON
+  public static boolean struct_declaration(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "struct_declaration")) return false;
+    if (!nextTokenIs(b, STRUCT)) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = declaration_statement(b, l + 1);
-    r = r && consumeToken(b, SEMICOLON);
-    exit_section_(b, m, null, r);
+    r = consumeToken(b, STRUCT);
+    r = r && struct_declaration_1(b, l + 1);
+    r = r && consumeToken(b, LEFT_BRACE);
+    r = r && struct_declaration_3(b, l + 1);
+    r = r && consumeTokens(b, 0, RIGHT_BRACE, SEMICOLON);
+    exit_section_(b, m, STRUCT_DECLARATION, r);
     return r;
+  }
+
+  // type-name?
+  private static boolean struct_declaration_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "struct_declaration_1")) return false;
+    type_name(b, l + 1);
+    return true;
+  }
+
+  // member-declaration*
+  private static boolean struct_declaration_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "struct_declaration_3")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!member_declaration(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "struct_declaration_3", c)) break;
+    }
+    return true;
   }
 
   /* ********************************************************** */
@@ -520,6 +777,22 @@ public class SlangParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _NONE_, TYPE_NAME, "<type name>");
     r = consumeToken(b, IDENTIFIER);
     if (!r) r = consumeToken(b, USER_TYPE_NAME);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // single-type-qualifier+
+  public static boolean type_qualifiers(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "type_qualifiers")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, TYPE_QUALIFIERS, "<type qualifiers>");
+    r = single_type_qualifier(b, l + 1);
+    while (r) {
+      int c = current_position_(b);
+      if (!single_type_qualifier(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "type_qualifiers", c)) break;
+    }
     exit_section_(b, l, m, r, false, null);
     return r;
   }

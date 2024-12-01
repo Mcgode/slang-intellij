@@ -11,14 +11,14 @@ import static slang.plugin.psi.SlangTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import slang.plugin.psi.*;
 
-public class SlangStatementImpl extends ASTWrapperPsiElement implements SlangStatement {
+public class SlangMemberDeclarationImpl extends ASTWrapperPsiElement implements SlangMemberDeclaration {
 
-  public SlangStatementImpl(@NotNull ASTNode node) {
+  public SlangMemberDeclarationImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull SlangVisitor visitor) {
-    visitor.visitStatement(this);
+    visitor.visitMemberDeclaration(this);
   }
 
   @Override
@@ -28,9 +28,21 @@ public class SlangStatementImpl extends ASTWrapperPsiElement implements SlangSta
   }
 
   @Override
+  @NotNull
+  public SlangFullType getFullType() {
+    return findNotNullChildByClass(SlangFullType.class);
+  }
+
+  @Override
   @Nullable
-  public SlangExpression getExpression() {
-    return findChildByClass(SlangExpression.class);
+  public SlangSemantic getSemantic() {
+    return findChildByClass(SlangSemantic.class);
+  }
+
+  @Override
+  @NotNull
+  public SlangVariableIdentifier getVariableIdentifier() {
+    return findNotNullChildByClass(SlangVariableIdentifier.class);
   }
 
 }

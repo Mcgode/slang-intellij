@@ -5,9 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface SlangStatement extends PsiElement {
+public interface SlangStructDeclaration extends PsiElement {
+
+  @NotNull
+  List<SlangMemberDeclaration> getMemberDeclarationList();
 
   @Nullable
-  SlangExpression getExpression();
+  SlangTypeName getTypeName();
 
 }

@@ -15,7 +15,19 @@ public class SlangVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitDeclaration(@NotNull SlangDeclaration o) {
+    visitPsiElement(o);
+  }
+
   public void visitDeclarationStatement(@NotNull SlangDeclarationStatement o) {
+    visitPsiElement(o);
+  }
+
+  public void visitEnumDeclaration(@NotNull SlangEnumDeclaration o) {
+    visitPsiElement(o);
+  }
+
+  public void visitEnumMember(@NotNull SlangEnumMember o) {
     visitPsiElement(o);
   }
 
@@ -43,6 +55,14 @@ public class SlangVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitMemberDeclaration(@NotNull SlangMemberDeclaration o) {
+    visitPsiElement(o);
+  }
+
+  public void visitNamespaceDeclaration(@NotNull SlangNamespaceDeclaration o) {
+    visitPsiElement(o);
+  }
+
   public void visitPostfixExpression(@NotNull SlangPostfixExpression o) {
     visitPsiElement(o);
   }
@@ -55,6 +75,10 @@ public class SlangVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitSemantic(@NotNull SlangSemantic o) {
+    visitPsiElement(o);
+  }
+
   public void visitSingleDeclaration(@NotNull SlangSingleDeclaration o) {
     visitPsiElement(o);
   }
@@ -63,7 +87,19 @@ public class SlangVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitStorageQualifier(@NotNull SlangStorageQualifier o) {
+    visitPsiElement(o);
+  }
+
+  public void visitStructDeclaration(@NotNull SlangStructDeclaration o) {
+    visitPsiElement(o);
+  }
+
   public void visitTypeName(@NotNull SlangTypeName o) {
+    visitPsiElement(o);
+  }
+
+  public void visitTypeQualifiers(@NotNull SlangTypeQualifiers o) {
     visitPsiElement(o);
   }
 

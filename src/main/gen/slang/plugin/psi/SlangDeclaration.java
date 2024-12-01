@@ -8,12 +8,15 @@ import com.intellij.psi.PsiElement;
 public interface SlangDeclaration extends PsiElement {
 
   @Nullable
-  SlangExpression getExpression();
-
-  @NotNull
-  SlangTypeSpecification getTypeSpecification();
+  SlangDeclarationStatement getDeclarationStatement();
 
   @Nullable
-  PsiElement getIdentifier();
+  SlangEnumDeclaration getEnumDeclaration();
+
+  @Nullable
+  SlangNamespaceDeclaration getNamespaceDeclaration();
+
+  @Nullable
+  SlangStructDeclaration getStructDeclaration();
 
 }
