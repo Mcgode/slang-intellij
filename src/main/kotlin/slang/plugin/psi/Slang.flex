@@ -97,8 +97,18 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     "]"                 { return RIGHT_BRACKET; }
     ";"                 { afterType = false; return SEMICOLON; }
     ":"                 { afterType = false; return COLON; }
+    "="                 { afterType = false; return ASSIGN; }
     ","                 { afterType = false; return COMMA; }
-    "="                 { afterType = false; return EQUALS; }
+    "::"                { return SCOPE; }
+    "#?"                { return COMPLETION_REQUEST; }
+
+    "+"                 { return ADD_OP; }
+    "-"                 { return SUB_OP; }
+    "*"                 { return MUL_OP; }
+    "/"                 { return DIV_OP; }
+    "%"                 { return MOD_OP; }
+    "<"                 { return LESS_OP; }
+    ">"                 { return GREATER_OP; }
 
     "+="                { return ADD_ASSIGN; }
     "-="                { return SUB_ASSIGN; }
@@ -111,13 +121,8 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     "<<="               { return LEFT_SHIFT_ASSIGN; }
     ">>="               { return RIGHT_SHIFT_ASSIGN; }
 
-    "const"             { return CONST; }
-    "in"                { return IN; }
-    "out"               { return OUT; }
-
     "namespace"         { afterStorageType = true; return NAMESPACE; }
     "enum"              { afterStorageType = true; return ENUM; }
-    {ENUM_CLASS}        { afterStorageType = true; return ENUM_CLASS; }
     "class"             { afterStorageType = true; return CLASS; }
     "struct"            { afterStorageType = true; return STRUCT; }
     "interface"         { afterStorageType = true; return INTERFACE; }
@@ -136,7 +141,20 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     "float"             { afterType = true; return FLOAT; }
     "double"            { afterType = true; return DOUBLE; }
 
-    {PREDEFINED_MACROS} { return PREDEFINED_MACROS; }
+    "precision"         { return PRECISION; }
+    "expand"            { return EXPAND; }
+    "each"              { return EACH; }
+    "functype"          { return FUNCTYPE; }
+    "where"             { return WHERE; }
+
+    "const"             { return CONST; }
+    "in"                { return IN; }
+    "out"               { return OUT; }
+
+    "no_diff"           { return NO_DIFF; }
+    "flat"              { return FLAT; }
+
+    //{PREDEFINED_MACROS} { return PREDEFINED_MACROS; }
 
     {INT_LITERAL}       { return INT_LITERAL; }
     {UINT_LITERAL}      { return UINT_LITERAL; }
@@ -147,7 +165,7 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
                 if (!afterType && !afterStorageType && userDefinedTypes.contains(yytext().toString()))
                 {
                     afterType = true;
-                    return USER_TYPE_NAME;
+                    //return USER_TYPE_NAME;
                 }
                 else if (afterStorageType)
                 {

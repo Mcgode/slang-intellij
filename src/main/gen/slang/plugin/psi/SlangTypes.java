@@ -8,51 +8,38 @@ import slang.plugin.psi.impl.*;
 
 public interface SlangTypes {
 
-  IElementType ARRAY_SPECIFIER = new SlangElementType("ARRAY_SPECIFIER");
-  IElementType ASSIGNMENT_OPERATOR = new SlangElementType("ASSIGNMENT_OPERATOR");
-  IElementType DECLARATION = new SlangElementType("DECLARATION");
-  IElementType DECLARATION_STATEMENT = new SlangElementType("DECLARATION_STATEMENT");
-  IElementType ENUM_DECLARATION = new SlangElementType("ENUM_DECLARATION");
-  IElementType ENUM_MEMBER = new SlangElementType("ENUM_MEMBER");
-  IElementType EXPRESSION = new SlangElementType("EXPRESSION");
-  IElementType EXPRESSION_ASSIGNMENT = new SlangElementType("EXPRESSION_ASSIGNMENT");
-  IElementType EXPRESSION_NO_ASSIGNMENT = new SlangElementType("EXPRESSION_NO_ASSIGNMENT");
-  IElementType FULL_TYPE = new SlangElementType("FULL_TYPE");
-  IElementType INITIALIZER = new SlangElementType("INITIALIZER");
-  IElementType LITERAL = new SlangElementType("LITERAL");
-  IElementType MEMBER_DECLARATION = new SlangElementType("MEMBER_DECLARATION");
-  IElementType NAMESPACE_DECLARATION = new SlangElementType("NAMESPACE_DECLARATION");
-  IElementType POSTFIX_EXPRESSION = new SlangElementType("POSTFIX_EXPRESSION");
-  IElementType PRIMARY_EXPRESSION = new SlangElementType("PRIMARY_EXPRESSION");
-  IElementType PRIMARY_EXPRESSION_VARIABLE = new SlangElementType("PRIMARY_EXPRESSION_VARIABLE");
-  IElementType SCALAR_TYPE = new SlangElementType("SCALAR_TYPE");
-  IElementType SEMANTIC = new SlangElementType("SEMANTIC");
-  IElementType SINGLE_DECLARATION = new SlangElementType("SINGLE_DECLARATION");
-  IElementType STATEMENT = new SlangElementType("STATEMENT");
-  IElementType STORAGE_QUALIFIER = new SlangElementType("STORAGE_QUALIFIER");
+  IElementType ATTRIBUTE = new SlangElementType("ATTRIBUTE");
+  IElementType ATTRIBUTE_IDENTIFIER = new SlangElementType("ATTRIBUTE_IDENTIFIER");
+  IElementType ATTRIBUTE_PARAMETER = new SlangElementType("ATTRIBUTE_PARAMETER");
+  IElementType DECLARATION_MODIFIER = new SlangElementType("DECLARATION_MODIFIER");
+  IElementType EMPTY_DECLARATION = new SlangElementType("EMPTY_DECLARATION");
+  IElementType GLSL_GLOBAL_DECLARATION = new SlangElementType("GLSL_GLOBAL_DECLARATION");
   IElementType STRUCT_DECLARATION = new SlangElementType("STRUCT_DECLARATION");
-  IElementType TYPE_NAME = new SlangElementType("TYPE_NAME");
-  IElementType TYPE_QUALIFIERS = new SlangElementType("TYPE_QUALIFIERS");
-  IElementType TYPE_SPECIFICATION = new SlangElementType("TYPE_SPECIFICATION");
-  IElementType UNARY_EXPRESSION = new SlangElementType("UNARY_EXPRESSION");
-  IElementType VARIABLE_IDENTIFIER = new SlangElementType("VARIABLE_IDENTIFIER");
+  IElementType STRUCT_NAME = new SlangElementType("STRUCT_NAME");
 
   IElementType ADD_ASSIGN = new SlangTokenType("+=");
+  IElementType ADD_OP = new SlangTokenType("+");
   IElementType AND_ASSIGN = new SlangTokenType("&=");
+  IElementType ASSIGN = new SlangTokenType("=");
   IElementType BOOL = new SlangTokenType("bool");
   IElementType BOOL_LITERAL = new SlangTokenType("BOOL_LITERAL");
   IElementType CLASS = new SlangTokenType("class");
   IElementType COLON = new SlangTokenType(":");
   IElementType COMMA = new SlangTokenType(",");
+  IElementType COMPLETION_REQUEST = new SlangTokenType("#?");
   IElementType CONST = new SlangTokenType("const");
   IElementType DIV_ASSIGN = new SlangTokenType("/=");
+  IElementType DIV_OP = new SlangTokenType("/");
   IElementType DOUBLE = new SlangTokenType("double");
   IElementType DOUBLE_LITERAL = new SlangTokenType("DOUBLE_LITERAL");
+  IElementType EACH = new SlangTokenType("each");
   IElementType ENUM = new SlangTokenType("enum");
-  IElementType ENUM_CLASS = new SlangTokenType("ENUM_CLASS");
-  IElementType EQUALS = new SlangTokenType("=");
+  IElementType EXPAND = new SlangTokenType("expand");
+  IElementType FLAT = new SlangTokenType("flat");
   IElementType FLOAT = new SlangTokenType("float");
   IElementType FLOAT_LITERAL = new SlangTokenType("FLOAT_LITERAL");
+  IElementType FUNCTYPE = new SlangTokenType("functype");
+  IElementType GREATER_OP = new SlangTokenType(">");
   IElementType HALF = new SlangTokenType("half");
   IElementType IDENTIFIER = new SlangTokenType("IDENTIFIER");
   IElementType IN = new SlangTokenType("in");
@@ -66,116 +53,64 @@ public interface SlangTypes {
   IElementType LEFT_BRACKET = new SlangTokenType("[");
   IElementType LEFT_PAREN = new SlangTokenType("(");
   IElementType LEFT_SHIFT_ASSIGN = new SlangTokenType("<<=");
+  IElementType LESS_OP = new SlangTokenType("<");
   IElementType LINE_COMMENT = new SlangTokenType("LINE_COMMENT");
   IElementType MOD_ASSIGN = new SlangTokenType("%=");
+  IElementType MOD_OP = new SlangTokenType("%");
   IElementType MULTILINE_COMMENT = new SlangTokenType("MULTILINE_COMMENT");
   IElementType MUL_ASSIGN = new SlangTokenType("*=");
+  IElementType MUL_OP = new SlangTokenType("*");
   IElementType NAMESPACE = new SlangTokenType("namespace");
+  IElementType NO_DIFF = new SlangTokenType("no_diff");
   IElementType OR_ASSIGN = new SlangTokenType("|=");
   IElementType OUT = new SlangTokenType("out");
-  IElementType PREDEFINED_MACROS = new SlangTokenType("PREDEFINED_MACROS");
+  IElementType PRECISION = new SlangTokenType("precision");
   IElementType RIGHT_BRACE = new SlangTokenType("}");
   IElementType RIGHT_BRACKET = new SlangTokenType("]");
   IElementType RIGHT_PAREN = new SlangTokenType(")");
   IElementType RIGHT_SHIFT_ASSIGN = new SlangTokenType(">>=");
+  IElementType SCOPE = new SlangTokenType("::");
   IElementType SEMICOLON = new SlangTokenType(";");
   IElementType STRUCT = new SlangTokenType("struct");
   IElementType SUB_ASSIGN = new SlangTokenType("-=");
+  IElementType SUB_OP = new SlangTokenType("-");
+  IElementType TODO = new SlangTokenType("TODO");
+  IElementType TODO_IDENTIFIER = new SlangTokenType("TODO_IDENTIFIER");
   IElementType UINT16 = new SlangTokenType("uint16_t");
   IElementType UINT32 = new SlangTokenType("uint");
   IElementType UINT64 = new SlangTokenType("uint64_t");
   IElementType UINT8 = new SlangTokenType("uint8_t");
   IElementType UINT_LITERAL = new SlangTokenType("UINT_LITERAL");
-  IElementType USER_TYPE_NAME = new SlangTokenType("USER_TYPE_NAME");
   IElementType VOID = new SlangTokenType("void");
+  IElementType WHERE = new SlangTokenType("where");
   IElementType XOR_ASSIGN = new SlangTokenType("^=");
 
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-      if (type == ARRAY_SPECIFIER) {
-        return new SlangArraySpecifierImpl(node);
+      if (type == ATTRIBUTE) {
+        return new SlangAttributeImpl(node);
       }
-      else if (type == ASSIGNMENT_OPERATOR) {
-        return new SlangAssignmentOperatorImpl(node);
+      else if (type == ATTRIBUTE_IDENTIFIER) {
+        return new SlangAttributeIdentifierImpl(node);
       }
-      else if (type == DECLARATION) {
-        return new SlangDeclarationImpl(node);
+      else if (type == ATTRIBUTE_PARAMETER) {
+        return new SlangAttributeParameterImpl(node);
       }
-      else if (type == DECLARATION_STATEMENT) {
-        return new SlangDeclarationStatementImpl(node);
+      else if (type == DECLARATION_MODIFIER) {
+        return new SlangDeclarationModifierImpl(node);
       }
-      else if (type == ENUM_DECLARATION) {
-        return new SlangEnumDeclarationImpl(node);
+      else if (type == EMPTY_DECLARATION) {
+        return new SlangEmptyDeclarationImpl(node);
       }
-      else if (type == ENUM_MEMBER) {
-        return new SlangEnumMemberImpl(node);
-      }
-      else if (type == EXPRESSION) {
-        return new SlangExpressionImpl(node);
-      }
-      else if (type == EXPRESSION_ASSIGNMENT) {
-        return new SlangExpressionAssignmentImpl(node);
-      }
-      else if (type == EXPRESSION_NO_ASSIGNMENT) {
-        return new SlangExpressionNoAssignmentImpl(node);
-      }
-      else if (type == FULL_TYPE) {
-        return new SlangFullTypeImpl(node);
-      }
-      else if (type == INITIALIZER) {
-        return new SlangInitializerImpl(node);
-      }
-      else if (type == LITERAL) {
-        return new SlangLiteralImpl(node);
-      }
-      else if (type == MEMBER_DECLARATION) {
-        return new SlangMemberDeclarationImpl(node);
-      }
-      else if (type == NAMESPACE_DECLARATION) {
-        return new SlangNamespaceDeclarationImpl(node);
-      }
-      else if (type == POSTFIX_EXPRESSION) {
-        return new SlangPostfixExpressionImpl(node);
-      }
-      else if (type == PRIMARY_EXPRESSION) {
-        return new SlangPrimaryExpressionImpl(node);
-      }
-      else if (type == PRIMARY_EXPRESSION_VARIABLE) {
-        return new SlangPrimaryExpressionVariableImpl(node);
-      }
-      else if (type == SCALAR_TYPE) {
-        return new SlangScalarTypeImpl(node);
-      }
-      else if (type == SEMANTIC) {
-        return new SlangSemanticImpl(node);
-      }
-      else if (type == SINGLE_DECLARATION) {
-        return new SlangSingleDeclarationImpl(node);
-      }
-      else if (type == STATEMENT) {
-        return new SlangStatementImpl(node);
-      }
-      else if (type == STORAGE_QUALIFIER) {
-        return new SlangStorageQualifierImpl(node);
+      else if (type == GLSL_GLOBAL_DECLARATION) {
+        return new SlangGlslGlobalDeclarationImpl(node);
       }
       else if (type == STRUCT_DECLARATION) {
         return new SlangStructDeclarationImpl(node);
       }
-      else if (type == TYPE_NAME) {
-        return new SlangTypeNameImpl(node);
-      }
-      else if (type == TYPE_QUALIFIERS) {
-        return new SlangTypeQualifiersImpl(node);
-      }
-      else if (type == TYPE_SPECIFICATION) {
-        return new SlangTypeSpecificationImpl(node);
-      }
-      else if (type == UNARY_EXPRESSION) {
-        return new SlangUnaryExpressionImpl(node);
-      }
-      else if (type == VARIABLE_IDENTIFIER) {
-        return new SlangVariableIdentifierImpl(node);
+      else if (type == STRUCT_NAME) {
+        return new SlangStructNameImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

@@ -14,11 +14,11 @@ interface SlangTokenSets {
             get() = TokenSet.create(IDENTIFIER)
 
         val VARIABLES: TokenSet
-            get() = TokenSet.create(VARIABLE_IDENTIFIER)
+            get() = TokenSet.create()
 
         val KEYWORDS: TokenSet
             get() = TokenSet.create(
-                NAMESPACE, ENUM, ENUM_CLASS, STRUCT, CLASS, INTERFACE,
+                NAMESPACE, ENUM, STRUCT, CLASS, INTERFACE,
                 CONST, IN, OUT,
                 )
 

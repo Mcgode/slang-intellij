@@ -29,14 +29,32 @@ public class SlangStructDeclarationImpl extends ASTWrapperPsiElement implements 
 
   @Override
   @NotNull
-  public List<SlangMemberDeclaration> getMemberDeclarationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangMemberDeclaration.class);
+  public List<SlangAttribute> getAttributeList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangAttribute.class);
+  }
+
+  @Override
+  @NotNull
+  public List<SlangDeclarationModifier> getDeclarationModifierList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangDeclarationModifier.class);
+  }
+
+  @Override
+  @NotNull
+  public List<SlangEmptyDeclaration> getEmptyDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangEmptyDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<SlangStructDeclaration> getStructDeclarationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangStructDeclaration.class);
   }
 
   @Override
   @Nullable
-  public SlangTypeName getTypeName() {
-    return findChildByClass(SlangTypeName.class);
+  public SlangStructName getStructName() {
+    return findChildByClass(SlangStructName.class);
   }
 
 }

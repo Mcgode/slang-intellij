@@ -39,11 +39,11 @@ class SlangSyntaxHighlighter: SyntaxHighlighterBase() {
     private fun mapTokenToTextAttribute(tokenType: IElementType): TextAttributesKey? {
         return when (tokenType) {
             in (SlangTokenSets.VARIABLES) -> SlangTextAttributes.SLANG_VARIABLE_TEXT
-            SlangTypes.USER_TYPE_NAME -> SlangTextAttributes.SLANG_USER_DEFINED_TYPE_TEXT
+//            SlangTypes.USER_TYPE_NAME -> SlangTextAttributes.SLANG_USER_DEFINED_TYPE_TEXT
             in (SlangTokenSets.BUILTINS) -> SlangTextAttributes.SLANG_BUILTIN_NAME_TEXT
             in (SlangTokenSets.KEYWORDS) -> SlangTextAttributes.SLANG_KEYWORD_TEXT
             in (SlangTokenSets.NUMERIC_LITERALS) -> SlangTextAttributes.SLANG_NUMERIC_LITERALS_TEXT
-            SlangTypes.STRING_LITERAL -> SlangTextAttributes.SLANG_STRING_LITERAL_TEXT
+//            SlangTypes.STRING_LITERAL -> SlangTextAttributes.SLANG_STRING_LITERAL_TEXT
             SlangTypes.BOOL_LITERAL -> SlangTextAttributes.SLANG_KEYWORD_TEXT
             SlangTypes.LINE_COMMENT -> SlangTextAttributes.SLANG_LINE_COMMENT_TEXT
             SlangTypes.MULTILINE_COMMENT -> SlangTextAttributes.SLANG_MULTILINE_COMMENT_TEXT

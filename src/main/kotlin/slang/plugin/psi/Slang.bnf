@@ -22,8 +22,17 @@
         RIGHT_BRACKET="]"
         SEMICOLON=";"
         COLON=":"
-        EQUALS="="
+        ASSIGN="="
         COMMA=","
+        SCOPE="::"
+        COMPLETION_REQUEST="#?"
+        ADD_OP="+"
+        SUB_OP="-"
+        MUL_OP="*"
+        DIV_OP="/"
+        MOD_OP="%"
+        LESS_OP="<"
+        GREATER_OP=">"
         ADD_ASSIGN="+="
         SUB_ASSIGN="-="
         MUL_ASSIGN="*="
@@ -37,7 +46,6 @@
         // Storage types
         NAMESPACE="namespace"
         ENUM="enum"
-        ENUM_CLASS="regexp:enum\s+class"
         CLASS="class"
         STRUCT="struct"
         INTERFACE="interface"
@@ -55,6 +63,12 @@
         HALF="half"
         FLOAT="float"
         DOUBLE="double"
+        // Keywords
+        PRECISION="precision"
+        EXPAND="expand"
+        EACH="each"
+        FUNCTYPE="functype"
+        WHERE="where"
         // Literals
         UINT_LITERAL="regexp:(0x[\da-fA-F]+|\d+|Ob[01]+)u|U"
         INT_LITERAL="regexp:(0x[\da-fA-F]+|\d+|Ob[01]+)"
@@ -65,11 +79,120 @@
         CONST="const"
         IN="in"
         OUT="out"
+        // Modifiers
+        NO_DIFF="no_diff"
+        FLAT="flat"
         // Identifiers
         IDENTIFIER="regexp:[_a-zA-Z][_a-zA-Z0-9]*"
     ]
 }
 
+file ::= base*
+
+private base
+    ::= glsl-global-declaration
+    |   declaration
+
+glsl-global-declaration
+    ::= PRECISION TODO TODO SEMICOLON // TODO: GLSL global declaration proper support (see slang/slang-parser.cpp:4867)
+
+private declaration
+    ::= declaration-modifier* declaration-content
+
+declaration-modifier
+    ::= NO_DIFF
+    |   FLAT
+    |   attribute-container
+//    |   IDENTIFIER // TODO: support user-defined declaration modifiers identifiers (see slang/slang-parser.cpp:1175)
+
+private attribute-container
+    ::= LEFT_BRACKET LEFT_BRACKET attributes RIGHT_BRACKET RIGHT_BRACKET
+    |   LEFT_BRACKET attributes RIGHT_BRACKET
+
+private attributes
+    ::= attribute (COMMA attribute)*
+
+attribute
+    ::= attribute-identifier ( LEFT_PAREN attribute-parameters RIGHT_PAREN )?
+
+attribute-identifier
+    ::= SCOPE? IDENTIFIER (SCOPE IDENTIFIER)*
+
+private attribute-parameters
+    ::= attribute-parameter (COMMA attribute-parameter)*
+
+attribute-parameter
+    ::= TODO // TODO: handle attribute parameters (see slang/slang-parser.cpp:1008)
+
+private declaration-content
+    ::= TODO_IDENTIFIER // TODO: (see slang/slang-parser.cpp:4706)
+    |   SEMICOLON
+    |   empty-declaration
+    |   declarator-declaration
+
+// We shouldn't be seeing an LEFT_BRACE or an LEFT_PAREN when expecting a declaration-content.
+// However recovery logic may lead us here. In this case we just skip the whole `{}` block and return an empty declaration.
+empty-declaration
+    ::= LEFT_BRACE TODO RIGHT_BRACE // TODO: Set up a safe skip method (see slang/slang-parser.cpp:345)
+    |   LEFT_PAREN TODO RIGHT_PAREN // TODO: See above
+
+private declarator-declaration
+    ::= simple-type-specification SEMICOLON
+
+private simple-type-specification
+    ::= inline-type-specification
+    |   type-expression
+
+private inline-type-specification
+    ::= struct-declaration
+    |   class-declaration
+    |   enum-declaration
+    |   prefix-expression-declaration
+    |   functype-declaration
+
+
+struct-declaration
+    ::= struct-header ASSIGN type-expression SEMICOLON
+    |   struct-header SEMICOLON
+    |   struct-header generic-constraints? declaration-body
+
+private class-declaration
+    ::= TODO // TODO: Implement (see slang/slang-parser.cpp:2682)
+
+private enum-declaration
+    ::= TODO // TODO: Implement (see slang/slang-parser.cpp:2689)
+
+private prefix-expression-declaration
+    ::= (EXPAND | EACH) prefix-expression
+
+private prefix-expression
+    ::= TODO // TODO: Implement (see slang/slang-parser.cpp:2696)
+
+private functype-declaration
+    ::= FUNCTYPE TODO // TODO: Implement (see slang/slang-parser.cpp:2707)
+
+private struct-header
+    ::= STRUCT attribute-container? COMPLETION_REQUEST? struct-name? template-specialization? inheritance-clause?
+
+struct-name
+    ::= IDENTIFIER
+
+private template-specialization
+    ::= LESS_OP TODO GREATER_OP // TODO: Implement (see slang/slang-parser.cpp:1637)
+
+private inheritance-clause
+    ::= COLON type-expression (COMMA type-expression)*
+
+private type-expression
+    ::= TODO // TODO: Implement (see slang/slang-parser.cpp:3412)
+
+private generic-constraints
+    ::= WHERE TODO // TODO: Implement (see slang/slang-parser.cpp:1654)
+
+private declaration-body
+    ::= LEFT_BRACE declaration* RIGHT_BRACE
+
+/*
 file ::= base*
 
 private base
@@ -210,6 +333,8 @@ member-declaration
 
 semantic
     ::= IDENTIFIER
+
+ */
 
 
 

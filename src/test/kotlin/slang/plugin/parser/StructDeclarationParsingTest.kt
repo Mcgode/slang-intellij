@@ -14,6 +14,18 @@ class StructDeclarationParsingTest: ParsingTestCase(
         return "src/test/testData"
     }
 
+    fun testBasicEmpty() {
+        doTest(true)
+    }
+
+    fun testNamedEmpty() {
+        doTest(true)
+    }
+
+    fun testInheritance() {
+        doTest(true)
+    }
+
     fun testBasic() {
         doTest(true);
     }
