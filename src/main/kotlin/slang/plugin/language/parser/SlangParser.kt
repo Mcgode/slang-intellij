@@ -61,7 +61,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             return false
 
         while (true) {
-            when (SlangPsiUtil.nextToken(builder)) {
+            when (builder.tokenType) {
                 SlangTypes.IDENTIFIER -> {
                     if (tryParseUsingSyntaxDecl(builder, level))
                         continue
@@ -70,7 +70,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                     else if (enableGlslCode)
                         if (consumeToken(builder, "flat"))
                             continue
-                    return false
+                    break
                 }
                 SlangTypes.LEFT_BRACKET -> {
                     if (!parseSquareBracketAttributes(builder, level))
@@ -87,8 +87,12 @@ open class SlangParser: PsiParser, LightPsiParser {
         if (!recursion_guard_(builder, level, "parseDeclWithModifiers"))
             return false
 
-        when (SlangPsiUtil.nextToken(builder)) {
-            SlangTypes.IDENTIFIER -> return false // TODO: see slang/slang-parser.cpp:4706
+        when (builder.tokenType) {
+            SlangTypes.IDENTIFIER -> {
+                // TODO: see slang/slang-parser.cpp:4706
+
+                return parseDeclaratorDecl(builder, level)
+            }
 
             // It is valid in HLSL/GLSL to have an "empty" declaration
             // that consists of just a semicolon. In particular, this
@@ -186,7 +190,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         // TODO: see slang/slang-parser.cpp:2916
 
         while (result) {
-            when (SlangPsiUtil.nextToken(builder)) {
+            when (builder.tokenType) {
                 SlangTypes.COMMA -> {
                     val markerB = enter_section_(builder)
                     result = parseInitDeclarator(builder, level + 1)
@@ -216,7 +220,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             return false
 
         while (true) {
-            when (SlangPsiUtil.nextToken(builder)) {
+            when (builder.tokenType) {
                 SlangTypes.LEFT_BRACKET -> {
                     val marker = enter_section_(builder)
                     var result = consumeToken(builder, SlangTypes.LEFT_BRACKET)
@@ -292,7 +296,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result = true
 
-        when (SlangPsiUtil.nextToken(builder)) {
+        when (builder.tokenType) {
             SlangTypes.IDENTIFIER -> {
                 val marker = enter_section_(builder)
                 result = consumeToken(builder, SlangTypes.IDENTIFIER)
@@ -327,7 +331,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         // Postfix additions
         while (result) {
-            when (SlangPsiUtil.nextToken(builder)) {
+            when (builder.tokenType) {
                 SlangTypes.LEFT_BRACKET -> {
                     val marker = enter_section_(builder, level, _LEFT_, SlangTypes.ARRAY_DECLARATOR, null)
                     result = consumeToken(builder, SlangTypes.LEFT_BRACKET)
@@ -388,7 +392,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         typeSpec.expr = true
 
         while (result) {
-            when (SlangPsiUtil.nextToken(builder)) {
+            when (builder.tokenType) {
                 SlangTypes.LESS_OP -> {
                     result = parseGenericApp(builder, level)
                 }
@@ -508,9 +512,9 @@ open class SlangParser: PsiParser, LightPsiParser {
         var result = consumeToken(builder, SlangTypes.LEFT_BRACE)
         while (result)
         {
-            when (SlangPsiUtil.nextToken(builder)) {
-                SlangTypes.RIGHT_BRACKET -> {
-                    result = consumeToken(builder, SlangTypes.RIGHT_BRACKET)
+            when (builder.tokenType) {
+                SlangTypes.RIGHT_BRACE -> {
+                    result = consumeToken(builder, SlangTypes.RIGHT_BRACE)
                     break
                 }
                 else -> result = parseDecl(builder, level + 1)

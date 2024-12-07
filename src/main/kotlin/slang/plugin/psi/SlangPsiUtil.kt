@@ -10,10 +10,6 @@ import slang.plugin.psi.types.SlangTypes
 
 object SlangPsiUtil: SlangParserUtil() {
 
-    @JvmStatic fun nextToken(builder: PsiBuilder): IElementType? {
-        return builder.lookAhead(1)
-    }
-
     @JvmStatic fun skipToMatchingToken(builder: PsiBuilder, tokenType: IElementType): IElementType? {
         while (true) {
             if (builder.eof())
