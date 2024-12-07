@@ -287,7 +287,53 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseOptSemantics(builder: PsiBuilder, level: Int): Boolean {
-        return true // TODO: see slang/slang-parser.cpp:2098
+        if (!recursion_guard_(builder, level, "parseOptSemantics"))
+            return false
+
+        if (!consumeToken(builder, SlangTypes.COLON))
+            return true
+
+        var result = true
+        while (result) {
+            result = parseSemantic(builder, level)
+
+            // If we see a '<', ignore the remaining.
+            if (nextTokenIs(builder, SlangTypes.LESS_OP))
+            {
+                builder.advanceLexer();
+                while (true) {
+                    if (builder.eof()) {
+                        break
+                    } else if (nextTokenIs(builder, SlangTypes.GREATER_OP)) {
+                        builder.advanceLexer();
+                        break;
+                    } else {
+                        builder.advanceLexer();
+                    }
+                }
+            }
+
+            // If we see another `:`, then that means there
+            // is yet another semantic to be processed.
+            // Otherwise we assume we are at the end of the list.
+            //
+            // TODO: This could produce sub-optimal diagnostics
+            // when the user *meant* to apply multiple semantics
+            // to a single declaration:
+            //
+            //     Foo foo : register(t0)   register(s0);
+            //                            ^
+            //         missing ':' here   |
+            //
+            // However, that is an uncommon occurence, and trying
+            // to continue parsing semantics here even if we didn't
+            // see a colon forces us to be careful about
+            // avoiding an infinite loop here.
+            if (!consumeToken(builder, SlangTypes.COLON)) {
+                return result
+            }
+        }
+        return false
     }
 
     private fun parseDirectAbstractDeclarator(builder: PsiBuilder, level: Int): Boolean {
@@ -525,4 +571,47 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
+    private fun parseSemantic(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseSemantic"))
+            return false
+
+        if (nextTokenIs(builder, "register")) {
+            return parseHlslRegisterSemantic(builder, level)
+        } else if (nextTokenIs(builder, "packoffset")) {
+            return parseHlslPackOffsetSemantic(builder, level)
+        } else if (nextTokenIs(builder, "read") && builder.lookAhead(1) == SlangTypes.LEFT_PAREN) {
+            return parseRayPayloadAccessSemantic(builder, level, false)
+        } else if (nextTokenIs(builder, "write") && builder.lookAhead(1) == SlangTypes.LEFT_PAREN) {
+            return parseRayPayloadAccessSemantic(builder, level, true)
+        } else if (nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+            val marker = enter_section_(builder)
+            val result = consumeToken(builder, SlangTypes.IDENTIFIER)
+            exit_section_(builder, marker, SlangTypes.HLSL_SIMPLE_SEMANTIC, result)
+            return result
+        } else if (nextTokenIs(builder, SlangTypes.INTEGER_LITERAL)) {
+            val marker = enter_section_(builder)
+            val result = consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+            exit_section_(builder, marker, SlangTypes.BITFIELD_MODIFIER, result)
+            return result
+        } else if (nextTokenIs(builder, SlangTypes.COMPLETION_REQUEST)) {
+            val marker = enter_section_(builder)
+            val result = consumeToken(builder, SlangTypes.COMPLETION_REQUEST)
+            exit_section_(builder, marker, SlangTypes.HLSL_SIMPLE_SEMANTIC, result)
+            return result
+        }
+        // expect an identifier, just to produce an error message
+        return consumeToken(builder, SlangTypes.IDENTIFIER)
+    }
+
+    private fun parseHlslRegisterSemantic(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:3024
+    }
+
+    private fun parseHlslPackOffsetSemantic(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:3024
+    }
+
+    private fun parseRayPayloadAccessSemantic(builder: PsiBuilder, level: Int, write: Boolean): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:3093
+    }
 }

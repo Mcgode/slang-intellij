@@ -17,6 +17,8 @@ object SlangTypes {
     val ARRAY_SPECIFIER = SlangElementType("ARRAY_SPECIFIER")
     val STRUCT_DECLARATION = SlangElementType("STRUCT_DECLARATION")
     val STRUCT_NAME = SlangElementType("STRUCT_NAME")
+    val HLSL_SIMPLE_SEMANTIC = SlangElementType("HLSL_SIMPLE_SEMANTIC")
+    val BITFIELD_MODIFIER = SlangElementType("BITFIELD_MODIFIER")
 
     val LEFT_BRACE = SlangTokenType("{")
     val RIGHT_BRACE = SlangTokenType("}")
@@ -33,6 +35,8 @@ object SlangTypes {
     val DOT = SlangTokenType(".")
     val MUL_OP = SlangTokenType("*")
     val LESS_OP = SlangTokenType("<")
+    val GREATER_OP = SlangTokenType(">")
+    val INTEGER_LITERAL = SlangTokenType("INTEGER_LITERAL")
     val IDENTIFIER = SlangTokenType("IDENTIFIER")
 
     class Factory {
@@ -41,7 +45,9 @@ object SlangTypes {
                 when (node?.elementType) {
                     ARRAY_DECLARATOR -> return SlangArrayDeclaratorImpl(node)
                     ARRAY_SPECIFIER -> return SlangArraySpecifierImpl(node)
+                    BITFIELD_MODIFIER -> return SlangBitfieldModifierImpl(node)
                     BODY_DECL -> return SlangBodyDeclImpl(node)
+                    HLSL_SIMPLE_SEMANTIC -> return SlangHlslSimpleSemanticImpl(node)
                     INIT_DECLARATOR -> return SlangInitDeclaratorImpl(node)
                     NAME_DECLARATOR -> return SlangNameDeclaratorImpl(node)
                     POINTER_DECLARATOR -> return SlangPointerDeclaratorImpl(node)

@@ -58,7 +58,7 @@ FLOATING_SUFFIX_DOUBLE="lf"|"LF"
 
 HEXA={HEXA_PREFIX}{HEXA_DIGIT}+
 INT_LITERAL={DIGITS}|{HEXA}
-UINT_LITERAL={INT_LITERAL}{UNSIGNED}
+INTEGER_LITERAL={INT_LITERAL}{UNSIGNED}?
 
 FRACTIONAL=(({DIGITS}"."{DIGITS})|({DIGITS}".")|("."{DIGITS})){EXPONENT}?
 FRACTIONAL2={DIGITS}{EXPONENT}
@@ -107,7 +107,7 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     "/"                 { return DIV_OP; }
     "%"                 { return MOD_OP; }
     "<"                 { return INSTANCE.getLESS_OP(); }
-    ">"                 { return GREATER_OP; }
+    ">"                 { return INSTANCE.getGREATER_OP(); }
     "&"                 { return BITWISE_AND_OP; }
     "|"                 { return BITWISE_OR_OP; }
     "^"                 { return BITWISE_XOR_OP; }
@@ -124,8 +124,7 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     "<<="               { return LEFT_SHIFT_ASSIGN; }
     ">>="               { return RIGHT_SHIFT_ASSIGN; }
 
-    {INT_LITERAL}       { return INT_LITERAL; }
-    {UINT_LITERAL}      { return UINT_LITERAL; }
+    {INTEGER_LITERAL}   { return INSTANCE.getINTEGER_LITERAL(); }
     {FLOAT_LITERAL}     { return FLOAT_LITERAL; }
     {DOUBLE_LITERAL}    { return DOUBLE_LITERAL; }
     {IDENTIFIER}        { return INSTANCE.getIDENTIFIER(); }

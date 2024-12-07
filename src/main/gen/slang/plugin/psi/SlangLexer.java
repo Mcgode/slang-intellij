@@ -130,8 +130,8 @@ public class SlangLexer implements FlexLexer {
     "\1\17\1\20\1\21\1\22\1\23\1\24\1\1\1\25"+
     "\1\26\1\27\1\30\1\31\1\32\3\33\1\34\1\35"+
     "\1\36\1\37\1\40\1\41\1\42\1\43\1\44\1\45"+
-    "\1\0\1\46\1\0\1\47\3\0\1\2\1\50\1\51"+
-    "\1\52\1\42\3\0\1\42\1\15\1\53\1\54\1\55";
+    "\1\0\1\15\1\0\1\46\3\0\1\2\1\47\1\50"+
+    "\1\51\1\42\3\0\1\42\1\15\1\52\1\53\1\54";
 
   private static int [] zzUnpackAction() {
     int [] result = new int[64];
@@ -591,227 +591,222 @@ public class SlangLexer implements FlexLexer {
             { return BAD_CHARACTER;
             }
           // fall through
-          case 46: break;
+          case 45: break;
           case 2:
             { return WHITE_SPACE;
             }
           // fall through
-          case 47: break;
+          case 46: break;
           case 3:
             { return MOD_OP;
             }
           // fall through
-          case 48: break;
+          case 47: break;
           case 4:
             { return BITWISE_AND_OP;
             }
           // fall through
-          case 49: break;
+          case 48: break;
           case 5:
             { return INSTANCE.getLEFT_PAREN();
             }
           // fall through
-          case 50: break;
+          case 49: break;
           case 6:
             { return INSTANCE.getRIGHT_PAREN();
             }
           // fall through
-          case 51: break;
+          case 50: break;
           case 7:
             { return INSTANCE.getMUL_OP();
             }
           // fall through
-          case 52: break;
+          case 51: break;
           case 8:
             { return ADD_OP;
             }
           // fall through
-          case 53: break;
+          case 52: break;
           case 9:
             { return INSTANCE.getCOMMA();
             }
           // fall through
-          case 54: break;
+          case 53: break;
           case 10:
             { return SUB_OP;
             }
           // fall through
-          case 55: break;
+          case 54: break;
           case 11:
             { return INSTANCE.getDOT();
             }
           // fall through
-          case 56: break;
+          case 55: break;
           case 12:
             { return DIV_OP;
             }
           // fall through
-          case 57: break;
+          case 56: break;
           case 13:
-            { return INT_LITERAL;
+            { return INSTANCE.getINTEGER_LITERAL();
             }
           // fall through
-          case 58: break;
+          case 57: break;
           case 14:
             { return INSTANCE.getCOLON();
             }
           // fall through
-          case 59: break;
+          case 58: break;
           case 15:
             { return INSTANCE.getSEMICOLON();
             }
           // fall through
-          case 60: break;
+          case 59: break;
           case 16:
             { return INSTANCE.getLESS_OP();
             }
           // fall through
-          case 61: break;
+          case 60: break;
           case 17:
             { return INSTANCE.getASSIGN();
             }
           // fall through
-          case 62: break;
+          case 61: break;
           case 18:
             { return GREATER_OP;
             }
           // fall through
-          case 63: break;
+          case 62: break;
           case 19:
             { return INSTANCE.getIDENTIFIER();
             }
           // fall through
-          case 64: break;
+          case 63: break;
           case 20:
             { return INSTANCE.getLEFT_BRACKET();
             }
           // fall through
-          case 65: break;
+          case 64: break;
           case 21:
             { return INSTANCE.getRIGHT_BRACKET();
             }
           // fall through
-          case 66: break;
+          case 65: break;
           case 22:
             { return BITWISE_XOR_OP;
             }
           // fall through
-          case 67: break;
+          case 66: break;
           case 23:
             { return INSTANCE.getLEFT_BRACE();
             }
           // fall through
-          case 68: break;
+          case 67: break;
           case 24:
             { return BITWISE_OR_OP;
             }
           // fall through
-          case 69: break;
+          case 68: break;
           case 25:
             { return INSTANCE.getRIGHT_BRACE();
             }
           // fall through
-          case 70: break;
+          case 69: break;
           case 26:
             { return BITWISE_NOT_OP;
             }
           // fall through
-          case 71: break;
+          case 70: break;
           case 27:
             { return MULTILINE_COMMENT;
             }
           // fall through
-          case 72: break;
+          case 71: break;
           case 28:
             { return INSTANCE.getCOMPLETION_REQUEST();
             }
           // fall through
-          case 73: break;
+          case 72: break;
           case 29:
             { return MOD_ASSIGN;
             }
           // fall through
-          case 74: break;
+          case 73: break;
           case 30:
             { return AND_ASSIGN;
             }
           // fall through
-          case 75: break;
+          case 74: break;
           case 31:
             { return MUL_ASSIGN;
             }
           // fall through
-          case 76: break;
+          case 75: break;
           case 32:
             { return ADD_ASSIGN;
             }
           // fall through
-          case 77: break;
+          case 76: break;
           case 33:
             { return SUB_ASSIGN;
             }
           // fall through
-          case 78: break;
+          case 77: break;
           case 34:
             { return FLOAT_LITERAL;
             }
           // fall through
-          case 79: break;
+          case 78: break;
           case 35:
             { yybegin(MULTILINE_COMMENT_STATE); return MULTILINE_COMMENT;
             }
           // fall through
-          case 80: break;
+          case 79: break;
           case 36:
             { return LINE_COMMENT;
             }
           // fall through
-          case 81: break;
+          case 80: break;
           case 37:
             { return DIV_ASSIGN;
             }
           // fall through
-          case 82: break;
+          case 81: break;
           case 38:
-            { return UINT_LITERAL;
-            }
-          // fall through
-          case 83: break;
-          case 39:
             { return INSTANCE.getSCOPE();
             }
           // fall through
-          case 84: break;
-          case 40:
+          case 82: break;
+          case 39:
             { return XOR_ASSIGN;
             }
           // fall through
-          case 85: break;
-          case 41:
+          case 83: break;
+          case 40:
             { return OR_ASSIGN;
             }
           // fall through
-          case 86: break;
-          case 42:
+          case 84: break;
+          case 41:
             { yybegin(YYINITIAL); return MULTILINE_COMMENT;
             }
           // fall through
-          case 87: break;
-          case 43:
+          case 85: break;
+          case 42:
             { return LEFT_SHIFT_ASSIGN;
             }
           // fall through
-          case 88: break;
-          case 44:
+          case 86: break;
+          case 43:
             { return RIGHT_SHIFT_ASSIGN;
             }
           // fall through
-          case 89: break;
-          case 45:
+          case 87: break;
+          case 44:
             { return DOUBLE_LITERAL;
             }
           // fall through
-          case 90: break;
+          case 88: break;
           default:
             zzScanError(ZZ_NO_MATCH);
           }
