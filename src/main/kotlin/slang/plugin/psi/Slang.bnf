@@ -33,6 +33,10 @@
         MOD_OP="%"
         LESS_OP="<"
         GREATER_OP=">"
+        BITWISE_AND_OP="&"
+        BITWISE_OR_OP="|"
+        BITWISE_XOR_OP="^"
+        BITWISE_NOT_OP="~"
         ADD_ASSIGN="+="
         SUB_ASSIGN="-="
         MUL_ASSIGN="*="
@@ -137,11 +141,14 @@ empty-declaration
     |   LEFT_PAREN TODO RIGHT_PAREN // TODO: See above
 
 private declarator-declaration
-    ::= simple-type-specification SEMICOLON
+    ::= type-specification SEMICOLON
+
+private type-specification
+    ::= simple-type-specification
 
 private simple-type-specification
     ::= inline-type-specification
-    |   type-expression
+    |   TODO // TODO: Implement (see slang/slang-parser.cpp:2717)
 
 private inline-type-specification
     ::= struct-declaration
@@ -184,13 +191,34 @@ private inheritance-clause
     ::= COLON type-expression (COMMA type-expression)*
 
 private type-expression
-    ::= TODO // TODO: Implement (see slang/slang-parser.cpp:3412)
+    ::= postfix-type-expression type-expression-suffix
 
 private generic-constraints
     ::= WHERE TODO // TODO: Implement (see slang/slang-parser.cpp:1654)
 
 private declaration-body
     ::= LEFT_BRACE declaration* RIGHT_BRACE
+
+private postfix-type-expression
+    ::= atomic-type-expression postfix-type-expression-suffix
+
+private type-expression-suffix
+    ::= (BITWISE_AND_OP postfix-type-expression)*
+
+private atomic-type-expression
+    ::= type-specification
+
+private postfix-type-expression-suffix
+    ::= (array-specifier | pointer-specifier)*
+
+array-specifier
+    ::= LEFT_BRACKET expression? RIGHT_BRACKET
+
+pointer-specifier
+    ::= MUL_OP
+
+expression
+    ::= TODO // TODO: Implement (see slang/slang-parser.cpp:6328)
 
 /*
 file ::= base*

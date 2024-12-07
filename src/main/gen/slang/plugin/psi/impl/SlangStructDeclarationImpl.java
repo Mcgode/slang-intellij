@@ -29,6 +29,12 @@ public class SlangStructDeclarationImpl extends ASTWrapperPsiElement implements 
 
   @Override
   @NotNull
+  public List<SlangArraySpecifier> getArraySpecifierList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangArraySpecifier.class);
+  }
+
+  @Override
+  @NotNull
   public List<SlangAttribute> getAttributeList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangAttribute.class);
   }
@@ -43,6 +49,12 @@ public class SlangStructDeclarationImpl extends ASTWrapperPsiElement implements 
   @NotNull
   public List<SlangEmptyDeclaration> getEmptyDeclarationList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangEmptyDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<SlangPointerSpecifier> getPointerSpecifierList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, SlangPointerSpecifier.class);
   }
 
   @Override

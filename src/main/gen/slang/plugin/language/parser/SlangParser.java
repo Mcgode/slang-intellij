@@ -36,6 +36,33 @@ public class SlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // LEFT_BRACKET expression? RIGHT_BRACKET
+  public static boolean array_specifier(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "array_specifier")) return false;
+    if (!nextTokenIs(b, LEFT_BRACKET)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, LEFT_BRACKET);
+    r = r && array_specifier_1(b, l + 1);
+    r = r && consumeToken(b, RIGHT_BRACKET);
+    exit_section_(b, m, ARRAY_SPECIFIER, r);
+    return r;
+  }
+
+  // expression?
+  private static boolean array_specifier_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "array_specifier_1")) return false;
+    expression(b, l + 1);
+    return true;
+  }
+
+  /* ********************************************************** */
+  // type-specification
+  static boolean atomic_type_expression(PsiBuilder b, int l) {
+    return type_specification(b, l + 1);
+  }
+
+  /* ********************************************************** */
   // attribute-identifier ( LEFT_PAREN attribute-parameters RIGHT_PAREN )?
   public static boolean attribute(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "attribute")) return false;
@@ -325,12 +352,12 @@ public class SlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // simple-type-specification SEMICOLON
+  // type-specification SEMICOLON
   static boolean declarator_declaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "declarator_declaration")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = simple_type_specification(b, l + 1);
+    r = type_specification(b, l + 1);
     r = r && consumeToken(b, SEMICOLON);
     exit_section_(b, m, null, r);
     return r;
@@ -354,6 +381,18 @@ public class SlangParser implements PsiParser, LightPsiParser {
   // TODO
   static boolean enum_declaration(PsiBuilder b, int l) {
     return consumeToken(b, TODO);
+  }
+
+  /* ********************************************************** */
+  // TODO
+  public static boolean expression(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "expression")) return false;
+    if (!nextTokenIs(b, TODO)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, TODO);
+    exit_section_(b, m, EXPRESSION, r);
+    return r;
   }
 
   /* ********************************************************** */
@@ -458,6 +497,51 @@ public class SlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // MUL_OP
+  public static boolean pointer_specifier(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "pointer_specifier")) return false;
+    if (!nextTokenIs(b, MUL_OP)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, MUL_OP);
+    exit_section_(b, m, POINTER_SPECIFIER, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // atomic-type-expression postfix-type-expression-suffix
+  static boolean postfix_type_expression(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfix_type_expression")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = atomic_type_expression(b, l + 1);
+    r = r && postfix_type_expression_suffix(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // (array-specifier | pointer-specifier)*
+  static boolean postfix_type_expression_suffix(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfix_type_expression_suffix")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!postfix_type_expression_suffix_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "postfix_type_expression_suffix", c)) break;
+    }
+    return true;
+  }
+
+  // array-specifier | pointer-specifier
+  private static boolean postfix_type_expression_suffix_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfix_type_expression_suffix_0")) return false;
+    boolean r;
+    r = array_specifier(b, l + 1);
+    if (!r) r = pointer_specifier(b, l + 1);
+    return r;
+  }
+
+  /* ********************************************************** */
   // TODO
   static boolean prefix_expression(PsiBuilder b, int l) {
     return consumeToken(b, TODO);
@@ -487,12 +571,12 @@ public class SlangParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // inline-type-specification
-  //     |   type-expression
+  //     |   TODO
   static boolean simple_type_specification(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "simple_type_specification")) return false;
     boolean r;
     r = inline_type_specification(b, l + 1);
-    if (!r) r = type_expression(b, l + 1);
+    if (!r) r = consumeToken(b, TODO);
     return r;
   }
 
@@ -632,9 +716,44 @@ public class SlangParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // TODO
+  // postfix-type-expression type-expression-suffix
   static boolean type_expression(PsiBuilder b, int l) {
-    return consumeToken(b, TODO);
+    if (!recursion_guard_(b, l, "type_expression")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = postfix_type_expression(b, l + 1);
+    r = r && type_expression_suffix(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // (BITWISE_AND_OP postfix-type-expression)*
+  static boolean type_expression_suffix(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "type_expression_suffix")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!type_expression_suffix_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "type_expression_suffix", c)) break;
+    }
+    return true;
+  }
+
+  // BITWISE_AND_OP postfix-type-expression
+  private static boolean type_expression_suffix_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "type_expression_suffix_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, BITWISE_AND_OP);
+    r = r && postfix_type_expression(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // simple-type-specification
+  static boolean type_specification(PsiBuilder b, int l) {
+    return simple_type_specification(b, l + 1);
   }
 
 }

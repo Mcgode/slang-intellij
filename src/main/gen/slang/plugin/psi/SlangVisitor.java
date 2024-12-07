@@ -7,6 +7,10 @@ import com.intellij.psi.PsiElement;
 
 public class SlangVisitor extends PsiElementVisitor {
 
+  public void visitArraySpecifier(@NotNull SlangArraySpecifier o) {
+    visitPsiElement(o);
+  }
+
   public void visitAttribute(@NotNull SlangAttribute o) {
     visitPsiElement(o);
   }
@@ -27,7 +31,15 @@ public class SlangVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitExpression(@NotNull SlangExpression o) {
+    visitPsiElement(o);
+  }
+
   public void visitGlslGlobalDeclaration(@NotNull SlangGlslGlobalDeclaration o) {
+    visitPsiElement(o);
+  }
+
+  public void visitPointerSpecifier(@NotNull SlangPointerSpecifier o) {
     visitPsiElement(o);
   }
 

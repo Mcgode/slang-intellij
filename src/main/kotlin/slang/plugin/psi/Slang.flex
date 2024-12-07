@@ -109,6 +109,10 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     "%"                 { return MOD_OP; }
     "<"                 { return LESS_OP; }
     ">"                 { return GREATER_OP; }
+    "&"                 { return BITWISE_AND_OP; }
+    "|"                 { return BITWISE_OR_OP; }
+    "^"                 { return BITWISE_XOR_OP; }
+    "~"                 { return BITWISE_NOT_OP; }
 
     "+="                { return ADD_ASSIGN; }
     "-="                { return SUB_ASSIGN; }

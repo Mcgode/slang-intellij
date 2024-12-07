@@ -8,12 +8,15 @@ import slang.plugin.psi.impl.*;
 
 public interface SlangTypes {
 
+  IElementType ARRAY_SPECIFIER = new SlangElementType("ARRAY_SPECIFIER");
   IElementType ATTRIBUTE = new SlangElementType("ATTRIBUTE");
   IElementType ATTRIBUTE_IDENTIFIER = new SlangElementType("ATTRIBUTE_IDENTIFIER");
   IElementType ATTRIBUTE_PARAMETER = new SlangElementType("ATTRIBUTE_PARAMETER");
   IElementType DECLARATION_MODIFIER = new SlangElementType("DECLARATION_MODIFIER");
   IElementType EMPTY_DECLARATION = new SlangElementType("EMPTY_DECLARATION");
+  IElementType EXPRESSION = new SlangElementType("EXPRESSION");
   IElementType GLSL_GLOBAL_DECLARATION = new SlangElementType("GLSL_GLOBAL_DECLARATION");
+  IElementType POINTER_SPECIFIER = new SlangElementType("POINTER_SPECIFIER");
   IElementType STRUCT_DECLARATION = new SlangElementType("STRUCT_DECLARATION");
   IElementType STRUCT_NAME = new SlangElementType("STRUCT_NAME");
 
@@ -21,6 +24,10 @@ public interface SlangTypes {
   IElementType ADD_OP = new SlangTokenType("+");
   IElementType AND_ASSIGN = new SlangTokenType("&=");
   IElementType ASSIGN = new SlangTokenType("=");
+  IElementType BITWISE_AND_OP = new SlangTokenType("&");
+  IElementType BITWISE_NOT_OP = new SlangTokenType("~");
+  IElementType BITWISE_OR_OP = new SlangTokenType("|");
+  IElementType BITWISE_XOR_OP = new SlangTokenType("^");
   IElementType BOOL = new SlangTokenType("bool");
   IElementType BOOL_LITERAL = new SlangTokenType("BOOL_LITERAL");
   IElementType CLASS = new SlangTokenType("class");
@@ -88,7 +95,10 @@ public interface SlangTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-      if (type == ATTRIBUTE) {
+      if (type == ARRAY_SPECIFIER) {
+        return new SlangArraySpecifierImpl(node);
+      }
+      else if (type == ATTRIBUTE) {
         return new SlangAttributeImpl(node);
       }
       else if (type == ATTRIBUTE_IDENTIFIER) {
@@ -103,8 +113,14 @@ public interface SlangTypes {
       else if (type == EMPTY_DECLARATION) {
         return new SlangEmptyDeclarationImpl(node);
       }
+      else if (type == EXPRESSION) {
+        return new SlangExpressionImpl(node);
+      }
       else if (type == GLSL_GLOBAL_DECLARATION) {
         return new SlangGlslGlobalDeclarationImpl(node);
+      }
+      else if (type == POINTER_SPECIFIER) {
+        return new SlangPointerSpecifierImpl(node);
       }
       else if (type == STRUCT_DECLARATION) {
         return new SlangStructDeclarationImpl(node);

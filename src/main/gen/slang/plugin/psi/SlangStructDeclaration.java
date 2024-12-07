@@ -8,6 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface SlangStructDeclaration extends PsiElement {
 
   @NotNull
+  List<SlangArraySpecifier> getArraySpecifierList();
+
+  @NotNull
   List<SlangAttribute> getAttributeList();
 
   @NotNull
@@ -15,6 +18,9 @@ public interface SlangStructDeclaration extends PsiElement {
 
   @NotNull
   List<SlangEmptyDeclaration> getEmptyDeclarationList();
+
+  @NotNull
+  List<SlangPointerSpecifier> getPointerSpecifierList();
 
   @NotNull
   List<SlangStructDeclaration> getStructDeclarationList();
