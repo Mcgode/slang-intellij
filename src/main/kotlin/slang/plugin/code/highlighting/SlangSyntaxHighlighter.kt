@@ -10,7 +10,7 @@ import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import slang.plugin.psi.SlangLexerAdapter
 import slang.plugin.psi.SlangTokenSets
-import slang.plugin.psi.SlangTypes
+import slang.plugin.psi.SlangOldTypes
 
 class SlangSyntaxHighlighter: SyntaxHighlighterBase() {
 
@@ -44,12 +44,12 @@ class SlangSyntaxHighlighter: SyntaxHighlighterBase() {
             in (SlangTokenSets.KEYWORDS) -> SlangTextAttributes.SLANG_KEYWORD_TEXT
             in (SlangTokenSets.NUMERIC_LITERALS) -> SlangTextAttributes.SLANG_NUMERIC_LITERALS_TEXT
 //            SlangTypes.STRING_LITERAL -> SlangTextAttributes.SLANG_STRING_LITERAL_TEXT
-            SlangTypes.BOOL_LITERAL -> SlangTextAttributes.SLANG_KEYWORD_TEXT
-            SlangTypes.LINE_COMMENT -> SlangTextAttributes.SLANG_LINE_COMMENT_TEXT
-            SlangTypes.MULTILINE_COMMENT -> SlangTextAttributes.SLANG_MULTILINE_COMMENT_TEXT
-            SlangTypes.COMMA -> SlangTextAttributes.SLANG_COMMA_TEXT
+            SlangOldTypes.BOOL_LITERAL -> SlangTextAttributes.SLANG_KEYWORD_TEXT
+            SlangOldTypes.LINE_COMMENT -> SlangTextAttributes.SLANG_LINE_COMMENT_TEXT
+            SlangOldTypes.MULTILINE_COMMENT -> SlangTextAttributes.SLANG_MULTILINE_COMMENT_TEXT
+            SlangOldTypes.COMMA -> SlangTextAttributes.SLANG_COMMA_TEXT
 //            SlangTypes.DOT -> SlangTextAttributes.SLANG_DOT_TEXT
-            SlangTypes.SEMICOLON -> SlangTextAttributes.SLANG_SEMICOLON_TEXT
+            SlangOldTypes.SEMICOLON -> SlangTextAttributes.SLANG_SEMICOLON_TEXT
             TokenType.BAD_CHARACTER -> SlangTextAttributes.SLANG_BAD_CHARACTER_TEXT
             else -> null
         }

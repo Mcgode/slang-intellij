@@ -1,31 +1,19 @@
 {
-    parserClass="slang.plugin.language.parser.SlangParser"
+    parserClass="slang.plugin.language.parser.SlangOldParser"
     parserUtilClass="slang.plugin.psi.SlangPsiUtil"
 
-    psiClassPrefix="Slang"
+    psiClassPrefix="SlangOld"
     psiImplClassSuffix="Impl"
     psiPackage="slang.plugin.psi"
     psiImplPackage="slang.plugin.psi.impl"
 
-    elementTypeHolderClass="slang.plugin.psi.SlangTypes"
+    elementTypeHolderClass="slang.plugin.psi.SlangOldTypes"
     elementTypeClass="slang.plugin.psi.SlangElementType"
     tokenTypeClass="slang.plugin.psi.SlangTokenType"
 
     tokens=[
         LINE_COMMENT="regexp://+.*"
         MULTILINE_COMMENT="regexp:/\*([\s\S]*?)\*/[ \t\n\x0B\f\r]*"
-        LEFT_BRACE="{"
-        RIGHT_BRACE="}"
-        LEFT_PAREN="("
-        RIGHT_PAREN=")"
-        LEFT_BRACKET="["
-        RIGHT_BRACKET="]"
-        SEMICOLON=";"
-        COLON=":"
-        ASSIGN="="
-        COMMA=","
-        SCOPE="::"
-        COMPLETION_REQUEST="#?"
         ADD_OP="+"
         SUB_OP="-"
         MUL_OP="*"
@@ -97,13 +85,13 @@ private base
     ::= glsl-global-declaration
     |   declaration
 
-glsl-global-declaration
+private glsl-global-declaration
     ::= PRECISION TODO TODO SEMICOLON // TODO: GLSL global declaration proper support (see slang/slang-parser.cpp:4867)
 
 private declaration
     ::= declaration-modifier* declaration-content
 
-declaration-modifier
+private declaration-modifier
     ::= NO_DIFF
     |   FLAT
     |   attribute-container
@@ -116,16 +104,16 @@ private attribute-container
 private attributes
     ::= attribute (COMMA attribute)*
 
-attribute
+private attribute
     ::= attribute-identifier ( LEFT_PAREN attribute-parameters RIGHT_PAREN )?
 
-attribute-identifier
+private attribute-identifier
     ::= SCOPE? IDENTIFIER (SCOPE IDENTIFIER)*
 
 private attribute-parameters
     ::= attribute-parameter (COMMA attribute-parameter)*
 
-attribute-parameter
+private attribute-parameter
     ::= TODO // TODO: handle attribute parameters (see slang/slang-parser.cpp:1008)
 
 private declaration-content
@@ -136,12 +124,12 @@ private declaration-content
 
 // We shouldn't be seeing an LEFT_BRACE or an LEFT_PAREN when expecting a declaration-content.
 // However recovery logic may lead us here. In this case we just skip the whole `{}` block and return an empty declaration.
-empty-declaration
+private empty-declaration
     ::= LEFT_BRACE TODO RIGHT_BRACE // TODO: Set up a safe skip method (see slang/slang-parser.cpp:345)
     |   LEFT_PAREN TODO RIGHT_PAREN // TODO: See above
 
 private declarator-declaration
-    ::= type-specification SEMICOLON
+    ::= type-specification array-specifier* SEMICOLON?
 
 private type-specification
     ::= simple-type-specification
@@ -158,7 +146,7 @@ private inline-type-specification
     |   functype-declaration
 
 
-struct-declaration
+private struct-declaration
     ::= struct-header ASSIGN type-expression SEMICOLON
     |   struct-header SEMICOLON
     |   struct-header generic-constraints? declaration-body
@@ -181,7 +169,7 @@ private functype-declaration
 private struct-header
     ::= STRUCT attribute-container? COMPLETION_REQUEST? struct-name? template-specialization? inheritance-clause?
 
-struct-name
+private struct-name
     ::= IDENTIFIER
 
 private template-specialization
@@ -211,14 +199,24 @@ private atomic-type-expression
 private postfix-type-expression-suffix
     ::= (array-specifier | pointer-specifier)*
 
-array-specifier
+private array-specifier
     ::= LEFT_BRACKET expression? RIGHT_BRACKET
 
-pointer-specifier
+private pointer-specifier
     ::= MUL_OP
 
-expression
+private expression
     ::= TODO // TODO: Implement (see slang/slang-parser.cpp:6328)
+
+declarator-tt
+    ::= name-declarator-tt array-declarator-tt*
+
+name-declarator-tt
+    ::= IDENTIFIER
+
+left array-declarator-tt
+    ::= LEFT_BRACKET expression ? RIGHT_BRACKET
+
 
 /*
 file ::= base*

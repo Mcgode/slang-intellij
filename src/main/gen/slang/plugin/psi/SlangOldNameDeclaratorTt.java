@@ -5,6 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface SlangAttributeParameter extends PsiElement {
+public interface SlangOldNameDeclaratorTt extends PsiElement {
+
+  @NotNull
+  PsiElement getIdentifier();
 
 }

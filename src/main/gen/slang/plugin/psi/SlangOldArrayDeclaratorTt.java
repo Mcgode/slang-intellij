@@ -5,9 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface SlangArraySpecifier extends PsiElement {
+public interface SlangOldArrayDeclaratorTt extends PsiElement {
 
   @Nullable
-  SlangExpression getExpression();
+  SlangOldArrayDeclaratorTt getArrayDeclaratorTt();
+
+  @Nullable
+  SlangOldNameDeclaratorTt getNameDeclaratorTt();
 
 }

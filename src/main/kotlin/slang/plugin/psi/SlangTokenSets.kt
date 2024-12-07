@@ -1,7 +1,7 @@
 package slang.plugin.psi
 
 import com.intellij.psi.tree.TokenSet;
-import slang.plugin.psi.SlangTypes.*
+import slang.plugin.psi.SlangOldTypes.*
 
 interface SlangTokenSets {
 

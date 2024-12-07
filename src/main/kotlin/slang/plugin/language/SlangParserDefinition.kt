@@ -11,7 +11,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 import slang.plugin.language.parser.SlangParser
-import slang.plugin.psi.SlangTypes
+import slang.plugin.psi.types.SlangTypes
 import slang.plugin.psi.SlangFile
 import slang.plugin.psi.SlangIFileElementType
 import slang.plugin.psi.SlangLexerAdapter
