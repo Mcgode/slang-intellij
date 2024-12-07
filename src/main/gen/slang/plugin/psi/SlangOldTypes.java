@@ -4,18 +4,13 @@ package slang.plugin.psi;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.PsiElement;
 import com.intellij.lang.ASTNode;
-import slang.plugin.psi.impl.*;
 
 public interface SlangOldTypes {
 
-  IElementType ARRAY_DECLARATOR_TT = new SlangElementType("ARRAY_DECLARATOR_TT");
-  IElementType DECLARATOR_TT = new SlangElementType("DECLARATOR_TT");
-  IElementType NAME_DECLARATOR_TT = new SlangElementType("NAME_DECLARATOR_TT");
 
   IElementType ADD_ASSIGN = new SlangTokenType("+=");
   IElementType ADD_OP = new SlangTokenType("+");
   IElementType AND_ASSIGN = new SlangTokenType("&=");
-  IElementType ASSIGN = new SlangTokenType("ASSIGN");
   IElementType BITWISE_AND_OP = new SlangTokenType("&");
   IElementType BITWISE_NOT_OP = new SlangTokenType("~");
   IElementType BITWISE_OR_OP = new SlangTokenType("|");
@@ -23,9 +18,6 @@ public interface SlangOldTypes {
   IElementType BOOL = new SlangTokenType("bool");
   IElementType BOOL_LITERAL = new SlangTokenType("BOOL_LITERAL");
   IElementType CLASS = new SlangTokenType("class");
-  IElementType COLON = new SlangTokenType("COLON");
-  IElementType COMMA = new SlangTokenType("COMMA");
-  IElementType COMPLETION_REQUEST = new SlangTokenType("COMPLETION_REQUEST");
   IElementType CONST = new SlangTokenType("const");
   IElementType DIV_ASSIGN = new SlangTokenType("/=");
   IElementType DIV_OP = new SlangTokenType("/");
@@ -48,9 +40,6 @@ public interface SlangOldTypes {
   IElementType INT8 = new SlangTokenType("int8_t");
   IElementType INTERFACE = new SlangTokenType("interface");
   IElementType INT_LITERAL = new SlangTokenType("INT_LITERAL");
-  IElementType LEFT_BRACE = new SlangTokenType("LEFT_BRACE");
-  IElementType LEFT_BRACKET = new SlangTokenType("LEFT_BRACKET");
-  IElementType LEFT_PAREN = new SlangTokenType("LEFT_PAREN");
   IElementType LEFT_SHIFT_ASSIGN = new SlangTokenType("<<=");
   IElementType LESS_OP = new SlangTokenType("<");
   IElementType LINE_COMMENT = new SlangTokenType("LINE_COMMENT");
@@ -64,17 +53,10 @@ public interface SlangOldTypes {
   IElementType OR_ASSIGN = new SlangTokenType("|=");
   IElementType OUT = new SlangTokenType("out");
   IElementType PRECISION = new SlangTokenType("precision");
-  IElementType RIGHT_BRACE = new SlangTokenType("RIGHT_BRACE");
-  IElementType RIGHT_BRACKET = new SlangTokenType("RIGHT_BRACKET");
-  IElementType RIGHT_PAREN = new SlangTokenType("RIGHT_PAREN");
   IElementType RIGHT_SHIFT_ASSIGN = new SlangTokenType(">>=");
-  IElementType SCOPE = new SlangTokenType("SCOPE");
-  IElementType SEMICOLON = new SlangTokenType("SEMICOLON");
   IElementType STRUCT = new SlangTokenType("struct");
   IElementType SUB_ASSIGN = new SlangTokenType("-=");
   IElementType SUB_OP = new SlangTokenType("-");
-  IElementType TODO = new SlangTokenType("TODO");
-  IElementType TODO_IDENTIFIER = new SlangTokenType("TODO_IDENTIFIER");
   IElementType UINT16 = new SlangTokenType("uint16_t");
   IElementType UINT32 = new SlangTokenType("uint");
   IElementType UINT64 = new SlangTokenType("uint64_t");
@@ -85,18 +67,5 @@ public interface SlangOldTypes {
   IElementType XOR_ASSIGN = new SlangTokenType("^=");
 
   class Factory {
-    public static PsiElement createElement(ASTNode node) {
-      IElementType type = node.getElementType();
-      if (type == ARRAY_DECLARATOR_TT) {
-        return new SlangOldArrayDeclaratorTtImpl(node);
-      }
-      else if (type == DECLARATOR_TT) {
-        return new SlangOldDeclaratorTtImpl(node);
-      }
-      else if (type == NAME_DECLARATOR_TT) {
-        return new SlangOldNameDeclaratorTtImpl(node);
-      }
-      throw new AssertionError("Unknown element type: " + type);
-    }
   }
 }

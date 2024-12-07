@@ -618,7 +618,7 @@ public class SlangLexer implements FlexLexer {
           // fall through
           case 51: break;
           case 7:
-            { return MUL_OP;
+            { return INSTANCE.getMUL_OP();
             }
           // fall through
           case 52: break;
@@ -663,7 +663,7 @@ public class SlangLexer implements FlexLexer {
           // fall through
           case 60: break;
           case 16:
-            { return LESS_OP;
+            { return INSTANCE.getLESS_OP();
             }
           // fall through
           case 61: break;
@@ -678,7 +678,7 @@ public class SlangLexer implements FlexLexer {
           // fall through
           case 63: break;
           case 19:
-            { return IDENTIFIER;
+            { return INSTANCE.getIDENTIFIER();
             }
           // fall through
           case 64: break;

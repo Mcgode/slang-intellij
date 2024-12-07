@@ -6,6 +6,7 @@ import com.intellij.psi.tree.IElementType
 import slang.plugin.psi.SlangOldTypes.*
 
 import slang.plugin.language.parser.SlangParserUtil
+import slang.plugin.psi.types.SlangTypes
 
 object SlangPsiUtil: SlangParserUtil() {
 
@@ -30,9 +31,9 @@ object SlangPsiUtil: SlangParserUtil() {
         builder.advanceLexer()
         var tokenType = builder.tokenType
         when (tokenType) {
-            LEFT_PAREN -> tokenType = skipToMatchingToken(builder, RIGHT_PAREN)
-            LEFT_BRACKET -> tokenType = skipToMatchingToken(builder, RIGHT_BRACKET)
-            LEFT_BRACE -> tokenType = skipToMatchingToken(builder, RIGHT_BRACE)
+            SlangTypes.LEFT_PAREN -> tokenType = skipToMatchingToken(builder, SlangTypes.RIGHT_PAREN)
+            SlangTypes.LEFT_BRACKET -> tokenType = skipToMatchingToken(builder, SlangTypes.RIGHT_BRACKET)
+            SlangTypes.LEFT_BRACE -> tokenType = skipToMatchingToken(builder, SlangTypes.RIGHT_BRACE)
         }
 
         return tokenType

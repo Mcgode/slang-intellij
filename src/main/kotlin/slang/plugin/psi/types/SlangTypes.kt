@@ -31,6 +31,9 @@ object SlangTypes {
     val SCOPE = SlangTokenType("::")
     val COMPLETION_REQUEST = SlangTokenType("#?")
     val DOT = SlangTokenType(".")
+    val MUL_OP = SlangTokenType("*")
+    val LESS_OP = SlangTokenType("<")
+    val IDENTIFIER = SlangTokenType("IDENTIFIER")
 
     class Factory {
         companion object {

@@ -11,6 +11,7 @@ import com.intellij.psi.tree.IElementType
 import slang.plugin.psi.SlangLexerAdapter
 import slang.plugin.psi.SlangTokenSets
 import slang.plugin.psi.SlangOldTypes
+import slang.plugin.psi.types.SlangTypes
 
 class SlangSyntaxHighlighter: SyntaxHighlighterBase() {
 
@@ -47,9 +48,9 @@ class SlangSyntaxHighlighter: SyntaxHighlighterBase() {
             SlangOldTypes.BOOL_LITERAL -> SlangTextAttributes.SLANG_KEYWORD_TEXT
             SlangOldTypes.LINE_COMMENT -> SlangTextAttributes.SLANG_LINE_COMMENT_TEXT
             SlangOldTypes.MULTILINE_COMMENT -> SlangTextAttributes.SLANG_MULTILINE_COMMENT_TEXT
-            SlangOldTypes.COMMA -> SlangTextAttributes.SLANG_COMMA_TEXT
+            SlangTypes.COMMA -> SlangTextAttributes.SLANG_COMMA_TEXT
 //            SlangTypes.DOT -> SlangTextAttributes.SLANG_DOT_TEXT
-            SlangOldTypes.SEMICOLON -> SlangTextAttributes.SLANG_SEMICOLON_TEXT
+            SlangTypes.SEMICOLON -> SlangTextAttributes.SLANG_SEMICOLON_TEXT
             TokenType.BAD_CHARACTER -> SlangTextAttributes.SLANG_BAD_CHARACTER_TEXT
             else -> null
         }

@@ -103,10 +103,10 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
 
     "+"                 { return ADD_OP; }
     "-"                 { return SUB_OP; }
-    "*"                 { return MUL_OP; }
+    "*"                 { return INSTANCE.getMUL_OP(); }
     "/"                 { return DIV_OP; }
     "%"                 { return MOD_OP; }
-    "<"                 { return LESS_OP; }
+    "<"                 { return INSTANCE.getLESS_OP(); }
     ">"                 { return GREATER_OP; }
     "&"                 { return BITWISE_AND_OP; }
     "|"                 { return BITWISE_OR_OP; }
@@ -128,7 +128,7 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     {UINT_LITERAL}      { return UINT_LITERAL; }
     {FLOAT_LITERAL}     { return FLOAT_LITERAL; }
     {DOUBLE_LITERAL}    { return DOUBLE_LITERAL; }
-    {IDENTIFIER}        { return IDENTIFIER; }
+    {IDENTIFIER}        { return INSTANCE.getIDENTIFIER(); }
 }
 
 [^] { return BAD_CHARACTER; }
