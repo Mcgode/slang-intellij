@@ -287,7 +287,7 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseOptSemantics(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:2098
+        return true // TODO: see slang/slang-parser.cpp:2098
     }
 
     private fun parseDirectAbstractDeclarator(builder: PsiBuilder, level: Int): Boolean {
