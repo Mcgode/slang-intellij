@@ -1,0 +1,9 @@
+Slang File
+  SlangTypeSpecImpl(SlangElementType.TYPE_SPEC)
+    SlangStructDeclarationImpl(SlangElementType.STRUCT_DECLARATION)
+      PsiElement(SlangTokenType.IDENTIFIER)('struct')
+      PsiWhiteSpace(' ')
+      SlangBodyDeclImpl(SlangElementType.BODY_DECL)
+        PsiElement(SlangTokenType.{)('{')
+        PsiElement(SlangTokenType.})('}')
+  PsiElement(SlangTokenType.;)(';')
