@@ -833,10 +833,10 @@ open class SlangParser: PsiParser, LightPsiParser {
             result = result && parseOperator(builder, level + 1)
             exit_section_(builder, level, marker, SlangTypes.POSTFIX_EXPRESSION, result, false, null)
         }
+        // TODO: see slang/slang-parser.cpp:7277
         else
         {
-            // TODO: see slang/slang-parser.cpp:7277
-            result = false
+            result = true
         }
 
         return result

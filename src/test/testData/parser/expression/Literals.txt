@@ -8,9 +8,9 @@ Slang File
         PsiElement(SlangTokenType.IDENTIFIER)('a')
       PsiWhiteSpace(' ')
       PsiElement(SlangTokenType.=)('=')
-      // TODO: initializer expression
       PsiWhiteSpace(' ')
-      PsiElement(SlangTokenType.FLOAT_LITERAL)('1.f')
+      SlangExpressionImpl(SlangElementType.EXPRESSION)
+        PsiElement(SlangTokenType.FLOAT_LITERAL)('1.f')
   PsiElement(SlangTokenType.;)(';')
   PsiWhiteSpace('\n')
   SlangTypeSpecImpl(SlangElementType.TYPE_SPEC)
@@ -22,9 +22,9 @@ Slang File
         PsiElement(SlangTokenType.IDENTIFIER)('b')
       PsiWhiteSpace(' ')
       PsiElement(SlangTokenType.=)('=')
-      // TODO: initializer expression
       PsiWhiteSpace(' ')
-      PsiElement(SlangTokenType.INTEGER_LITERAL)('0x123u')
+      SlangExpressionImpl(SlangElementType.EXPRESSION)
+        PsiElement(SlangTokenType.INTEGER_LITERAL)('0x123u')
   PsiElement(SlangTokenType.;)(';')
   PsiWhiteSpace('\n')
   SlangTypeSpecImpl(SlangElementType.TYPE_SPEC)
@@ -36,7 +36,7 @@ Slang File
         PsiElement(SlangTokenType.IDENTIFIER)('c')
       PsiWhiteSpace(' ')
       PsiElement(SlangTokenType.=)('=')
-      // TODO: initializer expression
       PsiWhiteSpace(' ')
-      PsiElement(SlangTokenType.STRING_LITERAL)('"yolo"')
+      SlangExpressionImpl(SlangElementType.EXPRESSION)
+        PsiElement(SlangTokenType.STRING_LITERAL)('"yolo"')
   PsiElement(SlangTokenType.;)(';')
