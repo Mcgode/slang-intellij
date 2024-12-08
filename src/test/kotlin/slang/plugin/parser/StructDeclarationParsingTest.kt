@@ -6,7 +6,7 @@ import slang.plugin.language.SlangParserDefinition
 
 class StructDeclarationParsingTest: ParsingTestCase(
     "parser/struct-declaration",
-    "expr",
+    "slang",
     SlangParserDefinition()
 )
 {

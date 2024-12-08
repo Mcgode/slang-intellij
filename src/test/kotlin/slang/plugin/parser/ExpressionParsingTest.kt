@@ -5,7 +5,7 @@ import slang.plugin.language.SlangParserDefinition
 
 class ExpressionParsingTest: ParsingTestCase(
     "parser/expression",
-    "expr",
+    "slang",
     SlangParserDefinition()) {
 
     override fun getTestDataPath(): String {
