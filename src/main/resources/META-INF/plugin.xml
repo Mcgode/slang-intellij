@@ -1,18 +1,25 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.mcgode.slangintellij</id>
-    <name>slang-intellij</name>
-    <vendor>mcgode</vendor>
+    <id>slang.plugin</id>
+    <name>Slang Language Support</name>
+    <vendor>Max Godefroy</vendor>
 
     <depends>com.intellij.modules.platform</depends>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.mcgode.slangintellij.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <fileType
+            name="Slang file"
+            implementationClass="slang.plugin.language.SlangFileType"
+            fieldName="INSTANCE"
+            language="Slang"
+            extensions="slang"/>
+        <lang.parserDefinition
+            language="Slang"
+            implementationClass="slang.plugin.language.SlangParserDefinition" />
+        <lang.syntaxHighlighterFactory
+            language="Slang"
+            implementationClass="slang.plugin.code.highlighting.SlangSyntaxHighlighterFactory" />
     </extensions>
-
-    <applicationListeners>
-        <listener class="com.github.mcgode.slangintellij.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
-    </applicationListeners>
 </idea-plugin>
