@@ -120,7 +120,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
             SlangTypes.LEFT_BRACE, SlangTypes.LEFT_PAREN -> {
                 // We shouldn't be seeing an LBrace or an LParent when expecting a decl.
-                // However recovery logic may lead us here. In this case we just
+                // However, recovery logic may lead us here. In this case we just
                 // skip the whole `{}` block and return an empty decl.
                 SlangPsiUtil.skipBalancedToken(builder)
             }
@@ -202,7 +202,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         // As a bit of a hack (insofar as it means we aren't
         // *really* compatible with arbitrary HLSL code), we
         // will check if there are any more tokens on the
-        // same line as the closing `}`, and if not, we
+        // same line as the closing '}', and if not, we
         // will treat it like the end of the declaration.
         //
         if (typeSpec?.decl == true)
@@ -270,7 +270,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                     if (!result)
                         return false
                 }
-                else -> break;
+                else -> break
             }
         }
 
@@ -316,7 +316,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             result = result && parseInitExpr(builder, level + 1)
         }
         exit_section_(builder, marker, SlangTypes.INIT_DECLARATOR, result)
-        return result;
+        return result
     }
 
     private fun parseSemanticDeclarator(builder: PsiBuilder, level: Int): Boolean {
@@ -334,7 +334,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         if (consumeToken(builder, SlangTypes.MUL_OP)) {
             val marker = enter_section_(builder)
-            val result = parseDeclarator(builder, level + 1);
+            val result = parseDeclarator(builder, level + 1)
             exit_section_(builder, marker, SlangTypes.POINTER_DECLARATOR, result)
             return result
         }
@@ -357,15 +357,15 @@ open class SlangParser: PsiParser, LightPsiParser {
             // If we see a '<', ignore the remaining.
             if (nextTokenIs(builder, SlangTypes.LESS_OP))
             {
-                builder.advanceLexer();
+                builder.advanceLexer()
                 while (true) {
                     if (builder.eof()) {
                         break
                     } else if (nextTokenIs(builder, SlangTypes.GREATER_OP)) {
-                        builder.advanceLexer();
-                        break;
+                        builder.advanceLexer()
+                        break
                     } else {
-                        builder.advanceLexer();
+                        builder.advanceLexer()
                     }
                 }
             }
@@ -382,7 +382,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             //                            ^
             //         missing ':' here   |
             //
-            // However, that is an uncommon occurence, and trying
+            // However, that is an uncommon occurrence, and trying
             // to continue parsing semantics here even if we didn't
             // see a colon forces us to be careful about
             // avoiding an infinite loop here.
@@ -397,7 +397,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         if (!recursion_guard_(builder, level, "parseDirectAbstractDeclarator"))
             return false
 
-        var result = true
+        var result: Boolean
 
         when (builder.tokenType) {
             SlangTypes.IDENTIFIER -> {
@@ -412,7 +412,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                 //
                 //     void F( int(int) );
                 //
-                // Or we could be looking at the use of parenthesese in an ordinary
+                // Or we could be looking at the use of parentheses in an ordinary
                 // declarator:
                 //
                 //     void (*f)(int);
@@ -780,7 +780,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         if (!recursion_guard_(builder, level, "parseInfixExpression"))
             return false
 
-        var result = true;
+        var result = true
         while (result) {
             val opToken = builder.tokenType
             val opPrecedence = getOpLevel(opToken, builder.tokenText)
