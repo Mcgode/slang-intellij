@@ -35,6 +35,8 @@ object SlangTypes {
     val INDEX_EXPRESSION = SlangElementType("INDEX_EXPRESSION")
     val POINTER_TYPE_EXPRESSION = SlangElementType("POINTER_TYPE_EXPRESSION")
     val AND_TYPE_EXPRESSION = SlangElementType("AND_TYPE_EXPRESSION")
+    val UNCHECKED_ATTRIBUTE = SlangElementType("UNCHECKED_ATTRIBUTE")
+    val MODIFIER_ARGUMENT = SlangElementType("MODIFIER_ARGUMENT")
 
     val LINE_COMMENT = SlangElementType("LINE_COMMENT")
     val MULTILINE_COMMENT = SlangElementType("MULTILINE_COMMENT")
@@ -115,6 +117,7 @@ object SlangTypes {
                     INIT_DECLARATOR -> return SlangInitDeclaratorImpl(node)
                     INITIALIZER_LIST -> return SlangInitializerListImpl(node)
                     IS_TYPE_EXPRESSION -> return SlangIsTypeExpressionImpl(node)
+                    MODIFIER_ARGUMENT -> return SlangModifierArgumentImpl(node)
                     NAME_DECLARATOR -> return SlangNameDeclaratorImpl(node)
                     OPERATOR -> return SlangOperatorImpl(node)
                     POINTER_DECLARATOR -> return SlangPointerDeclaratorImpl(node)
@@ -126,6 +129,7 @@ object SlangTypes {
                     TYPE_EXPRESSION -> return SlangTypeExpressionImpl(node)
                     TYPE_MODIFIER -> return SlangTypeModifierImpl(node)
                     TYPE_SPEC -> return SlangTypeSpecImpl(node)
+                    UNCHECKED_ATTRIBUTE -> return SlangUncheckedAttribute(node)
                     VARIABLE_DECL -> return SlangVariableDeclImpl(node)
                 }
                 throw AssertionError("Unknown element type: ${node?.elementType}")

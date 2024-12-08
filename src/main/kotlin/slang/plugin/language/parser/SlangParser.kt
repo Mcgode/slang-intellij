@@ -156,9 +156,54 @@ open class SlangParser: PsiParser, LightPsiParser {
         }
     }
 
-    private fun parseSquareBracketAttributes(builder: PsiBuilder, level: Int): Boolean
-    {
-        return false // TODO: see slang/slang-parser.cpp:1226
+    private fun parseSquareBracketAttributes(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseSquareBracketAttributes"))
+            return false
+
+        var result = consumeToken(builder, SlangTypes.LEFT_BRACKET)
+        val doubleBracketed = consumeToken(builder, SlangTypes.LEFT_BRACKET)
+
+        while (result) {
+            // Note: When parsing we just construct an AST node for an
+            // "unchecked" attribute, and defer all detailed semantic
+            // checking until later.
+            //
+            // An alternative would be to perform lookup of an `AttributeDecl`
+            // at this point, similar to what we do for `SyntaxDecl`, but it
+            // seems better to not complicate the parsing process anymore.
+            //
+
+            val marker = enter_section_(builder)
+            result = parseAttributeName(builder, level + 1)
+
+            if (consumeToken(builder, SlangTypes.LEFT_PAREN)) {
+                // HLSL-style `[name(arg0, ...)]` attribute
+                while (result) {
+                    val argMarker = enter_section_(builder)
+                    result = parseArgExpr(builder, level + 2)
+                    exit_section_(builder, argMarker, SlangTypes.MODIFIER_ARGUMENT, result)
+
+                    if (consumeToken(builder, SlangTypes.RIGHT_PAREN))
+                        break
+
+                    result = result && consumeToken(builder, SlangTypes.COMMA)
+                }
+            }
+
+            exit_section_(builder, marker, SlangTypes.UNCHECKED_ATTRIBUTE, result)
+
+            if (nextTokenIs(builder, SlangTypes.RIGHT_BRACKET))
+                break
+
+            // If there is a comma consume it. It appears that the comma is optional.
+            consumeToken(builder, SlangTypes.COMMA)
+        }
+
+        result = result && consumeToken(builder, SlangTypes.RIGHT_BRACKET)
+        if (doubleBracketed)
+            result = result && consumeToken(builder, SlangTypes.RIGHT_BRACKET)
+
+        return result
     }
 
     private fun parseDeclaratorDecl(builder: PsiBuilder, level: Int): Boolean {
@@ -1025,6 +1070,32 @@ open class SlangParser: PsiParser, LightPsiParser {
                 exit_section_(builder, level, marker, SlangTypes.POINTER_TYPE_EXPRESSION, result, false, null)
             }
             else
+                break
+        }
+
+        return result
+    }
+
+    private fun parseAttributeName(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseAttributeName"))
+            return false
+
+        // Strip initial :: if there is one
+        val initialTokenWasScope = consumeToken(builder, SlangTypes.SCOPE)
+
+        if (consumeToken(builder, SlangTypes.COMPLETION_REQUEST))
+            return true
+
+        var result = consumeToken(builder, SlangTypes.IDENTIFIER)
+
+        if (!initialTokenWasScope && !nextTokenIs(builder, SlangTypes.SCOPE))
+            return result
+
+        while (result) {
+            result = consumeToken(builder, SlangTypes.SCOPE)
+            result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+
+            if (!nextTokenIs(builder, SlangTypes.SCOPE))
                 break
         }
 

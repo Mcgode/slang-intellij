@@ -41,4 +41,6 @@ class StructDeclarationParsingTest: ParsingTestCase(
     fun testMultiMember() {
         doTest(true);
     }
+
+    fun testAttributes() = doTest(true)
 }
