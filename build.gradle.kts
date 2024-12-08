@@ -159,7 +159,7 @@ intellijPlatformTesting {
 sourceSets {
     main {
         java {
-            srcDir("src")
+            srcDir("src/main/gen")
         }
     }
 }

@@ -1,0 +1,17 @@
+Slang File
+  PsiElement(SlangTokenType.struct)('struct')
+  PsiWhiteSpace(' ')
+  PsiElement(SlangTokenType.IDENTIFIER)('Foo')
+  PsiElement(SlangTokenType.:)(':')
+  PsiWhiteSpace(' ')
+  PsiErrorElement:SlangTokenType.TODO expected, got 'public'
+    PsiElement(SlangTokenType.IDENTIFIER)('public')
+  PsiWhiteSpace(' ')
+  PsiElement(SlangTokenType.IDENTIFIER)('Bar0')
+  PsiElement(SlangTokenType.,)(',')
+  PsiWhiteSpace(' ')
+  PsiElement(SlangTokenType.IDENTIFIER)('Bar1')
+  PsiWhiteSpace(' ')
+  PsiElement(SlangTokenType.{)('{')
+  PsiElement(SlangTokenType.})('}')
+  PsiElement(SlangTokenType.;)(';')

@@ -17,6 +17,9 @@
             extensions="slang"/>
         <lang.parserDefinition
             language="Slang"
-            implementationClass="slang.plugin.language.SlangParseDefinition" />
+            implementationClass="slang.plugin.language.SlangParserDefinition" />
+        <lang.syntaxHighlighterFactory
+            language="Slang"
+            implementationClass="slang.plugin.code.highlighting.SlangSyntaxHighlighterFactory" />
     </extensions>
 </idea-plugin>
