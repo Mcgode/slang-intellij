@@ -455,7 +455,10 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseInitExpr(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:2108
+        if (!recursion_guard_(builder, level, "parseInitExpr"))
+            return false
+
+        return parseExpression(builder, level, Precedence.Assignment)
     }
 
     private fun parseSimpleTypeSpec(builder: PsiBuilder, level: Int): TypeSpec? {
