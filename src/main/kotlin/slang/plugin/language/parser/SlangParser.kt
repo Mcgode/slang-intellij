@@ -890,7 +890,25 @@ open class SlangParser: PsiParser, LightPsiParser {
             exit_section_(builder, marker, SlangTypes.INITIALIZER_LIST, result)
             return result
         }
-        // TODO: see slang/slang-parser.cpp:6919
+        else if (nextTokenIs(builder, SlangTypes.INTEGER_LITERAL)) {
+            val marker = enter_section_(builder)
+            builder.advanceLexer()
+            exit_section_(builder, marker, null, true)
+            return true
+        }
+        else if (nextTokenIs(builder, SlangTypes.FLOAT_LITERAL)) {
+            val marker = enter_section_(builder)
+            builder.advanceLexer()
+            exit_section_(builder, marker, null, true)
+            return true
+        }
+        else if (nextTokenIs(builder, SlangTypes.STRING_LITERAL)) {
+            val marker = enter_section_(builder)
+            builder.advanceLexer()
+            exit_section_(builder, marker, null, true)
+            return true
+        }
+        // TODO: see slang/slang-parser.cpp:7180
         else {
             builder.error("Syntax error.")
             return false
