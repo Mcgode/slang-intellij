@@ -2,5 +2,5 @@ struct {
     float3 vector: semanticValue;
     const uint yolo;
     void x;
-    in float test: SV_POSITION;
+    float test: SV_POSITION;
 };

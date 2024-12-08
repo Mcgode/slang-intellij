@@ -19,6 +19,7 @@ object SlangTypes {
     val STRUCT_NAME = SlangElementType("STRUCT_NAME")
     val HLSL_SIMPLE_SEMANTIC = SlangElementType("HLSL_SIMPLE_SEMANTIC")
     val BITFIELD_MODIFIER = SlangElementType("BITFIELD_MODIFIER")
+    val TYPE_MODIFIER = SlangElementType("TYPE_MODIFIER")
 
     val LEFT_BRACE = SlangTokenType("{")
     val RIGHT_BRACE = SlangTokenType("}")
@@ -53,6 +54,7 @@ object SlangTypes {
                     POINTER_DECLARATOR -> return SlangPointerDeclaratorImpl(node)
                     STRUCT_DECLARATION -> return SlangStructDeclarationImpl(node)
                     STRUCT_NAME -> return SlangStructNameImpl(node)
+                    TYPE_MODIFIER -> return SlangTypeModifierImpl(node)
                     TYPE_SPEC -> return SlangTypeSpecImpl(node)
                     VARIABLE_DECL -> return SlangVariableDeclImpl(node)
                 }

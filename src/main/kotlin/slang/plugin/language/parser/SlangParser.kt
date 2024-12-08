@@ -13,6 +13,7 @@ import slang.plugin.psi.SlangPsiUtil
 open class SlangParser: PsiParser, LightPsiParser {
 
     private val enableGlslCode = true
+    private val identifierLookup = SlangIdentifierLookup()
 
     override fun parse(type: IElementType, builder: PsiBuilder): ASTNode {
         parseLight(type, builder)
@@ -22,6 +23,7 @@ open class SlangParser: PsiParser, LightPsiParser {
     override fun parseLight(type: IElementType, baseBuilder: PsiBuilder) {
 
         val builder = adapt_builder_(type, baseBuilder, this, null)
+        identifierLookup.initDefault("")
         val marker = enter_section_(builder, 0, _COLLAPSE_, null)
         val result = parseSourceFile(builder, 1)
 
@@ -63,13 +65,25 @@ open class SlangParser: PsiParser, LightPsiParser {
         while (true) {
             when (builder.tokenType) {
                 SlangTypes.IDENTIFIER -> {
-                    if (tryParseUsingSyntaxDecl(builder, level))
+                    if (tryParseUsingSyntaxDecl(builder, level, SyntaxType.Modifier)) {
+                        val marker = enter_section_(builder)
+                        builder.advanceLexer()
+                        exit_section_(builder, marker, SlangTypes.TYPE_MODIFIER, true)
                         continue
-                    else if (consumeToken(builder, "no_diff"))
+                    }
+                    else if (nextTokenIs(builder, "no_diff")) {
+                        val marker = enter_section_(builder)
+                        builder.advanceLexer()
+                        exit_section_(builder, marker, SlangTypes.TYPE_MODIFIER, true)
                         continue
+                    }
                     else if (enableGlslCode)
-                        if (consumeToken(builder, "flat"))
+                        if (consumeToken(builder, "flat")) {
+                            val marker = enter_section_(builder)
+                            builder.advanceLexer()
+                            exit_section_(builder, marker, SlangTypes.TYPE_MODIFIER, true)
                             continue
+                        }
                     break
                 }
                 SlangTypes.LEFT_BRACKET -> {
@@ -117,8 +131,27 @@ open class SlangParser: PsiParser, LightPsiParser {
         return true
     }
 
-    private fun tryParseUsingSyntaxDecl(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO :see slang/slang-parser.cpp:1183
+    private enum class SyntaxType {
+        Modifier,
+        Declaration,
+        Expression
+    }
+
+    private fun tryParseUsingSyntaxDecl(builder: PsiBuilder, level: Int, type: SyntaxType): Boolean {
+        if (!recursion_guard_(builder, level, "parseUsingSyntaxDecl"))
+            return false
+
+        if (!nextTokenIs(builder, SlangTypes.IDENTIFIER))
+            return false
+
+        val name = builder.tokenText!!
+        val result = identifierLookup.lookUp(name) ?: return false
+        // TODO: operation is a lot more complex in slang/slang-parser.cpp:1154
+
+        return when (type) {
+            SyntaxType.Modifier -> result.identifier == SlangIdentifierLookup.IdentifierStyle.TypeModifier
+            else -> false
+        }
     }
 
     private fun parseSquareBracketAttributes(builder: PsiBuilder, level: Int): Boolean

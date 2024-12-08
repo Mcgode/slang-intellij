@@ -57,6 +57,10 @@ class SlangIdentifierLookup {
         var style = IdentifierStyle.None
     }
 
+    data object LookupResult {
+        var identifier = IdentifierStyle.Identifier
+    }
+
     fun set(name: String, style: IdentifierStyle) {
         if (pool.containsKey(name)) {
             styles[pool[name]!!] = style
@@ -166,6 +170,16 @@ class SlangIdentifierLookup {
             val names = arrayListOf("signed", "unsigned")
             set(names, IdentifierStyle.IntegerModifier)
         }
+    }
+
+    fun lookUp(name: String): LookupResult? {
+        if (!pool.containsKey(name)) {
+            return null
+        }
+
+        val result = LookupResult
+        result.identifier = styles[pool[name]!!]
+        return result
     }
 
     private val pool = HashMap<String, Int>()
