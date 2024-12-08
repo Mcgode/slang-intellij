@@ -9,28 +9,13 @@ import java.util.List;
 
 import static com.intellij.psi.TokenType.BAD_CHARACTER;
 import static com.intellij.psi.TokenType.WHITE_SPACE;
-import static slang.plugin.psi.SlangOldTypes.*;
 import static slang.plugin.psi.types.SlangTypes.*;
 
 %%
 
 %{
-    public boolean afterStorageType = false;
-    public boolean afterType = false;
-    public List<String> userDefinedTypes = new ArrayList<>();
     public SlangLexer() {
       this((java.io.Reader)null);
-    }
-
-    private IElementType DebugPrint(IElementType elementType)
-    {
-        System.out.println("Tokenized '%s' to '%s', with state %s afterType=%b afterStruct=%b".formatted(
-                yytext().toString(),
-                elementType.getDebugName(),
-                yystate(),
-                afterType,
-                afterStorageType));
-        return elementType;
     }
 %}
 
@@ -62,8 +47,9 @@ INTEGER_LITERAL={INT_LITERAL}{UNSIGNED}?
 
 FRACTIONAL=(({DIGITS}"."{DIGITS})|({DIGITS}".")|("."{DIGITS})){EXPONENT}?
 FRACTIONAL2={DIGITS}{EXPONENT}
-FLOAT_LITERAL=({FRACTIONAL}|{FRACTIONAL2}){FLOATING_SUFFIX_FLOAT}?
-DOUBLE_LITERAL=({FRACTIONAL}|{FRACTIONAL2}){FLOATING_SUFFIX_DOUBLE}?
+FLOAT_LITERAL=({FRACTIONAL}|{FRACTIONAL2})({FLOATING_SUFFIX_FLOAT}|{FLOATING_SUFFIX_DOUBLE})?
+
+STRING_LITERAL=(\"([^\"\\]|\\.)*\")
 
 IDENTIFIER=[_a-zA-Z][_a-zA-Z\d]*
 
@@ -73,10 +59,10 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
 %%
 
 <MULTILINE_COMMENT_STATE> {
-    "*/"                { yybegin(YYINITIAL); return MULTILINE_COMMENT; }
-    [^*\n]+             { return MULTILINE_COMMENT; }
-    "*"                 { return MULTILINE_COMMENT; }
-    {NEW_LINE}          { return MULTILINE_COMMENT; }
+    "*/"                { yybegin(YYINITIAL); return INSTANCE.getMULTILINE_COMMENT(); }
+    [^*\n]+             { return INSTANCE.getMULTILINE_COMMENT(); }
+    "*"                 { return INSTANCE.getMULTILINE_COMMENT(); }
+    {NEW_LINE}          { return INSTANCE.getMULTILINE_COMMENT(); }
 }
 
 <YYINITIAL> {
@@ -84,8 +70,8 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     {NEW_LINE}          { return NEW_LINE; }
     {BACK_SLASH}        { return WHITE_SPACE; }
 
-    {LINE_COMMENT}      { return LINE_COMMENT; }
-    "/*"                { yybegin(MULTILINE_COMMENT_STATE); return MULTILINE_COMMENT; }
+    {LINE_COMMENT}      { return INSTANCE.getLINE_COMMENT(); }
+    "/*"                { yybegin(MULTILINE_COMMENT_STATE); return INSTANCE.getMULTILINE_COMMENT(); }
 
     "{"                 { return INSTANCE.getLEFT_BRACE(); }
     "}"                 { return INSTANCE.getRIGHT_BRACE(); }
@@ -95,41 +81,50 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     "]"                 { return INSTANCE.getRIGHT_BRACKET(); }
     ";"                 { return INSTANCE.getSEMICOLON(); }
     ":"                 { return INSTANCE.getCOLON(); }
-    "="                 { return INSTANCE.getASSIGN(); }
     ","                 { return INSTANCE.getCOMMA(); }
     "::"                { return INSTANCE.getSCOPE(); }
     "#?"                { return INSTANCE.getCOMPLETION_REQUEST(); }
     "."                 { return INSTANCE.getDOT(); }
     "?"                 { return INSTANCE.getQUESTION_MARK(); }
 
-    "+"                 { return ADD_OP; }
-    "-"                 { return SUB_OP; }
+    "+"                 { return INSTANCE.getADD_OP(); }
+    "-"                 { return INSTANCE.getSUB_OP(); }
     "*"                 { return INSTANCE.getMUL_OP(); }
-    "/"                 { return DIV_OP; }
-    "%"                 { return MOD_OP; }
-    "<"                 { return INSTANCE.getLESS_OP(); }
+    "/"                 { return INSTANCE.getDIV_OP(); }
+    "%"                 { return INSTANCE.getMOD_OP(); }
+    "!"                 { return INSTANCE.getNOT_OP(); }
+    "~"                 { return INSTANCE.getBIT_NOT_OP(); }
+    "<<"                { return INSTANCE.getSHL_OP(); }
+    ">>"                { return INSTANCE.getSHR_OP(); }
+    "=="                { return INSTANCE.getEQL_OP(); }
+    "!="                { return INSTANCE.getNEQ_OP(); }
     ">"                 { return INSTANCE.getGREATER_OP(); }
-    "&"                 { return BITWISE_AND_OP; }
-    "|"                 { return BITWISE_OR_OP; }
-    "^"                 { return BITWISE_XOR_OP; }
-    "~"                 { return BITWISE_NOT_OP; }
+    "<"                 { return INSTANCE.getLESS_OP(); }
+    ">="                { return INSTANCE.getGEQ_OP(); }
+    "<="                { return INSTANCE.getLEQ_OP(); }
+    "&&"                { return INSTANCE.getAND_OP(); }
+    "||"                { return INSTANCE.getOR_OP(); }
+    "&"                 { return INSTANCE.getBIT_AND_OP(); }
+    "|"                 { return INSTANCE.getBIT_OR_OP(); }
+    "^"                 { return INSTANCE.getBIT_XOR_OP(); }
     "++"                { return INSTANCE.getINC_OP(); }
     "--"                { return INSTANCE.getDEC_OP(); }
 
-    "+="                { return ADD_ASSIGN; }
-    "-="                { return SUB_ASSIGN; }
-    "*="                { return MUL_ASSIGN; }
-    "/="                { return DIV_ASSIGN; }
-    "%="                { return MOD_ASSIGN; }
-    "&="                { return AND_ASSIGN; }
-    "|="                { return OR_ASSIGN; }
-    "^="                { return XOR_ASSIGN; }
-    "<<="               { return LEFT_SHIFT_ASSIGN; }
-    ">>="               { return RIGHT_SHIFT_ASSIGN; }
+    "="                 { return INSTANCE.getASSIGN_OP(); }
+    "+="                { return INSTANCE.getADD_ASSIGN_OP(); }
+    "-="                { return INSTANCE.getSUB_ASSIGN_OP(); }
+    "*="                { return INSTANCE.getMUL_ASSIGN_OP(); }
+    "/="                { return INSTANCE.getDIV_ASSIGN_OP(); }
+    "%="                { return INSTANCE.getMOD_ASSIGN_OP(); }
+    "<<="               { return INSTANCE.getSHL_ASSIGN_OP(); }
+    ">>="               { return INSTANCE.getSHR_ASSIGN_OP(); }
+    "|="                { return INSTANCE.getOR_ASSIGN_OP(); }
+    "&="                { return INSTANCE.getAND_ASSIGN_OP(); }
+    "^="                { return INSTANCE.getXOR_ASSIGN_OP(); }
 
     {INTEGER_LITERAL}   { return INSTANCE.getINTEGER_LITERAL(); }
-    {FLOAT_LITERAL}     { return FLOAT_LITERAL; }
-    {DOUBLE_LITERAL}    { return DOUBLE_LITERAL; }
+    {FLOAT_LITERAL}     { return INSTANCE.getFLOAT_LITERAL(); }
+    {STRING_LITERAL}    { return INSTANCE.getSTRING_LITERAL(); }
     {IDENTIFIER}        { return INSTANCE.getIDENTIFIER(); }
 }
 

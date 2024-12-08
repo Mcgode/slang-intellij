@@ -1,6 +1,5 @@
 package slang.plugin.language.parser
 
-import com.intellij.codeInsight.codeVision.CodeVisionState.NotReady.result
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LightPsiParser
 import com.intellij.lang.PsiBuilder
@@ -10,12 +9,12 @@ import com.intellij.psi.tree.IElementType
 import slang.plugin.language.parser.data.TypeSpec
 import slang.plugin.psi.types.SlangTypes
 import slang.plugin.psi.SlangPsiUtil
-import slang.plugin.psi.SlangTokenType
 
 open class SlangParser: PsiParser, LightPsiParser {
 
     private val enableGlslCode = true
     private var isInVariadicGenerics = false
+    private var genericDepth = 0
     private val identifierLookup = SlangIdentifierLookup()
 
     override fun parse(type: IElementType, builder: PsiBuilder): ASTNode {
@@ -313,7 +312,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         val marker = enter_section_(builder)
         var result = parseSemanticDeclarator(builder, level + 1)
-        if (consumeToken(builder, SlangTypes.ASSIGN)) {
+        if (consumeToken(builder, SlangTypes.ASSIGN_OP)) {
             result = result && parseInitExpr(builder, level + 1)
         }
         exit_section_(builder, marker, SlangTypes.INIT_DECLARATOR, result)
@@ -542,7 +541,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                 false
             else {
                 var callbackResult = parseOptionalInheritanceClause(b, l)
-                if (consumeToken(builder, SlangTypes.ASSIGN)) {
+                if (consumeToken(builder, SlangTypes.ASSIGN_OP)) {
                     callbackResult = callbackResult && parseTypeExp(b, l)
                     callbackResult = callbackResult && consumeToken(builder, SlangTypes.SEMICOLON)
                     callbackResult
@@ -704,8 +703,119 @@ open class SlangParser: PsiParser, LightPsiParser {
         return parsePrefixExpr(builder, level)
     }
 
+    private fun getOpLevel(token: IElementType?, text: String?): Precedence {
+        when (token) {
+            SlangTypes.QUESTION_MARK -> return Precedence.TernaryConditional
+            SlangTypes.COMMA -> return Precedence.Comma
+            SlangTypes.ASSIGN_OP,
+            SlangTypes.ADD_ASSIGN_OP,
+            SlangTypes.SUB_ASSIGN_OP,
+            SlangTypes.MUL_ASSIGN_OP,
+            SlangTypes.DIV_ASSIGN_OP,
+            SlangTypes.MOD_ASSIGN_OP,
+            SlangTypes.SHL_ASSIGN_OP,
+            SlangTypes.SHR_ASSIGN_OP,
+            SlangTypes.OR_ASSIGN_OP,
+            SlangTypes.AND_ASSIGN_OP,
+            SlangTypes.XOR_ASSIGN_OP
+                 -> return Precedence.Assignment
+            SlangTypes.OR_OP -> return Precedence.LogicalOr
+            SlangTypes.AND_OP -> return Precedence.LogicalAnd
+            SlangTypes.BIT_OR_OP -> return Precedence.BitOr
+            SlangTypes.BIT_XOR_OP -> return Precedence.BitXor
+            SlangTypes.BIT_AND_OP -> return Precedence.BitAnd
+            SlangTypes.EQL_OP, SlangTypes.NEQ_OP -> return Precedence.EqualityComparison
+            SlangTypes.GREATER_OP, SlangTypes.GEQ_OP -> {
+                // Don't allow these ops inside a generic argument
+                if (genericDepth > 0)
+                    return Precedence.Invalid
+                return Precedence.RelationalComparison
+            }
+            SlangTypes.LESS_OP, SlangTypes.LEQ_OP -> return Precedence.RelationalComparison
+            SlangTypes.SHR_OP -> {
+                // Don't allow this op inside a generic argument
+                if (genericDepth > 0)
+                    return Precedence.Invalid
+                return Precedence.BitShift
+            }
+            SlangTypes.SHL_OP -> return Precedence.BitShift
+            SlangTypes.ADD_OP, SlangTypes.SUB_OP -> return Precedence.Additive
+            SlangTypes.MUL_OP, SlangTypes.DIV_OP, SlangTypes.MOD_OP -> return Precedence.Multiplicative
+        }
+        if (text == "is" || text == "as")
+            return Precedence.RelationalComparison
+        return Precedence.Invalid
+    }
+
+    private enum class Associativity { Right, Left }
+    private fun getAssociativityFromLevel(precedence: Precedence): Associativity {
+        if (precedence == Precedence.Assignment)
+            return Associativity.Right
+        else
+            return Associativity.Left
+    }
+
     private fun parseInfixExprWithPrecedence(builder: PsiBuilder, level: Int, precedence: Precedence): Boolean {
-        return true // TODO: see slang/slang-parser.cpp:6331
+        if (!recursion_guard_(builder, level, "parseInfixExpression"))
+            return false
+
+        var result = true;
+        while (result) {
+            val opToken = builder.tokenType
+            val opPrecedence = getOpLevel(opToken, builder.tokenText)
+            if (opPrecedence < precedence)
+                break
+
+            // Special case the "is" and "as" operators.
+            if (nextTokenIs(builder, "is")) {
+                builder.advanceLexer()
+                val marker = enter_section_(builder)
+                result = parseTypeExp(builder, level + 1)
+                exit_section_(builder, marker, SlangTypes.IS_TYPE_EXPRESSION, result)
+                continue
+            }
+            else if (nextTokenIs(builder, "as")) {
+                builder.advanceLexer()
+                val marker = enter_section_(builder)
+                result = parseTypeExp(builder, level + 1)
+                exit_section_(builder, marker, SlangTypes.AS_TYPE_EXPRESSION, result)
+                continue
+            }
+
+            result = parseOperator(builder, level)
+
+            // Special case the `?:` operator since it is the
+            // one non-binary case we need to deal with.
+            if (opToken == SlangTypes.QUESTION_MARK) {
+                val marker = enter_section_(builder)
+                result = result && parseExpression(builder, level + 1, opPrecedence)
+                result = result && consumeToken(builder, SlangTypes.COLON)
+                result = result && parseExpression(builder, level + 1, opPrecedence)
+                exit_section_(builder, marker, SlangTypes.SELECT_EXPRESSION, result)
+                continue
+            }
+
+            // Right expr
+            val marker = enter_section_(builder)
+            result = parseLeafExpression(builder, level + 1)
+
+            while (result) {
+                val nextOpPrecedence = getOpLevel(builder.tokenType, builder.tokenText)
+
+                if (if (getAssociativityFromLevel(nextOpPrecedence) == Associativity.Right)
+                    nextOpPrecedence < opPrecedence
+                    else nextOpPrecedence <= opPrecedence) break
+
+                result = parseInfixExprWithPrecedence(builder, level + 1, nextOpPrecedence)
+            }
+
+            if (opToken == SlangTypes.ASSIGN_OP)
+                exit_section_(builder, marker, SlangTypes.ASSIGN_EXPRESSION, result)
+            else
+                exit_section_(builder, marker, SlangTypes.INFIX_EXPRESSION, result)
+        }
+
+        return result
     }
 
     private fun parseSpirVAsmExpr(builder: PsiBuilder, level: Int): Boolean {
