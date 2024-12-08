@@ -130,12 +130,12 @@ public class SlangLexer implements FlexLexer {
     "\1\1\1\27\1\30\1\31\1\32\1\33\1\34\3\35"+
     "\1\36\1\0\1\37\1\0\1\40\1\41\1\42\1\43"+
     "\1\44\1\45\1\46\1\47\1\50\1\51\1\52\1\53"+
-    "\1\54\1\0\1\16\1\0\1\55\1\56\1\57\1\60"+
-    "\1\61\1\62\1\0\1\2\1\63\1\64\1\65\1\66"+
-    "\1\51\3\0\1\51\1\16\1\67\1\70";
+    "\1\54\1\55\1\0\1\16\1\0\1\56\1\57\1\60"+
+    "\1\61\1\62\1\63\1\0\1\2\1\64\1\65\1\66"+
+    "\1\67\1\52\3\0\1\52\1\16\1\70\1\71";
 
   private static int [] zzUnpackAction() {
-    int [] result = new int[77];
+    int [] result = new int[78];
     int offset = 0;
     offset = zzUnpackAction(ZZ_ACTION_PACKED_0, offset, result);
     return result;
@@ -166,13 +166,13 @@ public class SlangLexer implements FlexLexer {
     "\0\130\0\u0370\0\130\0\u039c\0\130\0\u03c8\0\130\0\u03f4"+
     "\0\130\0\130\0\u0420\0\130\0\u044c\0\130\0\334\0\130"+
     "\0\u0478\0\130\0\130\0\130\0\130\0\130\0\130\0\130"+
-    "\0\130\0\130\0\u04a4\0\130\0\u04d0\0\130\0\u04fc\0\130"+
-    "\0\u0528\0\130\0\u0554\0\130\0\130\0\130\0\u0580\0\u039c"+
-    "\0\u039c\0\130\0\130\0\130\0\130\0\130\0\u05ac\0\u05d8"+
-    "\0\u0604\0\u0630\0\u065c\0\130\0\130";
+    "\0\130\0\130\0\130\0\u04a4\0\130\0\u04d0\0\130\0\u04fc"+
+    "\0\130\0\u0528\0\130\0\u0554\0\130\0\130\0\130\0\u0580"+
+    "\0\u039c\0\u039c\0\130\0\130\0\130\0\130\0\130\0\u05ac"+
+    "\0\u05d8\0\u0604\0\u0630\0\u065c\0\130\0\130";
 
   private static int [] zzUnpackRowMap() {
-    int [] result = new int[77];
+    int [] result = new int[78];
     int offset = 0;
     offset = zzUnpackRowMap(ZZ_ROWMAP_PACKED_0, offset, result);
     return result;
@@ -203,22 +203,22 @@ public class SlangLexer implements FlexLexer {
     "\4\4\76\0\1\46\24\0\6\47\1\50\33\47\1\51"+
     "\11\47\31\0\1\52\51\0\1\53\35\0\1\54\15\0"+
     "\1\55\53\0\1\56\41\0\1\57\11\0\1\60\43\0"+
-    "\1\61\7\0\1\62\46\0\2\63\44\0\1\64\4\0"+
-    "\1\65\5\0\1\66\44\0\1\63\1\0\2\23\7\0"+
-    "\1\67\3\0\1\70\1\71\33\0\1\63\1\0\2\23"+
-    "\7\0\1\67\3\0\1\70\40\0\1\72\55\0\1\73"+
-    "\1\74\53\0\1\75\53\0\1\76\1\77\45\0\2\32"+
-    "\6\0\7\32\4\0\2\32\6\0\1\100\1\101\1\100"+
-    "\1\101\76\0\1\102\53\0\1\103\20\0\1\104\3\0"+
-    "\2\43\1\0\11\43\1\0\37\43\21\0\1\105\32\0"+
-    "\2\47\3\0\46\47\23\0\2\63\7\0\1\67\1\106"+
-    "\1\0\1\107\6\0\1\106\1\110\5\0\2\65\3\0"+
-    "\46\65\16\0\1\111\1\0\1\111\2\0\2\112\52\0"+
-    "\2\113\6\0\3\113\10\0\1\113\35\0\1\114\53\0"+
-    "\1\115\60\0\1\106\64\0\1\106\30\0\2\112\52\0"+
-    "\2\112\10\0\1\106\1\0\1\107\6\0\1\106\1\110"+
-    "\27\0\2\113\6\0\3\113\2\0\1\70\5\0\1\113"+
-    "\6\0";
+    "\1\61\7\0\1\62\1\63\45\0\2\64\44\0\1\65"+
+    "\4\0\1\66\5\0\1\67\44\0\1\64\1\0\2\23"+
+    "\7\0\1\70\3\0\1\71\1\72\33\0\1\64\1\0"+
+    "\2\23\7\0\1\70\3\0\1\71\40\0\1\73\55\0"+
+    "\1\74\1\75\53\0\1\76\53\0\1\77\1\100\45\0"+
+    "\2\32\6\0\7\32\4\0\2\32\6\0\1\101\1\102"+
+    "\1\101\1\102\76\0\1\103\53\0\1\104\20\0\1\105"+
+    "\3\0\2\43\1\0\11\43\1\0\37\43\21\0\1\106"+
+    "\32\0\2\47\3\0\46\47\23\0\2\64\7\0\1\70"+
+    "\1\107\1\0\1\110\6\0\1\107\1\111\5\0\2\66"+
+    "\3\0\46\66\16\0\1\112\1\0\1\112\2\0\2\113"+
+    "\52\0\2\114\6\0\3\114\10\0\1\114\35\0\1\115"+
+    "\53\0\1\116\60\0\1\107\64\0\1\107\30\0\2\113"+
+    "\52\0\2\113\10\0\1\107\1\0\1\110\6\0\1\107"+
+    "\1\111\27\0\2\114\6\0\3\114\2\0\1\71\5\0"+
+    "\1\114\6\0";
 
   private static int [] zzUnpacktrans() {
     int [] result = new int[1672];
@@ -262,12 +262,12 @@ public class SlangLexer implements FlexLexer {
     "\2\0\1\11\6\1\2\11\2\1\1\11\6\1\1\11"+
     "\3\1\1\11\1\1\1\11\1\1\1\11\1\1\1\11"+
     "\1\1\2\11\1\1\1\11\1\1\1\11\1\0\1\11"+
-    "\1\0\11\11\1\1\1\11\1\1\1\11\1\0\1\11"+
+    "\1\0\12\11\1\1\1\11\1\1\1\11\1\0\1\11"+
     "\1\0\1\11\1\1\3\11\1\1\1\0\1\1\5\11"+
     "\3\0\2\1\2\11";
 
   private static int [] zzUnpackAttribute() {
-    int [] result = new int[77];
+    int [] result = new int[78];
     int offset = 0;
     offset = zzUnpackAttribute(ZZ_ATTRIBUTE_PACKED_0, offset, result);
     return result;
@@ -585,282 +585,287 @@ public class SlangLexer implements FlexLexer {
             { return BAD_CHARACTER;
             }
           // fall through
-          case 57: break;
+          case 58: break;
           case 2:
             { return WHITE_SPACE;
             }
           // fall through
-          case 58: break;
+          case 59: break;
           case 3:
             { return INSTANCE.getNOT_OP();
             }
           // fall through
-          case 59: break;
+          case 60: break;
           case 4:
             { return INSTANCE.getMOD_OP();
             }
           // fall through
-          case 60: break;
+          case 61: break;
           case 5:
             { return INSTANCE.getBIT_AND_OP();
             }
           // fall through
-          case 61: break;
+          case 62: break;
           case 6:
             { return INSTANCE.getLEFT_PAREN();
             }
           // fall through
-          case 62: break;
+          case 63: break;
           case 7:
             { return INSTANCE.getRIGHT_PAREN();
             }
           // fall through
-          case 63: break;
+          case 64: break;
           case 8:
             { return INSTANCE.getMUL_OP();
             }
           // fall through
-          case 64: break;
+          case 65: break;
           case 9:
             { return INSTANCE.getADD_OP();
             }
           // fall through
-          case 65: break;
+          case 66: break;
           case 10:
             { return INSTANCE.getCOMMA();
             }
           // fall through
-          case 66: break;
+          case 67: break;
           case 11:
             { return INSTANCE.getSUB_OP();
             }
           // fall through
-          case 67: break;
+          case 68: break;
           case 12:
             { return INSTANCE.getDOT();
             }
           // fall through
-          case 68: break;
+          case 69: break;
           case 13:
             { return INSTANCE.getDIV_OP();
             }
           // fall through
-          case 69: break;
+          case 70: break;
           case 14:
             { return INSTANCE.getINTEGER_LITERAL();
             }
           // fall through
-          case 70: break;
+          case 71: break;
           case 15:
             { return INSTANCE.getCOLON();
             }
           // fall through
-          case 71: break;
+          case 72: break;
           case 16:
             { return INSTANCE.getSEMICOLON();
             }
           // fall through
-          case 72: break;
+          case 73: break;
           case 17:
             { return INSTANCE.getLESS_OP();
             }
           // fall through
-          case 73: break;
+          case 74: break;
           case 18:
             { return INSTANCE.getASSIGN_OP();
             }
           // fall through
-          case 74: break;
+          case 75: break;
           case 19:
             { return INSTANCE.getGREATER_OP();
             }
           // fall through
-          case 75: break;
+          case 76: break;
           case 20:
             { return INSTANCE.getQUESTION_MARK();
             }
           // fall through
-          case 76: break;
+          case 77: break;
           case 21:
             { return INSTANCE.getIDENTIFIER();
             }
           // fall through
-          case 77: break;
+          case 78: break;
           case 22:
             { return INSTANCE.getLEFT_BRACKET();
             }
           // fall through
-          case 78: break;
+          case 79: break;
           case 23:
             { return INSTANCE.getRIGHT_BRACKET();
             }
           // fall through
-          case 79: break;
+          case 80: break;
           case 24:
             { return INSTANCE.getBIT_XOR_OP();
             }
           // fall through
-          case 80: break;
+          case 81: break;
           case 25:
             { return INSTANCE.getLEFT_BRACE();
             }
           // fall through
-          case 81: break;
+          case 82: break;
           case 26:
             { return INSTANCE.getBIT_OR_OP();
             }
           // fall through
-          case 82: break;
+          case 83: break;
           case 27:
             { return INSTANCE.getRIGHT_BRACE();
             }
           // fall through
-          case 83: break;
+          case 84: break;
           case 28:
             { return INSTANCE.getBIT_NOT_OP();
             }
           // fall through
-          case 84: break;
+          case 85: break;
           case 29:
             { return INSTANCE.getMULTILINE_COMMENT();
             }
           // fall through
-          case 85: break;
+          case 86: break;
           case 30:
             { return INSTANCE.getNEQ_OP();
             }
           // fall through
-          case 86: break;
+          case 87: break;
           case 31:
             { return INSTANCE.getSTRING_LITERAL();
             }
           // fall through
-          case 87: break;
+          case 88: break;
           case 32:
             { return INSTANCE.getCOMPLETION_REQUEST();
             }
           // fall through
-          case 88: break;
+          case 89: break;
           case 33:
             { return INSTANCE.getMOD_ASSIGN_OP();
             }
           // fall through
-          case 89: break;
+          case 90: break;
           case 34:
             { return INSTANCE.getAND_OP();
             }
           // fall through
-          case 90: break;
+          case 91: break;
           case 35:
             { return INSTANCE.getAND_ASSIGN_OP();
             }
           // fall through
-          case 91: break;
+          case 92: break;
           case 36:
             { return INSTANCE.getMUL_ASSIGN_OP();
             }
           // fall through
-          case 92: break;
+          case 93: break;
           case 37:
             { return INSTANCE.getINC_OP();
             }
           // fall through
-          case 93: break;
+          case 94: break;
           case 38:
             { return INSTANCE.getADD_ASSIGN_OP();
             }
           // fall through
-          case 94: break;
+          case 95: break;
           case 39:
             { return INSTANCE.getDEC_OP();
             }
           // fall through
-          case 95: break;
+          case 96: break;
           case 40:
             { return INSTANCE.getSUB_ASSIGN_OP();
             }
           // fall through
-          case 96: break;
-          case 41:
-            { return INSTANCE.getFLOAT_LITERAL();
-            }
-          // fall through
           case 97: break;
-          case 42:
-            { yybegin(MULTILINE_COMMENT_STATE); return INSTANCE.getMULTILINE_COMMENT();
+          case 41:
+            { return INSTANCE.getRIGHT_ARROW();
             }
           // fall through
           case 98: break;
-          case 43:
-            { return INSTANCE.getLINE_COMMENT();
+          case 42:
+            { return INSTANCE.getFLOAT_LITERAL();
             }
           // fall through
           case 99: break;
-          case 44:
-            { return INSTANCE.getDIV_ASSIGN_OP();
+          case 43:
+            { yybegin(MULTILINE_COMMENT_STATE); return INSTANCE.getMULTILINE_COMMENT();
             }
           // fall through
           case 100: break;
-          case 45:
-            { return INSTANCE.getSCOPE();
+          case 44:
+            { return INSTANCE.getLINE_COMMENT();
             }
           // fall through
           case 101: break;
-          case 46:
-            { return INSTANCE.getSHL_OP();
+          case 45:
+            { return INSTANCE.getDIV_ASSIGN_OP();
             }
           // fall through
           case 102: break;
-          case 47:
-            { return INSTANCE.getLEQ_OP();
+          case 46:
+            { return INSTANCE.getSCOPE();
             }
           // fall through
           case 103: break;
-          case 48:
-            { return INSTANCE.getEQL_OP();
+          case 47:
+            { return INSTANCE.getSHL_OP();
             }
           // fall through
           case 104: break;
-          case 49:
-            { return INSTANCE.getGEQ_OP();
+          case 48:
+            { return INSTANCE.getLEQ_OP();
             }
           // fall through
           case 105: break;
-          case 50:
-            { return INSTANCE.getSHR_OP();
+          case 49:
+            { return INSTANCE.getEQL_OP();
             }
           // fall through
           case 106: break;
-          case 51:
-            { return INSTANCE.getXOR_ASSIGN_OP();
+          case 50:
+            { return INSTANCE.getGEQ_OP();
             }
           // fall through
           case 107: break;
-          case 52:
-            { return INSTANCE.getOR_ASSIGN_OP();
+          case 51:
+            { return INSTANCE.getSHR_OP();
             }
           // fall through
           case 108: break;
-          case 53:
-            { return INSTANCE.getOR_OP();
+          case 52:
+            { return INSTANCE.getXOR_ASSIGN_OP();
             }
           // fall through
           case 109: break;
-          case 54:
-            { yybegin(YYINITIAL); return INSTANCE.getMULTILINE_COMMENT();
+          case 53:
+            { return INSTANCE.getOR_ASSIGN_OP();
             }
           // fall through
           case 110: break;
-          case 55:
-            { return INSTANCE.getSHL_ASSIGN_OP();
+          case 54:
+            { return INSTANCE.getOR_OP();
             }
           // fall through
           case 111: break;
-          case 56:
-            { return INSTANCE.getSHR_ASSIGN_OP();
+          case 55:
+            { yybegin(YYINITIAL); return INSTANCE.getMULTILINE_COMMENT();
             }
           // fall through
           case 112: break;
+          case 56:
+            { return INSTANCE.getSHL_ASSIGN_OP();
+            }
+          // fall through
+          case 113: break;
+          case 57:
+            { return INSTANCE.getSHR_ASSIGN_OP();
+            }
+          // fall through
+          case 114: break;
           default:
             zzScanError(ZZ_NO_MATCH);
           }

@@ -894,15 +894,60 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result = parseAtomicExpr(builder, level)
 
-        if (nextTokenIs(builder, SlangTypes.INC_OP) || nextTokenIs(builder, SlangTypes.DEC_OP)) {
-            val marker = enter_section_(builder, level, _LEFT_)
-            result = result && parseOperator(builder, level + 1)
-            exit_section_(builder, level, marker, SlangTypes.POSTFIX_EXPRESSION, result, false, null)
-        }
-        // TODO: see slang/slang-parser.cpp:7277
-        else
-        {
-            result = true
+        while (result) {
+            if (nextTokenIs(builder, SlangTypes.INC_OP) || nextTokenIs(builder, SlangTypes.DEC_OP)) {
+                val marker = enter_section_(builder, level, _LEFT_)
+                result = result && parseOperator(builder, level + 1)
+                exit_section_(builder, level, marker, SlangTypes.POSTFIX_EXPRESSION, result, false, null)
+            }
+            else if (nextTokenIs(builder, SlangTypes.LEFT_BRACKET)) {
+                val marker = enter_section_(builder, level, _LEFT_)
+                builder.advanceLexer()
+                while (result) {
+                    if (nextTokenIs(builder, SlangTypes.RIGHT_BRACKET))
+                        break
+                    result = parseArgExpr(builder, level + 1)
+                    if (!consumeToken(builder, SlangTypes.COMMA))
+                        break
+                }
+                result = result && consumeToken(builder, SlangTypes.RIGHT_BRACKET)
+                exit_section_(builder, level, marker, SlangTypes.INDEX_EXPRESSION, result, false, null)
+            }
+            else if (nextTokenIs(builder, SlangTypes.LEFT_PAREN)) {
+                val marker = enter_section_(builder, level, _LEFT_)
+
+                builder.advanceLexer()
+                while (result) {
+                    if (nextTokenIs(builder, SlangTypes.RIGHT_PAREN))
+                        break
+                    result = parseArgExpr(builder, level + 1)
+                    if (!consumeToken(builder, SlangTypes.COMMA))
+                        break
+                }
+                result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+
+                exit_section_(builder, level, marker, SlangTypes.INVOKE_EXPRESSION, result, false, null)
+            }
+            else if (nextTokenIs(builder, SlangTypes.SCOPE)) {
+                val marker = enter_section_(builder, level, _LEFT_)
+                builder.advanceLexer()
+                result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+                if (nextTokenIs(builder, SlangTypes.LESS_OP)) {
+                    result = result && maybeParseGenericConstraints(builder, level + 1)
+                }
+                exit_section_(builder, level, marker, SlangTypes.STATIC_MEMBER_EXPRESSION, result, false, null)
+            }
+            else if (nextTokenIs(builder, SlangTypes.DOT) || nextTokenIs(builder, SlangTypes.RIGHT_ARROW)) {
+                val tokenType = builder.tokenType
+                val marker = enter_section_(builder, level, _LEFT_)
+                builder.advanceLexer()
+                result = result && parseDeclName(builder, level + 1)
+                exit_section_(builder, level, marker,
+                    if (tokenType == SlangTypes.DOT) SlangTypes.MEMBER_EXPRESSION else SlangTypes.DEREF_MEMBER_EXPRESSION,
+                    result, false, null)
+            }
+            else
+                break
         }
 
         return result
@@ -974,7 +1019,44 @@ open class SlangParser: PsiParser, LightPsiParser {
             exit_section_(builder, marker, null, true)
             return true
         }
-        // TODO: see slang/slang-parser.cpp:7180
+        else if (nextTokenIs(builder, SlangTypes.COMPLETION_REQUEST)) {
+            val marker = enter_section_(builder)
+            builder.advanceLexer()
+            exit_section_(builder, marker, SlangTypes.VARIABLE_EXPRESSION, true)
+            return true
+        }
+        else if (nextTokenIs(builder, SlangTypes.SCOPE)) {
+            val marker = enter_section_(builder)
+            builder.advanceLexer()
+
+            var result = true
+            if (nextTokenIs(builder, SlangTypes.COMPLETION_REQUEST))
+                builder.advanceLexer()
+            else {
+                result = consumeToken(builder, SlangTypes.IDENTIFIER)
+                if (nextTokenIs(builder, SlangTypes.LESS_OP)) {
+                    maybeParseGenericConstraints(builder, level + 1)
+                }
+            }
+
+            exit_section_(builder, marker, SlangTypes.VARIABLE_EXPRESSION, result)
+            return result
+        }
+        else if (nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+            val marker = enter_section_(builder)
+
+            if (tryParseUsingSyntaxDecl(builder, level + 1, SyntaxType.Expression)) {
+                exit_section_(builder, marker, SlangTypes.VARIABLE_EXPRESSION, true)
+                return true
+            }
+
+            var result = parseDeclName(builder, level + 1)
+            if (nextTokenIs(builder, SlangTypes.LESS_OP)) {
+                result = maybeParseGenericConstraints(builder, level + 1)
+            }
+            exit_section_(builder, marker, SlangTypes.VARIABLE_EXPRESSION, result)
+            return result
+        }
         else {
             builder.error("Syntax error.")
             return false
@@ -1099,6 +1181,70 @@ open class SlangParser: PsiParser, LightPsiParser {
                 break
         }
 
+        return result
+    }
+
+    private fun parseDeclName(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseDeclName"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        var result = false
+        if (consumeToken(builder, "operator")) {
+            if (nextTokenIs(builder, null,
+                    SlangTypes.ADD_OP,
+                    SlangTypes.SUB_OP,
+                    SlangTypes.MUL_OP,
+                    SlangTypes.DIV_OP,
+                    SlangTypes.MOD_OP,
+                    SlangTypes.NOT_OP,
+                    SlangTypes.BIT_NOT_OP,
+                    SlangTypes.SHL_OP,
+                    SlangTypes.SHR_OP,
+                    SlangTypes.EQL_OP,
+                    SlangTypes.NEQ_OP,
+                    SlangTypes.GREATER_OP,
+                    SlangTypes.LESS_OP,
+                    SlangTypes.GEQ_OP,
+                    SlangTypes.LEQ_OP,
+                    SlangTypes.AND_OP,
+                    SlangTypes.OR_OP,
+                    SlangTypes.BIT_AND_OP,
+                    SlangTypes.BIT_XOR_OP,
+                    SlangTypes.BIT_OR_OP,
+                    SlangTypes.INC_OP,
+                    SlangTypes.DEC_OP,
+                    SlangTypes.ADD_ASSIGN_OP,
+                    SlangTypes.SUB_ASSIGN_OP,
+                    SlangTypes.MUL_ASSIGN_OP,
+                    SlangTypes.DIV_ASSIGN_OP,
+                    SlangTypes.MOD_ASSIGN_OP,
+                    SlangTypes.SHL_ASSIGN_OP,
+                    SlangTypes.SHR_ASSIGN_OP,
+                    SlangTypes.AND_ASSIGN_OP,
+                    SlangTypes.OR_ASSIGN_OP,
+                    SlangTypes.XOR_ASSIGN_OP,
+                    SlangTypes.COMMA,
+                    SlangTypes.ASSIGN_OP
+                )
+            ) {
+                builder.advanceLexer()
+            }
+            else if (consumeToken(builder, SlangTypes.LEFT_PAREN))
+                result = consumeToken(builder, SlangTypes.RIGHT_PAREN)
+            else if (consumeToken(builder, SlangTypes.QUESTION_MARK))
+                result = consumeToken(builder, SlangTypes.COLON)
+            else
+                result = false
+
+            if (!result)
+                builder.error("Invalid operator")
+        }
+        else if (consumeToken(builder, SlangTypes.IDENTIFIER))
+            result = true
+
+        exit_section_(builder, marker, SlangTypes.DECLARATION_NAME, result)
         return result
     }
 }
