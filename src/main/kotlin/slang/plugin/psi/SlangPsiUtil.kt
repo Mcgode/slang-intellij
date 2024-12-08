@@ -3,18 +3,16 @@ package slang.plugin.psi
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.psi.tree.IElementType
-import slang.plugin.psi.SlangOldTypes.*
 
-import slang.plugin.language.parser.SlangParserUtil
 import slang.plugin.psi.types.SlangTypes
 
-object SlangPsiUtil: SlangParserUtil() {
+object SlangPsiUtil: GeneratedParserUtilBase() {
 
     @JvmStatic fun skipToMatchingToken(builder: PsiBuilder, tokenType: IElementType): IElementType? {
         while (true) {
             if (builder.eof())
                 return null
-            else if (GeneratedParserUtilBase.nextTokenIs(builder, tokenType))
+            else if (nextTokenIs(builder, tokenType))
             {
                 builder.advanceLexer()
                 return tokenType

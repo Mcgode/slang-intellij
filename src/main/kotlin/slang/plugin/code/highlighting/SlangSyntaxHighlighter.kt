@@ -10,16 +10,11 @@ import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import slang.plugin.psi.SlangLexerAdapter
 import slang.plugin.psi.SlangTokenSets
-import slang.plugin.psi.SlangOldTypes
 import slang.plugin.psi.types.SlangTypes
 
 class SlangSyntaxHighlighter: SyntaxHighlighterBase() {
 
     object SlangTextAttributes {
-        val SLANG_VARIABLE_TEXT = createTextAttributesKey("Slang.Variable", IDENTIFIER)
-        val SLANG_USER_DEFINED_TYPE_TEXT = createTextAttributesKey("Slang.UserDefinedType", CLASS_REFERENCE)
-        val SLANG_BUILTIN_NAME_TEXT = createTextAttributesKey("Slang.BuiltinName", KEYWORD)
-        val SLANG_KEYWORD_TEXT = createTextAttributesKey("Slang.Keyword", KEYWORD)
         val SLANG_NUMERIC_LITERALS_TEXT = createTextAttributesKey("Slang.NumericLiteral", NUMBER)
         val SLANG_STRING_LITERAL_TEXT = createTextAttributesKey("Slang.StringLiteral", STRING)
         val SLANG_LINE_COMMENT_TEXT = createTextAttributesKey("Slang.LineComment", LINE_COMMENT)
@@ -39,17 +34,15 @@ class SlangSyntaxHighlighter: SyntaxHighlighterBase() {
 
     private fun mapTokenToTextAttribute(tokenType: IElementType): TextAttributesKey? {
         return when (tokenType) {
-            in (SlangTokenSets.VARIABLES) -> SlangTextAttributes.SLANG_VARIABLE_TEXT
-//            SlangTypes.USER_TYPE_NAME -> SlangTextAttributes.SLANG_USER_DEFINED_TYPE_TEXT
-            in (SlangTokenSets.BUILTINS) -> SlangTextAttributes.SLANG_BUILTIN_NAME_TEXT
-            in (SlangTokenSets.KEYWORDS) -> SlangTextAttributes.SLANG_KEYWORD_TEXT
             in (SlangTokenSets.NUMERIC_LITERALS) -> SlangTextAttributes.SLANG_NUMERIC_LITERALS_TEXT
-//            SlangTypes.STRING_LITERAL -> SlangTextAttributes.SLANG_STRING_LITERAL_TEXT
-            SlangOldTypes.BOOL_LITERAL -> SlangTextAttributes.SLANG_KEYWORD_TEXT
-            SlangOldTypes.LINE_COMMENT -> SlangTextAttributes.SLANG_LINE_COMMENT_TEXT
-            SlangOldTypes.MULTILINE_COMMENT -> SlangTextAttributes.SLANG_MULTILINE_COMMENT_TEXT
+            in (SlangTokenSets.BRACES) -> SlangTextAttributes.SLANG_BRACE_TEXT
+            in (SlangTokenSets.PARENTHESIS) -> SlangTextAttributes.SLANG_PAREN_TEXT
+            in (SlangTokenSets.BRACKETS) -> SlangTextAttributes.SLANG_BRACKET_TEXT
+            SlangTypes.STRING_LITERAL -> SlangTextAttributes.SLANG_STRING_LITERAL_TEXT
+            SlangTypes.LINE_COMMENT -> SlangTextAttributes.SLANG_LINE_COMMENT_TEXT
+            SlangTypes.MULTILINE_COMMENT -> SlangTextAttributes.SLANG_MULTILINE_COMMENT_TEXT
             SlangTypes.COMMA -> SlangTextAttributes.SLANG_COMMA_TEXT
-//            SlangTypes.DOT -> SlangTextAttributes.SLANG_DOT_TEXT
+            SlangTypes.DOT -> SlangTextAttributes.SLANG_DOT_TEXT
             SlangTypes.SEMICOLON -> SlangTextAttributes.SLANG_SEMICOLON_TEXT
             TokenType.BAD_CHARACTER -> SlangTextAttributes.SLANG_BAD_CHARACTER_TEXT
             else -> null
