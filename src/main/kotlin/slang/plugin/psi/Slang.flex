@@ -100,6 +100,7 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     "::"                { return INSTANCE.getSCOPE(); }
     "#?"                { return INSTANCE.getCOMPLETION_REQUEST(); }
     "."                 { return INSTANCE.getDOT(); }
+    "?"                 { return INSTANCE.getQUESTION_MARK(); }
 
     "+"                 { return ADD_OP; }
     "-"                 { return SUB_OP; }
@@ -112,6 +113,8 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     "|"                 { return BITWISE_OR_OP; }
     "^"                 { return BITWISE_XOR_OP; }
     "~"                 { return BITWISE_NOT_OP; }
+    "++"                { return INSTANCE.getINC_OP(); }
+    "--"                { return INSTANCE.getDEC_OP(); }
 
     "+="                { return ADD_ASSIGN; }
     "-="                { return SUB_ASSIGN; }

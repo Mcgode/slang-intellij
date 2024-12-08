@@ -1,5 +1,6 @@
 package slang.plugin.language.parser
 
+import com.intellij.codeInsight.codeVision.CodeVisionState.NotReady.result
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LightPsiParser
 import com.intellij.lang.PsiBuilder
@@ -9,10 +10,12 @@ import com.intellij.psi.tree.IElementType
 import slang.plugin.language.parser.data.TypeSpec
 import slang.plugin.psi.types.SlangTypes
 import slang.plugin.psi.SlangPsiUtil
+import slang.plugin.psi.SlangTokenType
 
 open class SlangParser: PsiParser, LightPsiParser {
 
     private val enableGlslCode = true
+    private var isInVariadicGenerics = false
     private val identifierLookup = SlangIdentifierLookup()
 
     override fun parse(type: IElementType, builder: PsiBuilder): ASTNode {
@@ -275,11 +278,33 @@ open class SlangParser: PsiParser, LightPsiParser {
         return true
     }
 
-    private fun parseExpression(builder: PsiBuilder, level: Int): Boolean {
+    private enum class Precedence {
+        Invalid,
+        Comma,
+        Assignment,
+        TernaryConditional,
+        LogicalOr,
+        LogicalAnd,
+        BitOr,
+        BitXor,
+        BitAnd,
+        EqualityComparison,
+        RelationalComparison,
+        BitShift,
+        Additive,
+        Multiplicative,
+        Prefix,
+        Postfix,
+    }
+    private fun parseExpression(builder: PsiBuilder, level: Int, precedence: Precedence = Precedence.Comma): Boolean {
         if (!recursion_guard_(builder, level, "parseExpression"))
             return false
 
-        return false // TODO: see slang/slang-parser.cpp:2371
+        val marker = enter_section_(builder)
+        var result = parseLeafExpression(builder, level + 1)
+        result = result && parseInfixExprWithPrecedence(builder, level + 1, precedence)
+        exit_section_(builder, marker, SlangTypes.EXPRESSION, result)
+        return result
     }
 
     private fun parseInitDeclarator(builder: PsiBuilder, level: Int): Boolean {
@@ -545,7 +570,28 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parsePrefixExpr(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:7781
+        if (!recursion_guard_(builder, level, "parsePrefixExpr"))
+            return false
+
+        if (nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+            if (consumeToken(builder, "new")) {
+                // TODO: see slang/slang-parser.cpp:7791
+                return false
+            }
+            else if (consumeToken(builder, "spirv_asm")) {
+                return parseSpirVAsmExpr(builder, level)
+            }
+            else if (isInVariadicGenerics)
+            {
+                // TODO: see slang/slang-parser.cpp:7817
+                return false
+            }
+            return parsePostFixExpr(builder, level)
+        }
+
+        // TODO: see slang/slang-parser.cpp:7834
+
+        return parsePostFixExpr(builder, level)
     }
 
     private fun parseFuncTypeExpr(builder: PsiBuilder, level: Int): Boolean {
@@ -646,5 +692,112 @@ open class SlangParser: PsiParser, LightPsiParser {
 
     private fun parseRayPayloadAccessSemantic(builder: PsiBuilder, level: Int, write: Boolean): Boolean {
         return false // TODO: see slang/slang-parser.cpp:3093
+    }
+
+    private fun parseLeafExpression(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseLeafExpression"))
+            return false
+
+        return parsePrefixExpr(builder, level)
+    }
+
+    private fun parseInfixExprWithPrecedence(builder: PsiBuilder, level: Int, precedence: Precedence): Boolean {
+        return true // TODO: see slang/slang-parser.cpp:6331
+    }
+
+    private fun parseSpirVAsmExpr(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:7813
+    }
+
+    private fun parsePostFixExpr(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parsePostFixExpr"))
+            return false
+
+        var result = parseAtomicExpr(builder, level)
+
+        if (nextTokenIs(builder, SlangTypes.INC_OP) || nextTokenIs(builder, SlangTypes.DEC_OP)) {
+            val marker = enter_section_(builder, level, _LEFT_)
+            result = result && parseOperator(builder, level + 1)
+            exit_section_(builder, level, marker, SlangTypes.POSTFIX_EXPRESSION, result, false, null)
+        }
+        else
+        {
+            // TODO: see slang/slang-parser.cpp:7277
+            result = false
+        }
+
+        return result
+    }
+
+    private fun parseAtomicExpr(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseAtomicExpr"))
+            return false
+
+        // Either:
+        // - parenthesized expression `(exp)`
+        // - cast `(type) exp`
+        //
+        // Proper disambiguation requires mixing up parsing
+        // and semantic checking (which we should do eventually)
+        // but for now we will follow some heuristics.
+        if (nextTokenIs(builder, SlangTypes.LEFT_PAREN)) {
+            val marker = enter_section_(builder)
+
+            // Only handles cases of `(type)`, where type is a single identifier,
+            // and at this point the type is known
+            if (nextTokenIs(builder, SlangTypes.IDENTIFIER) && builder.lookAhead(1) == SlangTypes.RIGHT_PAREN) {
+                exit_section_(builder, marker, null, false)
+                return false
+                // TODO: see slang/slang-parser.cpp:6823
+            }
+            else
+            {
+                // TODO: see slang/slang-parser.cpp:6847
+                exit_section_(builder, marker, null, false)
+                return false
+            }
+        }
+        // An initializer list `{ expr, ... }`
+        else if (nextTokenIs(builder, SlangTypes.LEFT_BRACE)) {
+            val marker = enter_section_(builder)
+            var result = consumeToken(builder, SlangTypes.LEFT_BRACE)
+
+            while (result) {
+                if (nextTokenIs(builder, SlangTypes.RIGHT_BRACE))
+                    break
+
+                result = parseArgExpr(builder, level + 1)
+
+                if (nextTokenIs(builder, SlangTypes.RIGHT_BRACE))
+                    break
+                result = result && consumeToken(builder, SlangTypes.COMMA)
+            }
+            result = result && consumeToken(builder, SlangTypes.RIGHT_BRACE)
+
+            exit_section_(builder, marker, SlangTypes.INITIALIZER_LIST, result)
+            return result
+        }
+        // TODO: see slang/slang-parser.cpp:6919
+        else {
+            builder.error("Syntax error.")
+            return false
+        }
+    }
+
+    private fun parseOperator(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseOperator"))
+            return false
+
+        val marker = enter_section_(builder)
+        builder.advanceLexer()
+        exit_section_(builder, marker, SlangTypes.OPERATOR, true)
+        return true
+    }
+
+    private fun parseArgExpr(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseArgExpr"))
+            return false
+
+        return parseExpression(builder, level, Precedence.Assignment)
     }
 }
