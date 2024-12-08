@@ -620,11 +620,32 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseOptionalInheritanceClause(builder: PsiBuilder, level: Int): Boolean {
-        return true // TODO: see slang/slang-parser.cpp:3406
+        if (!recursion_guard_(builder, level, "parseOptionalInheritanceClause"))
+            return false
+
+        if (!nextTokenIs(builder, SlangTypes.COLON))
+            return true
+
+        builder.advanceLexer()
+
+        var result: Boolean
+        do {
+            val marker = enter_section_(builder)
+            result = parseTypeExp(builder, level + 1)
+            exit_section_(builder, marker, SlangTypes.INHERITANCE_DECLARATION, result)
+        } while (result && consumeToken(builder, SlangTypes.COMMA))
+
+        return result
     }
 
     private fun parseTypeExp(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:6119
+        if (!recursion_guard_(builder, level, "parseTypeExp"))
+            return false
+
+        val marker = enter_section_(builder)
+        val result = parseType(builder, level + 1)
+        exit_section_(builder, marker, SlangTypes.TYPE_EXPRESSION, result)
+        return result
     }
 
     private fun maybeParseGenericConstraints(builder: PsiBuilder, level: Int): Boolean {
@@ -930,5 +951,83 @@ open class SlangParser: PsiParser, LightPsiParser {
             return false
 
         return parseExpression(builder, level, Precedence.Assignment)
+    }
+
+    private fun parseType(builder: PsiBuilder, level: Int): Boolean {
+        return parseInfixTypeExpr(builder, level)
+    }
+
+    private fun parseInfixTypeExpr(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseInfixTypeExpr"))
+            return false
+
+        var result = parsePostFixTypeExpr(builder, level)
+        result = result && parseInfixTypeExprSuffix(builder, level)
+        return result
+    }
+
+    private fun parsePostFixTypeExpr(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parsePostFixTypeExpr"))
+            return false
+
+        var result = parseAtomicTypeExpr(builder, level)
+        result = result && parsePostFixTypeExprSuffix(builder, level)
+        return result
+    }
+
+    private fun parseInfixTypeExprSuffix(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseInfixTypeExprSuffix"))
+            return false
+
+        var result = true
+        while (result) {
+            // As long as the next token is an `&`, we will try
+            // to gobble up another type expression and form
+            // a conjunction type expression.
+
+            if (nextTokenIs(builder, SlangTypes.BIT_AND_OP)) {
+                val marker = enter_section_(builder, level, _LEFT_)
+                builder.advanceLexer()
+                result = parsePostFixTypeExpr(builder, level)
+                exit_section_(builder, level, marker, SlangTypes.AND_TYPE_EXPRESSION, result, false, null)
+            }
+            else
+                break
+        }
+
+        return result
+    }
+
+    private fun parseAtomicTypeExpr(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseAtomicTypeExpr"))
+            return false
+
+        return parseTypeSpec(builder, level) != null
+    }
+
+    private fun parsePostFixTypeExprSuffix(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parsePostFixTypeExprSuffix"))
+            return false
+
+        var result = true
+        while (result) {
+            if (nextTokenIs(builder, SlangTypes.LEFT_BRACKET)) {
+                val marker = enter_section_(builder, level, _LEFT_)
+                builder.advanceLexer()
+                if (!nextTokenIs(builder, SlangTypes.RIGHT_BRACKET))
+                    result = parseExpression(builder, level + 1)
+                result = result && consumeToken(builder, SlangTypes.RIGHT_BRACKET)
+                exit_section_(builder, level, marker, SlangTypes.INDEX_EXPRESSION, result, false, null)
+            }
+            else if (nextTokenIs(builder, SlangTypes.MUL_OP)) {
+                val marker = enter_section_(builder, level, _LEFT_)
+                builder.advanceLexer()
+                exit_section_(builder, level, marker, SlangTypes.POINTER_TYPE_EXPRESSION, result, false, null)
+            }
+            else
+                break
+        }
+
+        return result
     }
 }

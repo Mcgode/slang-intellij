@@ -31,6 +31,10 @@ object SlangTypes {
     val ASSIGN_EXPRESSION = SlangElementType("ASSIGN_EXPRESSION")
     val INFIX_EXPRESSION = SlangElementType("INFIX_EXPRESSION")
     val DECLARATION = SlangElementType("DECLARATION")
+    val INHERITANCE_DECLARATION = SlangElementType("INHERITANCE_DECLARATION")
+    val INDEX_EXPRESSION = SlangElementType("INDEX_EXPRESSION")
+    val POINTER_TYPE_EXPRESSION = SlangElementType("POINTER_TYPE_EXPRESSION")
+    val AND_TYPE_EXPRESSION = SlangElementType("AND_TYPE_EXPRESSION")
 
     val LINE_COMMENT = SlangElementType("LINE_COMMENT")
     val MULTILINE_COMMENT = SlangElementType("MULTILINE_COMMENT")
@@ -95,6 +99,7 @@ object SlangTypes {
         companion object {
             fun createElement(node: ASTNode?): PsiElement {
                 when (node?.elementType) {
+                    AND_TYPE_EXPRESSION -> return SlangAndTypeExpressionImpl(node)
                     ARRAY_DECLARATOR -> return SlangArrayDeclaratorImpl(node)
                     ARRAY_SPECIFIER -> return SlangArraySpecifierImpl(node)
                     ASSIGN_EXPRESSION -> return SlangAssignExpressionImpl(node)
@@ -104,13 +109,16 @@ object SlangTypes {
                     DECLARATION -> return SlangDeclarationImpl(node)
                     EXPRESSION -> return SlangExpressionImpl(node)
                     HLSL_SIMPLE_SEMANTIC -> return SlangHlslSimpleSemanticImpl(node)
+                    INDEX_EXPRESSION -> return SlangIndexExpressionImpl(node)
                     INFIX_EXPRESSION -> return SlangInfixExpressionImpl(node)
+                    INHERITANCE_DECLARATION -> return SlangInheritanceDeclarationImpl(node)
                     INIT_DECLARATOR -> return SlangInitDeclaratorImpl(node)
                     INITIALIZER_LIST -> return SlangInitializerListImpl(node)
                     IS_TYPE_EXPRESSION -> return SlangIsTypeExpressionImpl(node)
                     NAME_DECLARATOR -> return SlangNameDeclaratorImpl(node)
                     OPERATOR -> return SlangOperatorImpl(node)
                     POINTER_DECLARATOR -> return SlangPointerDeclaratorImpl(node)
+                    POINTER_TYPE_EXPRESSION -> return SlangPointerTypeExpressionImpl(node)
                     POSTFIX_EXPRESSION -> return SlangPostfixExpressionImpl(node)
                     SELECT_EXPRESSION -> return SlangSelectExpressionImpl(node)
                     STRUCT_DECLARATION -> return SlangStructDeclarationImpl(node)

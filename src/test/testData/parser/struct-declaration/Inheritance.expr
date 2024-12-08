@@ -1,1 +1,1 @@
-struct Foo: public Bar0, Bar1 {};
+struct Foo: Bar0, Bar1 {};
