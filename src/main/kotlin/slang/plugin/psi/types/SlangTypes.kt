@@ -30,6 +30,7 @@ object SlangTypes {
     val SELECT_EXPRESSION = SlangElementType("SELECT_EXPRESSION")
     val ASSIGN_EXPRESSION = SlangElementType("ASSIGN_EXPRESSION")
     val INFIX_EXPRESSION = SlangElementType("INFIX_EXPRESSION")
+    val DECLARATION = SlangElementType("DECLARATION")
 
     val LINE_COMMENT = SlangElementType("LINE_COMMENT")
     val MULTILINE_COMMENT = SlangElementType("MULTILINE_COMMENT")
@@ -100,6 +101,7 @@ object SlangTypes {
                     AS_TYPE_EXPRESSION -> return SlangAsTypeExpressionImpl(node)
                     BITFIELD_MODIFIER -> return SlangBitfieldModifierImpl(node)
                     BODY_DECL -> return SlangBodyDeclImpl(node)
+                    DECLARATION -> return SlangDeclarationImpl(node)
                     EXPRESSION -> return SlangExpressionImpl(node)
                     HLSL_SIMPLE_SEMANTIC -> return SlangHlslSimpleSemanticImpl(node)
                     INFIX_EXPRESSION -> return SlangInfixExpressionImpl(node)

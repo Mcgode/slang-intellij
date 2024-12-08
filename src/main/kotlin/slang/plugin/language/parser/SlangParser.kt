@@ -56,7 +56,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         val marker = enter_section_(builder)
         var result = parseModifiers(builder, level + 1)
         result = result && parseDeclWithModifiers(builder, level + 1)
-        exit_section_(builder, marker, null, result)
+        exit_section_(builder, marker, SlangTypes.DECLARATION, result)
         return result
     }
 
