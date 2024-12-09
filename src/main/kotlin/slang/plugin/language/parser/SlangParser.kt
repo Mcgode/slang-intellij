@@ -609,7 +609,25 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseClass(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5018
+        if (!recursion_guard_(builder, level, "parseClass"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, "class")
+
+        consumeToken(builder, SlangTypes.COMPLETION_REQUEST)
+
+        if (nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+            val nameMarker = enter_section_(builder)
+            result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+            exit_section_(builder, nameMarker, SlangTypes.CLASS_NAME, result)
+        }
+
+        result = result && parseOptionalInheritanceClause(builder, level + 1)
+        result = result && parseDeclBody(builder, level + 1)
+
+        exit_section_(builder, marker, SlangTypes.CLASS_DECLARATION, result)
+        return result
     }
 
     private fun parseEnumDecl(builder: PsiBuilder, level: Int): Boolean {

@@ -43,6 +43,8 @@ object SlangTypes {
     val MEMBER_EXPRESSION = SlangElementType("MEMBER_EXPRESSION")
     val DEREF_MEMBER_EXPRESSION = SlangElementType("DEREF_MEMBER_EXPRESSION")
     val DECLARATION_NAME = SlangElementType("DECLARATION_NAME")
+    val CLASS_DECLARATION = SlangElementType("CLASS_DECLARATION")
+    val CLASS_NAME = SlangElementType("CLASS_NAME")
 
     val LINE_COMMENT = SlangElementType("LINE_COMMENT")
     val MULTILINE_COMMENT = SlangElementType("MULTILINE_COMMENT")
@@ -115,6 +117,8 @@ object SlangTypes {
                     AS_TYPE_EXPRESSION -> return SlangAsTypeExpressionImpl(node)
                     BITFIELD_MODIFIER -> return SlangBitfieldModifierImpl(node)
                     BODY_DECL -> return SlangBodyDeclImpl(node)
+                    CLASS_DECLARATION -> return SlangClassDeclarationImpl(node)
+                    CLASS_NAME -> return SlangClassNameImpl(node)
                     DECLARATION -> return SlangDeclarationImpl(node)
                     DECLARATION_NAME -> return SlangDeclarationNameImpl(node)
                     DEREF_MEMBER_EXPRESSION -> return SlangDerefMemberExpressionImpl(node)

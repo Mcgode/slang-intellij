@@ -1,0 +1,13 @@
+Slang File
+  SlangDeclarationImpl(SlangElementType.DECLARATION)
+    SlangTypeSpecImpl(SlangElementType.TYPE_SPEC)
+      SlangClassDeclarationImpl(SlangElementType.CLASS_DECLARATION)
+        PsiElement(SlangTokenType.IDENTIFIER)('class')
+        PsiWhiteSpace(' ')
+        SlangClassNameImpl(SlangElementType.CLASS_NAME)
+          PsiElement(SlangTokenType.IDENTIFIER)('Foo')
+        PsiWhiteSpace(' ')
+        SlangBodyDeclImpl(SlangElementType.BODY_DECL)
+          PsiElement(SlangTokenType.{)('{')
+          PsiElement(SlangTokenType.})('}')
+    PsiElement(SlangTokenType.;)(';')
