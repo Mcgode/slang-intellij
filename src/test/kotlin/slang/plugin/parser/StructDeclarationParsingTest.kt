@@ -6,7 +6,7 @@ import slang.plugin.language.SlangParserDefinition
 
 class StructDeclarationParsingTest: ParsingTestCase(
     "parser/struct-declaration",
-    "expr",
+    "slang",
     SlangParserDefinition()
 )
 {
@@ -41,4 +41,6 @@ class StructDeclarationParsingTest: ParsingTestCase(
     fun testMultiMember() {
         doTest(true);
     }
+
+    fun testAttributes() = doTest(true)
 }

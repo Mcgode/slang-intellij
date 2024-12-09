@@ -85,6 +85,7 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     "::"                { return INSTANCE.getSCOPE(); }
     "#?"                { return INSTANCE.getCOMPLETION_REQUEST(); }
     "."                 { return INSTANCE.getDOT(); }
+    "->"                { return INSTANCE.getRIGHT_ARROW(); }
     "?"                 { return INSTANCE.getQUESTION_MARK(); }
 
     "+"                 { return INSTANCE.getADD_OP(); }
