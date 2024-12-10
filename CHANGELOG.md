@@ -2,6 +2,8 @@
 
 # slang-intellij Changelog
 
+## [Unreleased]
+
 ## [0.0.2] - 2024-12-09
 
 ### Added
@@ -18,7 +20,7 @@
   - Postfix expression
 - Test files now use .slang file extension
 - Cleaned up README
-- Removed Slang.bnf and associated generated classes 
+- Removed Slang.bnf and associated generated classes
 
 ## [0.0.1] - 2024-12-08
 
@@ -30,5 +32,6 @@ First unstable iteration of the plugin
 - Work in progress slang file parsing
 - Work in progress slang code highlighting
 
-[0.0.2]: https://github.com/Mcgode/slang-intellij/commits/0.0.1-alpha...0.0.2-alpha
-[0.0.1]: https://github.com/Mcgode/slang-intellij/commits/0.0.1-alpha
+[Unreleased]: https://github.com/Mcgode/slang-intellij/compare/v0.0.2...HEAD
+[0.0.2]: https://github.com/Mcgode/slang-intellij/compare/v0.0.1...v0.0.2
+[0.0.1]: https://github.com/Mcgode/slang-intellij/commits/v0.0.1
