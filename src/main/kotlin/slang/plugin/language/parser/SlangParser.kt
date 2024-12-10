@@ -1,5 +1,6 @@
 package slang.plugin.language.parser
 
+import com.intellij.codeInsight.codeVision.CodeVisionState.NotReady.result
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LightPsiParser
 import com.intellij.lang.PsiBuilder
@@ -49,6 +50,18 @@ open class SlangParser: PsiParser, LightPsiParser {
             }
             return false
         }
+    }
+
+    private fun nextTokenAheadIs(builder: PsiBuilder, name: String, offset: Int): Boolean {
+        if (offset <= 0)
+            return false
+
+        val marker = builder.mark();
+        for (i in 0 until offset)
+            builder.advanceLexer();
+        val result = builder.tokenText == name
+        marker.rollbackTo()
+        return result
     }
 
     private fun parseSourceFile(builder: PsiBuilder, level: Int): Boolean {
@@ -1486,8 +1499,12 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         if (nextTokenIs(builder, SlangTypes.LEFT_BRACE))
             result = result && parseDeclBody(builder, level + 1)
-        else if (nextTokenIs(builder, "if"))
-            result = result && parseIfStatement(builder, level + 1)
+        else if (nextTokenIs(builder, "if")) {
+            if (nextTokenAheadIs(builder, "let", 2))
+                result = result && parseIfLetStatement(builder, level + 1)
+            else
+                result = result && parseIfStatement(builder, level + 1)
+        }
         else if (nextTokenIs(builder, "for"))
             result = result && parseForStatement(builder, level + 1)
         else if (nextTokenIs(builder, "while"))
@@ -1601,13 +1618,54 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
+    private fun parseIfLetStatement(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseIfStatement"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, "if")
+        result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
+        if (result) {
+            val declMarker = enter_section_(builder)
+            result = consumeToken(builder, "let")
+            if (result) {
+                val varDeclMarker = enter_section_(builder)
+                result = consumeToken(builder, SlangTypes.IDENTIFIER)
+                result = result && consumeToken(builder, SlangTypes.ASSIGN_OP)
+                result = result && parseInitExpr(builder, level + 3)
+                exit_section_(builder, varDeclMarker, SlangTypes.VARIABLE_DECL, result)
+            }
+            exit_section_(builder, declMarker, SlangTypes.LET_DECLARATION, result)
+        }
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+
+        result = result && parseStatement(builder, level + 1, true)
+
+        if (result && consumeToken(builder, "else")) {
+            result = parseStatement(builder, level + 1, true)
+        }
+
+        exit_section_(builder, marker, SlangTypes.IF_STATEMENT, result)
+        return result
+    }
+
     private fun parseIfStatement(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseIfStatement"))
             return false
 
-        // TODO: Handle different if let statement
+        val marker = enter_section_(builder)
 
-        return false // TODO: see slang/slang-parser.cpp:5480
+        var result = consumeToken(builder, "if")
+        result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && parseExpression(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+
+        result = result && parseStatement(builder, level + 1, true)
+        if (result && consumeToken(builder, "else"))
+            result = parseStatement(builder, level + 1, true)
+
+        exit_section_(builder, marker, SlangTypes.IF_STATEMENT, result)
+        return result
     }
 
     private fun parseForStatement(builder: PsiBuilder, level: Int): Boolean {
