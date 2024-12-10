@@ -671,7 +671,44 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseEnumDecl(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5067
+        if (!recursion_guard_(builder, level, "parseEnumDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, "enum")
+
+        // Consume 'class' if is enum class
+        consumeToken(builder, "class")
+
+        consumeToken(builder, SlangTypes.COMPLETION_REQUEST)
+
+        if (nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+            val nameMarker = enter_section_(builder)
+            result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+            exit_section_(builder, nameMarker, SlangTypes.ENUM_NAME, result)
+        }
+
+        val parseInner: (PsiBuilder, Int) -> Boolean = { b, l ->
+            var innerResult = parseOptionalInheritanceClause(b, l)
+            innerResult = innerResult && maybeParseGenericConstraints(b, l)
+            innerResult = innerResult && consumeToken(builder, SlangTypes.LEFT_BRACE)
+
+            while (innerResult) {
+                if (consumeToken(builder, SlangTypes.RIGHT_BRACE))
+                    break
+                innerResult = parseEnumCaseDecl(b, l)
+                if (innerResult && consumeToken(builder, SlangTypes.RIGHT_BRACE))
+                    break
+                else
+                    innerResult = innerResult && consumeToken(builder, SlangTypes.COMMA)
+            }
+
+            innerResult
+        }
+        result = result && parseOptGenericDecl(builder, level + 1, parseInner)
+
+        exit_section_(builder, marker, SlangTypes.ENUM_DECLARATION, result)
+        return result
     }
 
     private fun parsePrefixExpr(builder: PsiBuilder, level: Int): Boolean {
@@ -1639,5 +1676,23 @@ open class SlangParser: PsiParser, LightPsiParser {
 
     private fun parseVarDeclStatement(builder: PsiBuilder, level: Int): Boolean {
         return false // TODO: see slang/slang-parser.cpp:5779
+    }
+
+    private fun parseEnumCaseDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseEnumCaseDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = let {
+            val nameMarker = enter_section_(builder)
+            val nameResult = consumeToken(builder, SlangTypes.IDENTIFIER)
+            exit_section_(builder, nameMarker, SlangTypes.ENUM_CASE_NAME, nameResult)
+            nameResult
+        }
+        if (result && consumeToken(builder, SlangTypes.ASSIGN_OP)) {
+            result = parseArgExpr(builder, level)
+        }
+        exit_section_(builder, marker, SlangTypes.ENUM_CASE_DECLARATION, result)
+        return result
     }
 }

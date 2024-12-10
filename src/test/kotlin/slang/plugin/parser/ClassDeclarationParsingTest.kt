@@ -15,4 +15,5 @@ class ClassDeclarationParsingTest: ParsingTestCase(
 
     fun testBasic() = doTest(true)
     fun testMultiVariableMembers() = doTest(true)
+    fun testInnerEnum() = doTest(true)
 }
