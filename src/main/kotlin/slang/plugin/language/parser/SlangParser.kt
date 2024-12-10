@@ -373,8 +373,6 @@ open class SlangParser: PsiParser, LightPsiParser {
         BitShift,
         Additive,
         Multiplicative,
-        Prefix,
-        Postfix,
     }
     private fun parseExpression(builder: PsiBuilder, level: Int, precedence: Precedence = Precedence.Comma): Boolean {
         if (!recursion_guard_(builder, level, "parseExpression"))
@@ -1209,7 +1207,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             else if (nextTokenIs(builder, SlangTypes.MUL_OP)) {
                 val marker = enter_section_(builder, level, _LEFT_)
                 builder.advanceLexer()
-                exit_section_(builder, level, marker, SlangTypes.POINTER_TYPE_EXPRESSION, result, false, null)
+                exit_section_(builder, level, marker, SlangTypes.POINTER_TYPE_EXPRESSION, true, false, null)
             }
             else
                 break
