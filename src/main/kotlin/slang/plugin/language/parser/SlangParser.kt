@@ -10,6 +10,12 @@ import slang.plugin.language.parser.data.TypeSpec
 import slang.plugin.psi.types.SlangTypes
 import slang.plugin.psi.SlangPsiUtil
 
+//
+// This parser is implemented based on the CPP slang parser from
+// https://github.com/shader-slang/slang/blob/master/source/slang/slang-parser.cpp
+//
+// Current supported commit revision is 'b118451e301d734e3e783b3acdf871f3f6ea851c'
+//
 open class SlangParser: PsiParser, LightPsiParser {
 
     private val enableGlslCode = true
@@ -31,6 +37,18 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         exit_section_(builder, 0, marker, type, result, true, TRUE_CONDITION)
 
+    }
+
+    private fun nextTokenAfterModifiersIs(builder: PsiBuilder, name: String): Boolean {
+        while (true) {
+            if (nextTokenIs(builder, name))
+                return true
+            else if (identifierLookup.lookUp(builder.tokenText ?: "n/a")?.identifier == SlangIdentifierLookup.IdentifierStyle.TypeModifier) {
+                builder.advanceLexer()
+                continue
+            }
+            return false
+        }
     }
 
     private fun parseSourceFile(builder: PsiBuilder, level: Int): Boolean {
@@ -264,24 +282,42 @@ open class SlangParser: PsiParser, LightPsiParser {
         }
 
         val marker = enter_section_(builder)
-        result = result && parseInitDeclarator(builder, level + 1)
-        exit_section_(builder, marker, SlangTypes.VARIABLE_DECL, result)
+        val initDeclaratorState = if (result) parseInitDeclarator(builder, level + 1) else null
+        result = initDeclaratorState != null
 
-        // TODO: see slang/slang-parser.cpp:2916
+        // Rather than parse function declarators properly for now,
+        // we'll just do a quick disambiguation here. This won't
+        // matter unless we actually decide to support function-type parameters,
+        // using C syntax.
+        //
+        if ((nextTokenIs(builder, null, SlangTypes.LEFT_PAREN, SlangTypes.LESS_OP)
 
-        while (result) {
-            when (builder.tokenType) {
-                SlangTypes.COMMA -> {
-                    val markerB = enter_section_(builder)
-                    result = parseInitDeclarator(builder, level + 1)
-                    exit_section_(builder, markerB, SlangTypes.VARIABLE_DECL, result)
-                }
-                else -> break
-            }
+                // Only parse as a function if we didn't already see mutually-exclusive
+                // constructs when parsing the declarator.
+                && initDeclaratorState?.initializer == false) && !initDeclaratorState.semantics) {
+
+            result = parseTraditionalFuncDecl(builder, level + 1)
+            exit_section_(builder, marker, SlangTypes.FUNCTION_DECLARATION, result)
         }
 
-        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+        // Otherwise we are looking at a variable declaration, which could be one in a sequence...
+        else {
+            exit_section_(builder, marker, SlangTypes.VARIABLE_DECL, result)
 
+            while (result) {
+                when (builder.tokenType) {
+                    SlangTypes.COMMA -> {
+                        val markerB = enter_section_(builder)
+                        result = parseInitDeclarator(builder, level + 1) != null
+                        exit_section_(builder, markerB, SlangTypes.VARIABLE_DECL, result)
+                    }
+
+                    else -> break
+                }
+            }
+
+            result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+        }
         return result
     }
 
@@ -351,49 +387,55 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
-    private fun parseInitDeclarator(builder: PsiBuilder, level: Int): Boolean {
+    private data class InitDeclaratorState(var initializer: Boolean = false, var semantics: Boolean = false)
+
+    private fun parseInitDeclarator(builder: PsiBuilder, level: Int, allowEmpty: Boolean = false): InitDeclaratorState? {
         if (!recursion_guard_(builder, level, "parseInitDeclarator"))
-            return false
+            return null
 
         val marker = enter_section_(builder)
-        var result = parseSemanticDeclarator(builder, level + 1)
+        val state = InitDeclaratorState()
+        var result = parseSemanticDeclarator(builder, level + 1, allowEmpty, state)
         if (consumeToken(builder, SlangTypes.ASSIGN_OP)) {
+            state.initializer = true
             result = result && parseInitExpr(builder, level + 1)
         }
         exit_section_(builder, marker, SlangTypes.INIT_DECLARATOR, result)
-        return result
+        return if (result) state else null
     }
 
-    private fun parseSemanticDeclarator(builder: PsiBuilder, level: Int): Boolean {
+    private fun parseSemanticDeclarator(builder: PsiBuilder, level: Int, allowEmpty: Boolean, state: InitDeclaratorState): Boolean {
         if (!recursion_guard_(builder, level, "parseSemanticDeclarator"))
             return false
 
-        var result = parseDeclarator(builder, level)
-        result = result && parseOptSemantics(builder, level)
+        var result = parseDeclarator(builder, level, allowEmpty)
+        result = result && parseOptSemantics(builder, level, state)
         return result
     }
 
-    private fun parseDeclarator(builder: PsiBuilder, level: Int): Boolean {
+    private fun parseDeclarator(builder: PsiBuilder, level: Int, allowEmpty: Boolean): Boolean {
         if (!recursion_guard_(builder, level, "parseDeclarator"))
             return false
 
         if (consumeToken(builder, SlangTypes.MUL_OP)) {
             val marker = enter_section_(builder)
-            val result = parseDeclarator(builder, level + 1)
+            val result = parseDeclarator(builder, level + 1, allowEmpty)
             exit_section_(builder, marker, SlangTypes.POINTER_DECLARATOR, result)
             return result
         }
 
-        val result = parseDirectAbstractDeclarator(builder, level)
+        val result = parseDirectAbstractDeclarator(builder, level, allowEmpty)
         return result
     }
 
-    private fun parseOptSemantics(builder: PsiBuilder, level: Int): Boolean {
+    private fun parseOptSemantics(builder: PsiBuilder, level: Int, state: InitDeclaratorState = InitDeclaratorState()): Boolean {
         if (!recursion_guard_(builder, level, "parseOptSemantics"))
             return false
 
         if (!consumeToken(builder, SlangTypes.COLON))
             return true
+
+        state.semantics = true
 
         var result = true
         while (result) {
@@ -438,7 +480,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         return false
     }
 
-    private fun parseDirectAbstractDeclarator(builder: PsiBuilder, level: Int): Boolean {
+    private fun parseDirectAbstractDeclarator(builder: PsiBuilder, level: Int, allowEmpty: Boolean): Boolean {
         if (!recursion_guard_(builder, level, "parseDirectAbstractDeclarator"))
             return false
 
@@ -471,10 +513,10 @@ open class SlangParser: PsiParser, LightPsiParser {
                 // to get around these issues when those features come online.
                 //
                 result = consumeToken(builder, SlangTypes.LEFT_PAREN)
-                result = result && parseDeclarator(builder, level)
+                result = result && parseDeclarator(builder, level, allowEmpty)
                 result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
             }
-            else -> return false
+            else -> return allowEmpty
         }
 
         // Postfix additions
@@ -1264,5 +1306,340 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         exit_section_(builder, marker, SlangTypes.DECLARATION_NAME, result)
         return result
+    }
+
+    private fun parseTraditionalFuncDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseTraditionalFuncDecl"))
+            return false
+
+        val parseInner: (PsiBuilder, Int) -> Boolean = { b, l ->
+            // HACK: The return type of the function will already have been
+            // parsed in a scope that didn't include the function's generic
+            // parameters.
+            //
+            // We will use a visitor here to try and replace the scope associated
+            // with any name expressiosn in the reuslt type.
+            //
+            // TODO: This should be fixed by not associating scopes with
+            // such expressions at parse time, and instead pushing down scopes
+            // as part of the state during semantic checking.
+            //
+
+            var result = parseParameterList(b, l)
+
+            if (result)
+                consumeToken(b, "throws")
+
+            result = result && parseOptSemantics(b, l)
+            result = result && maybeParseGenericConstraints(b, l)
+            result = result && parseOptBody(b, l)
+
+            result
+        }
+
+        return parseOptGenericDecl(builder, level, parseInner)
+    }
+
+    private fun parseParameterList(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseParameterList"))
+            return false
+
+        if (!consumeToken(builder, SlangTypes.LEFT_PAREN))
+            return false
+
+        // Allow a declaration to use the keyword `void` for a parameter list,
+        // since that was required in ancient C, and continues to be supported
+        // in a bunch of its derivatives even if it is a Bad Design Choice
+        //
+        if (nextTokenIs(builder, "void") && builder.lookAhead(1) == SlangTypes.RIGHT_PAREN) {
+            builder.advanceLexer()
+            builder.advanceLexer()
+            return true
+        }
+
+        var result = true
+        while (result) {
+            if (consumeToken(builder, SlangTypes.RIGHT_PAREN))
+                break
+
+            result = parseParameter(builder, level)
+            if (result && consumeToken(builder, SlangTypes.RIGHT_PAREN))
+                break
+            result = result && consumeToken(builder, SlangTypes.COMMA)
+        }
+
+        return result
+    }
+
+    private fun parseOptBody(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseBody"))
+            return false
+
+        if (consumeToken(builder, SlangTypes.SEMICOLON))
+            return true
+        return parseBlockStatement(builder, level)
+    }
+
+    private fun parseBlockStatement(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseBlockStatement"))
+            return false
+
+        if (!nextTokenIs(builder, SlangTypes.LEFT_BRACE))
+            return false
+
+        val marker = enter_section_(builder)
+        builder.advanceLexer()
+        var result = true
+
+        while (result) {
+            if (consumeToken(builder, SlangTypes.RIGHT_BRACE))
+                break
+
+            if (nextTokenAfterModifiersIs(builder, "struct"))
+                result = parseDecl(builder, level + 1)
+            else if (consumeToken(builder, "typedef"))
+                result = parseTypeDef(builder, level + 1)
+            else if (consumeToken(builder, "typealias"))
+                result = parseTypeAliasDecl(builder, level + 1)
+            else
+                result = parseStatement(builder, level + 1)
+
+            // TODO: handle recovery
+        }
+
+        exit_section_(builder, marker, SlangTypes.BLOCK_STATEMENT, result)
+        return result
+    }
+
+    private fun parseParameter(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseParameter"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = parseModifiers(builder, level + 1)
+        result = result && parseTraditionalParamDeclCommonBase(builder, level + 1, true)
+        exit_section_(builder, marker, SlangTypes.PARAMETER_DECLARATION, result)
+        return result
+    }
+
+    private fun parseTraditionalParamDeclCommonBase(builder: PsiBuilder, level: Int, allowEmpty: Boolean = false): Boolean {
+        if (!recursion_guard_(builder, level, "parseTraditionalParamDeclCommon"))
+            return false
+
+        var result = parseType(builder, level)
+        val marker = enter_section_(builder)
+        result = result && (parseInitDeclarator(builder, level + 1, allowEmpty) != null)
+        exit_section_(builder, marker, SlangTypes.VARIABLE_DECL, result)
+        return result
+    }
+
+    private fun parseTypeDef(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5737
+    }
+
+    private fun parseTypeAliasDecl(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5743
+    }
+
+    private fun parseStatement(builder: PsiBuilder, level: Int, isIfStmt: Boolean = false): Boolean {
+        if (!recursion_guard_(builder, level, "parseStatement"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        var result = parseModifiers(builder, level + 1)
+
+        if (nextTokenIs(builder, SlangTypes.LEFT_BRACE))
+            result = result && parseDeclBody(builder, level + 1)
+        else if (nextTokenIs(builder, "if"))
+            result = result && parseIfStatement(builder, level + 1)
+        else if (nextTokenIs(builder, "for"))
+            result = result && parseForStatement(builder, level + 1)
+        else if (nextTokenIs(builder, "while"))
+            result = result && parseWhileStatement(builder, level + 1)
+        else if (nextTokenIs(builder, "do"))
+            result = result && parseDoWhileStatement(builder, level + 1)
+        else if (nextTokenIs(builder, "break"))
+            result = result && parseBreakStatement(builder, level + 1)
+        else if (nextTokenIs(builder, "continue"))
+            result = result && parseContinueStatement(builder, level + 1)
+        else if (nextTokenIs(builder, "return"))
+            result = result && parseReturnStatement(builder, level + 1)
+        else if (nextTokenIs(builder, "discard"))
+            result = result && parseDiscardStatement(builder, level + 1)
+        else if (nextTokenIs(builder, "switch"))
+            result = result && parseSwitchStmt(builder, level + 1)
+        else if (nextTokenIs(builder, "__target_switch"))
+            result = result && parseTargetSwitchStmt(builder, level + 1)
+        else if (nextTokenIs(builder, "__intrisic_asm"))
+            result = result && parseIntrisicAsmStmt(builder, level + 1)
+        else if (nextTokenIs(builder, "case"))
+            result = result && parseCaseStmt(builder, level + 1)
+        else if (nextTokenIs(builder, "default"))
+            result = result && parseDefaultStmt(builder, level + 1)
+        else if (nextTokenIs(builder, "__GPU_FOREACH"))
+            result = result && parseGpuForeachStmt(builder, level + 1)
+        else if (nextTokenIs(builder, "__intrisic_asm"))
+            result = result && parseIntrisicAsmStmt(builder, level + 1)
+        else if (nextTokenIs(builder, SlangTypes.DOLLAR))
+            result = result && parseCompileTimeStmt(builder, level + 1)
+        else if (nextTokenIs(builder, "try"))
+            result = result && parseExpressionStatement(builder, level + 1)
+        else if (nextTokenIs(builder, null, SlangTypes.IDENTIFIER, SlangTypes.SCOPE)) {
+            if (nextTokenIs(builder, SlangTypes.IDENTIFIER) && builder.lookAhead(1) == SlangTypes.COLON)
+                // An identifier followed by an ":" is a label.
+                result = result && parseLabelStatement(builder, level + 1)
+            else {
+
+                // We might be looking at a local declaration, or an
+                // expression statement, and we need to figure out which.
+                //
+                // We'll solve this with backtracking for now.
+                //
+                val backtrackingMarker = builder.mark()
+                // TODO: Investigate 'hasSeenCompletionToken' usage
+
+                // Try to parse a type (knowing that the type grammar is
+                // a subset of the expression grammar, and so this should
+                // always succeed).
+                //
+                // HACK: The type grammar that `ParseType` supports is *not*
+                // a subset of the expression grammar because it includes
+                // type specifiers like `struct` and `enum` declarations
+                // which should always be the start of a declaration.
+                //
+                // Before launching into this attempt to parse a type,
+                // this logic should really be looking up the `SyntaxDecl`,
+                // if any, associated with the identifier. If a piece of
+                // syntax is discovered, then it should dictate the next
+                // steps of parsing, and only in the case where the lookahead
+                // isn't a keyword should we fall back to the approach
+                // here.
+                //
+                val foundType = parseType(builder, level)
+
+                // If the next token after we parsed a type looks like
+                // we are going to declare a variable, then lets guess
+                // that this is a declaration.
+                //
+                // TODO(tfoley): this wouldn't be robust for more
+                // general kinds of declarators (notably pointer declarators),
+                // so we'll need to be careful about this.
+                //
+                // If the line being parsed token is `Something* ...`, then the `*`
+                // is already consumed by `ParseType` above and the current logic
+                // will continue to parse as var declaration instead of a mul expr.
+                // In this context it makes sense to disambiguate
+                // in favor of a pointer over a multiply, since a multiply
+                // expression can't appear at the start of a statement
+                // with any side effects.
+                //
+                if (nextTokenIs(builder, null, SlangTypes.IDENTIFIER, SlangTypes.COMPLETION_REQUEST)) {
+                    // Reset the cursor and try to parse a declaration now.
+                    // Note: the declaration will consume any modifiers
+                    // that had been in place on the statement.
+                    backtrackingMarker.rollbackTo()
+                    result = result && parseVarDeclStatement(builder, level + 1)
+                }
+                else {
+                    // Fallback: reset and parse an expression
+                    backtrackingMarker.rollbackTo()
+                    result = result && parseExpressionStatement(builder, level + 1)
+                }
+            }
+        }
+        else if (nextTokenIs(builder, SlangTypes.SEMICOLON)) {
+            builder.advanceLexer()
+            if (isIfStmt) {
+                // An empty statement after an `if` is probably a mistake,
+                // so we will diagnose it as such.
+                //
+                builder.error("Unintended empty statement")
+                result = false
+            }
+        }
+        else {
+            result = result && parseExpressionStatement(builder, level + 1)
+        }
+
+        exit_section_(builder, marker, SlangTypes.STATEMENT, result)
+        return result
+    }
+
+    private fun parseIfStatement(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseIfStatement"))
+            return false
+
+        // TODO: Handle different if let statement
+
+        return false // TODO: see slang/slang-parser.cpp:5480
+    }
+
+    private fun parseForStatement(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5490
+    }
+
+    private fun parseWhileStatement(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5492
+    }
+
+    private fun parseDoWhileStatement(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5494
+    }
+
+    private fun parseBreakStatement(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5496
+    }
+
+    private fun parseContinueStatement(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5498
+    }
+
+    private fun parseReturnStatement(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5500
+    }
+
+    private fun parseDiscardStatement(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5502
+    }
+
+    private fun parseSwitchStmt(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5509
+    }
+
+    private fun parseTargetSwitchStmt(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5511
+    }
+
+    private fun parseIntrisicAsmStmt(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5513
+    }
+
+    private fun parseCaseStmt(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5515
+    }
+
+    private fun parseDefaultStmt(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5517
+    }
+
+    private fun parseGpuForeachStmt(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5519
+    }
+
+    private fun parseCompileTimeStmt(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5522
+    }
+
+    private fun parseExpressionStatement(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:6025
+    }
+
+    private fun parseLabelStatement(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:6025
+    }
+
+    private fun parseVarDeclStatement(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:5779
     }
 }
