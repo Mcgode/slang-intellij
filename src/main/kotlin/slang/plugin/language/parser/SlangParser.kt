@@ -729,8 +729,10 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         if (nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
             if (consumeToken(builder, "new")) {
-                // TODO: see slang/slang-parser.cpp:7791
-                return false
+                val marker = enter_section_(builder)
+                val result = parsePostfixExpr(builder, level + 1)
+                exit_section_(builder, marker, SlangTypes.NEW_EXPRESSION, result)
+                return result
             }
             else if (consumeToken(builder, "spirv_asm")) {
                 return parseSpirVAsmExpr(builder, level)
@@ -740,12 +742,12 @@ open class SlangParser: PsiParser, LightPsiParser {
                 // TODO: see slang/slang-parser.cpp:7817
                 return false
             }
-            return parsePostFixExpr(builder, level)
+            return parsePostfixExpr(builder, level)
         }
 
         // TODO: see slang/slang-parser.cpp:7834
 
-        return parsePostFixExpr(builder, level)
+        return parsePostfixExpr(builder, level)
     }
 
     private fun parseFuncTypeExpr(builder: PsiBuilder, level: Int): Boolean {
@@ -995,7 +997,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         return false // TODO: see slang/slang-parser.cpp:7813
     }
 
-    private fun parsePostFixExpr(builder: PsiBuilder, level: Int): Boolean {
+    private fun parsePostfixExpr(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parsePostFixExpr"))
             return false
 
