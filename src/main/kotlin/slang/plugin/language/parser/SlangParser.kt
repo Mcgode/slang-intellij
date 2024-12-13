@@ -739,8 +739,12 @@ open class SlangParser: PsiParser, LightPsiParser {
             }
             else if (isInVariadicGenerics)
             {
-                // TODO: see slang/slang-parser.cpp:7817
-                return false
+                // If we are inside a variadic generic, we also need to recognize
+                // the new `expand` and `each` keyword for dealing with variadic packs.
+                if (consumeToken(builder, "expand"))
+                    return parseExpandExpr(builder, level)
+                else if (consumeToken(builder, "each"))
+                    return parseEachExpr(builder, level)
             }
             return parsePostfixExpr(builder, level)
         }
@@ -1871,5 +1875,12 @@ open class SlangParser: PsiParser, LightPsiParser {
             backtrackingMarker.rollbackTo()
             return parseExpressionStatement(builder, level + 1)
         }
+    }
+
+    private fun parseExpandExpr(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:7820
+    }
+    private fun parseEachExpr(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see slang/slang-parser.cpp:7824
     }
 }
