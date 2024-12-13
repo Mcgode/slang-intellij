@@ -59,6 +59,7 @@ object SlangTypes {
     val UNCHECKED_ATTRIBUTE = SlangElementType("UNCHECKED_ATTRIBUTE")
     val VARIABLE_DECL = SlangElementType("VARIABLE_DECL")
     val VARIABLE_EXPRESSION = SlangElementType("VARIABLE_EXPRESSION")
+    val WHILE_STATEMENT = SlangElementType("WHILE_STATEMENT")
 
     val LINE_COMMENT = SlangElementType("LINE_COMMENT")
     val MULTILINE_COMMENT = SlangElementType("MULTILINE_COMMENT")
@@ -177,6 +178,7 @@ object SlangTypes {
                     UNCHECKED_ATTRIBUTE -> return SlangUncheckedAttribute(node)
                     VARIABLE_DECL -> return SlangVariableDeclImpl(node)
                     VARIABLE_EXPRESSION -> return SlangVariableExpressionImpl(node)
+                    WHILE_STATEMENT -> return SlangWhileStatementImpl(node)
                 }
                 throw AssertionError("Unknown element type: ${node?.elementType}")
             }
