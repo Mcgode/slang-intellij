@@ -1724,7 +1724,16 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseReturnStatement(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5500
+        if (!recursion_guard_(builder, level, "parseReturnStatement"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, "return")
+        if (result && !nextTokenIs(builder, SlangTypes.SEMICOLON))
+            result = parseExpression(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+        exit_section_(builder, marker, SlangTypes.RETURN_STATEMENT, result)
+        return result
     }
 
     private fun parseDiscardStatement(builder: PsiBuilder, level: Int): Boolean {
