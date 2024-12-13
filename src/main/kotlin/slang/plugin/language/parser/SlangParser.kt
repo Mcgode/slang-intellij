@@ -1700,7 +1700,16 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseBreakStatement(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5496
+        if (!recursion_guard_(builder, level, "parseBreakStatement"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, "break")
+        if (result && nextTokenIs(builder, SlangTypes.IDENTIFIER))
+            result = consumeToken(builder, SlangTypes.IDENTIFIER)
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+        exit_section_(builder, marker, SlangTypes.BREAK_STATEMENT, result)
+        return result
     }
 
     private fun parseContinueStatement(builder: PsiBuilder, level: Int): Boolean {
