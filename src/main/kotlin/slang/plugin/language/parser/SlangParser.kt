@@ -1713,7 +1713,14 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseContinueStatement(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5498
+        if (!recursion_guard_(builder, level, "parseContinueStatement"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, "continue")
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+        exit_section_(builder, marker, SlangTypes.CONTINUE_STATEMENT, result)
+        return result
     }
 
     private fun parseReturnStatement(builder: PsiBuilder, level: Int): Boolean {
