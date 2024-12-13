@@ -1682,7 +1682,21 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseDoWhileStatement(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5494
+        if (!recursion_guard_(builder, level, "parseDoWhileStatement"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        var result = consumeToken(builder, "do")
+        result = result && parseStatement(builder, level + 1)
+        result = result && consumeToken(builder, "while")
+        result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && parseExpression(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+
+        exit_section_(builder, marker, SlangTypes.DO_WHILE_STATEMENT, result)
+        return result
     }
 
     private fun parseBreakStatement(builder: PsiBuilder, level: Int): Boolean {

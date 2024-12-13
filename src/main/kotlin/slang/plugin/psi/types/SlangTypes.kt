@@ -19,6 +19,7 @@ object SlangTypes {
     val CLASS_NAME = SlangElementType("CLASS_NAME")
     val DECLARATION = SlangElementType("DECLARATION")
     val DECLARATION_NAME = SlangElementType("DECLARATION_NAME")
+    val DO_WHILE_STATEMENT = SlangElementType("DO_WHILE_STATEMENT")
     val ENUM_CASE_DECLARATION = SlangElementType("ENUM_CASE_DECLARATION")
     val ENUM_CASE_NAME = SlangElementType("ENUM_CASE_NAME")
     val ENUM_DECLARATION = SlangElementType("ENUM_DECLARATION")
