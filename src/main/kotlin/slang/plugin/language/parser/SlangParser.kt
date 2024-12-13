@@ -1769,7 +1769,14 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseExpressionStatement(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:6025
+        if (!recursion_guard_(builder, level, "parseExpressionStatement"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = parseExpression(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+        exit_section_(builder, marker, SlangTypes.EXPRESSION_STATEMENT, result)
+        return result
     }
 
     private fun parseLabelStatement(builder: PsiBuilder, level: Int): Boolean {
