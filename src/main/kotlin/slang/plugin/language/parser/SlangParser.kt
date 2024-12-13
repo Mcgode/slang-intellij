@@ -922,10 +922,10 @@ open class SlangParser: PsiParser, LightPsiParser {
 
     private enum class Associativity { Right, Left }
     private fun getAssociativityFromLevel(precedence: Precedence): Associativity {
-        if (precedence == Precedence.Assignment)
-            return Associativity.Right
+        return if (precedence == Precedence.Assignment)
+            Associativity.Right
         else
-            return Associativity.Left
+            Associativity.Left
     }
 
     private fun parseInfixExprWithPrecedence(builder: PsiBuilder, level: Int, precedence: Precedence): Boolean {
@@ -1004,7 +1004,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         while (result) {
             if (nextTokenIs(builder, SlangTypes.INC_OP) || nextTokenIs(builder, SlangTypes.DEC_OP)) {
                 val marker = enter_section_(builder, level, _LEFT_)
-                result = result && parseOperator(builder, level + 1)
+                result = parseOperator(builder, level + 1)
                 exit_section_(builder, level, marker, SlangTypes.POSTFIX_EXPRESSION, result, false, null)
             }
             else if (nextTokenIs(builder, SlangTypes.LEFT_BRACKET)) {
@@ -1038,7 +1038,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             else if (nextTokenIs(builder, SlangTypes.SCOPE)) {
                 val marker = enter_section_(builder, level, _LEFT_)
                 builder.advanceLexer()
-                result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+                result = consumeToken(builder, SlangTypes.IDENTIFIER)
                 if (nextTokenIs(builder, SlangTypes.LESS_OP)) {
                     result = result && maybeParseGenericConstraints(builder, level + 1)
                 }
@@ -1048,7 +1048,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                 val tokenType = builder.tokenType
                 val marker = enter_section_(builder, level, _LEFT_)
                 builder.advanceLexer()
-                result = result && parseDeclName(builder, level + 1)
+                result = parseDeclName(builder, level + 1)
                 exit_section_(builder, level, marker,
                     if (tokenType == SlangTypes.DOT) SlangTypes.MEMBER_EXPRESSION else SlangTypes.DEREF_MEMBER_EXPRESSION,
                     result, false, null)
@@ -1442,14 +1442,14 @@ open class SlangParser: PsiParser, LightPsiParser {
             if (consumeToken(builder, SlangTypes.RIGHT_BRACE))
                 break
 
-            if (nextTokenAfterModifiersIs(builder, "struct"))
-                result = parseDecl(builder, level + 1)
+            result = if (nextTokenAfterModifiersIs(builder, "struct"))
+                parseDecl(builder, level + 1)
             else if (consumeToken(builder, "typedef"))
-                result = parseTypeDef(builder, level + 1)
+                parseTypeDef(builder, level + 1)
             else if (consumeToken(builder, "typealias"))
-                result = parseTypeAliasDecl(builder, level + 1)
+                parseTypeAliasDecl(builder, level + 1)
             else
-                result = parseStatement(builder, level + 1)
+                parseStatement(builder, level + 1)
 
             // TODO: handle recovery
         }
