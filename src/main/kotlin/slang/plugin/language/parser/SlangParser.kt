@@ -1,6 +1,5 @@
 package slang.plugin.language.parser
 
-import com.intellij.codeInsight.codeVision.CodeVisionState.NotReady.result
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LightPsiParser
 import com.intellij.lang.PsiBuilder
@@ -1495,7 +1494,9 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         val marker = enter_section_(builder)
 
+        val currentOffset = builder.currentOffset
         var result = parseModifiers(builder, level + 1)
+        val hadModifiers = currentOffset < builder.currentOffset
 
         if (nextTokenIs(builder, SlangTypes.LEFT_BRACE))
             result = result && parseDeclBody(builder, level + 1)
@@ -1542,62 +1543,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                 // An identifier followed by an ":" is a label.
                 result = result && parseLabelStatement(builder, level + 1)
             else {
-
-                // We might be looking at a local declaration, or an
-                // expression statement, and we need to figure out which.
-                //
-                // We'll solve this with backtracking for now.
-                //
-                val backtrackingMarker = builder.mark()
-                // TODO: Investigate 'hasSeenCompletionToken' usage
-
-                // Try to parse a type (knowing that the type grammar is
-                // a subset of the expression grammar, and so this should
-                // always succeed).
-                //
-                // HACK: The type grammar that `ParseType` supports is *not*
-                // a subset of the expression grammar because it includes
-                // type specifiers like `struct` and `enum` declarations
-                // which should always be the start of a declaration.
-                //
-                // Before launching into this attempt to parse a type,
-                // this logic should really be looking up the `SyntaxDecl`,
-                // if any, associated with the identifier. If a piece of
-                // syntax is discovered, then it should dictate the next
-                // steps of parsing, and only in the case where the lookahead
-                // isn't a keyword should we fall back to the approach
-                // here.
-                //
-                val foundType = parseType(builder, level)
-
-                // If the next token after we parsed a type looks like
-                // we are going to declare a variable, then lets guess
-                // that this is a declaration.
-                //
-                // TODO(tfoley): this wouldn't be robust for more
-                // general kinds of declarators (notably pointer declarators),
-                // so we'll need to be careful about this.
-                //
-                // If the line being parsed token is `Something* ...`, then the `*`
-                // is already consumed by `ParseType` above and the current logic
-                // will continue to parse as var declaration instead of a mul expr.
-                // In this context it makes sense to disambiguate
-                // in favor of a pointer over a multiply, since a multiply
-                // expression can't appear at the start of a statement
-                // with any side effects.
-                //
-                if (nextTokenIs(builder, null, SlangTypes.IDENTIFIER, SlangTypes.COMPLETION_REQUEST)) {
-                    // Reset the cursor and try to parse a declaration now.
-                    // Note: the declaration will consume any modifiers
-                    // that had been in place on the statement.
-                    backtrackingMarker.rollbackTo()
-                    result = result && parseVarDeclStatement(builder, level + 1)
-                }
-                else {
-                    // Fallback: reset and parse an expression
-                    backtrackingMarker.rollbackTo()
-                    result = result && parseExpressionStatement(builder, level + 1)
-                }
+                result = result && parseDisambiguateVarDeclOrExpression(builder, level + 1, hadModifiers)
             }
         }
         else if (nextTokenIs(builder, SlangTypes.SEMICOLON)) {
@@ -1669,7 +1615,54 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseForStatement(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5490
+        if (!recursion_guard_(builder, level, "parseForStatement"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, "for")
+        result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
+
+        let {
+            val initialMarker = enter_section_(builder)
+
+            val currentOffset = builder.currentOffset
+            result = result && parseModifiers(builder, level + 2)
+            val hadModifiers = currentOffset < builder.currentOffset
+
+            if (result && !nextTokenIs(builder, SlangTypes.SEMICOLON)) {
+                result = parseDisambiguateVarDeclOrExpression(builder, level + 2, hadModifiers)
+            }
+            result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+
+            exit_section_(builder, initialMarker, SlangTypes.INITIAL_STATEMENT, result)
+        }
+
+        let {
+            val predicateMarker = enter_section_(builder)
+
+            if (result && !nextTokenIs(builder, SlangTypes.SEMICOLON)) {
+                result = parseExpression(builder, level + 2)
+            }
+            result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+
+            exit_section_(builder, predicateMarker, SlangTypes.PREDICATE_EXPRESSION, result)
+        }
+
+        let {
+            val sideEffectMarker = enter_section_(builder)
+
+            if (result && !nextTokenIs(builder, SlangTypes.RIGHT_PAREN)) {
+                result = parseExpression(builder, level + 2)
+            }
+
+            exit_section_(builder, sideEffectMarker, SlangTypes.SIDE_EFFECT_EXPRESSION, result)
+        }
+
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        result = result && parseStatement(builder, level + 1)
+
+        exit_section_(builder, marker, SlangTypes.FOR_STATEMENT, result)
+        return result
     }
 
     private fun parseWhileStatement(builder: PsiBuilder, level: Int): Boolean {
@@ -1752,5 +1745,71 @@ open class SlangParser: PsiParser, LightPsiParser {
         }
         exit_section_(builder, marker, SlangTypes.ENUM_CASE_DECLARATION, result)
         return result
+    }
+
+    private fun parseDisambiguateVarDeclOrExpression(builder: PsiBuilder, level: Int, hadModifiers: Boolean): Boolean {
+        if (!recursion_guard_(builder, level, "parseDisambiguateVarDeclOrExpression"))
+            return false
+
+        // Easy case: we have some modifiers preceding this, it only happens for variable declarations, not expressions
+        //
+        if (hadModifiers)
+            return parseVarDeclStatement(builder, level)
+
+        // We might be looking at a local declaration, or an
+        // expression statement, and we need to figure out which.
+        //
+        // We'll solve this with backtracking for now.
+        //
+        val backtrackingMarker = builder.mark()
+        // TODO: Investigate 'hasSeenCompletionToken' usage
+
+        // Try to parse a type (knowing that the type grammar is
+        // a subset of the expression grammar, and so this should
+        // always succeed).
+        //
+        // HACK: The type grammar that `ParseType` supports is *not*
+        // a subset of the expression grammar because it includes
+        // type specifiers like `struct` and `enum` declarations
+        // which should always be the start of a declaration.
+        //
+        // Before launching into this attempt to parse a type,
+        // this logic should really be looking up the `SyntaxDecl`,
+        // if any, associated with the identifier. If a piece of
+        // syntax is discovered, then it should dictate the next
+        // steps of parsing, and only in the case where the lookahead
+        // isn't a keyword should we fall back to the approach
+        // here.
+        //
+        parseType(builder, level)
+
+        // If the next token after we parsed a type looks like
+        // we are going to declare a variable, then lets guess
+        // that this is a declaration.
+        //
+        // TODO(tfoley): this wouldn't be robust for more
+        // general kinds of declarators (notably pointer declarators),
+        // so we'll need to be careful about this.
+        //
+        // If the line being parsed token is `Something* ...`, then the `*`
+        // is already consumed by `ParseType` above and the current logic
+        // will continue to parse as var declaration instead of a mul expr.
+        // In this context it makes sense to disambiguate
+        // in favor of a pointer over a multiply, since a multiply
+        // expression can't appear at the start of a statement
+        // with any side effects.
+        //
+        if (nextTokenIs(builder, null, SlangTypes.IDENTIFIER, SlangTypes.COMPLETION_REQUEST)) {
+            // Reset the cursor and try to parse a declaration now.
+            // Note: the declaration will consume any modifiers
+            // that had been in place on the statement.
+            backtrackingMarker.rollbackTo()
+            return parseVarDeclStatement(builder, level + 1)
+        }
+        else {
+            // Fallback: reset and parse an expression
+            backtrackingMarker.rollbackTo()
+            return parseExpressionStatement(builder, level + 1)
+        }
     }
 }
