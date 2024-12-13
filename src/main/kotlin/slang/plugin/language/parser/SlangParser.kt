@@ -748,8 +748,21 @@ open class SlangParser: PsiParser, LightPsiParser {
             }
             return parsePostfixExpr(builder, level)
         }
-
-        // TODO: see slang/slang-parser.cpp:7834
+        else if (nextTokenIs(builder, null,
+                SlangTypes.NOT_OP,
+                SlangTypes.INC_OP,
+                SlangTypes.DEC_OP,
+                SlangTypes.MUL_OP,
+                SlangTypes.BIT_AND_OP,
+                SlangTypes.BIT_NOT_OP,
+                SlangTypes.ADD_OP,
+                SlangTypes.SUB_OP)) {
+            val marker = enter_section_(builder)
+            var result = parseOperator(builder, level + 1)
+            result = result && parsePrefixExpr(builder, level + 1)
+            exit_section_(builder, marker, SlangTypes.PREFIX_EXPRESSION, result)
+            return result
+        }
 
         return parsePostfixExpr(builder, level)
     }
