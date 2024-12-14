@@ -1,5 +1,6 @@
 package slang.plugin.language.parser
 
+import ai.grazie.utils.attributes.Attributes
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LightPsiParser
 import com.intellij.lang.PsiBuilder
@@ -1521,10 +1522,10 @@ open class SlangParser: PsiParser, LightPsiParser {
         if (nextTokenIs(builder, SlangTypes.LEFT_BRACE))
             result = result && parseDeclBody(builder, level + 1)
         else if (nextTokenIs(builder, "if")) {
-            if (nextTokenAheadIs(builder, "let", 2))
-                result = result && parseIfLetStatement(builder, level + 1)
+            result = if (nextTokenAheadIs(builder, "let", 2))
+                result && parseIfLetStatement(builder, level + 1)
             else
-                result = result && parseIfStatement(builder, level + 1)
+                result && parseIfStatement(builder, level + 1)
         }
         else if (nextTokenIs(builder, "for"))
             result = result && parseForStatement(builder, level + 1)
@@ -1559,11 +1560,11 @@ open class SlangParser: PsiParser, LightPsiParser {
         else if (nextTokenIs(builder, "try"))
             result = result && parseExpressionStatement(builder, level + 1)
         else if (nextTokenIs(builder, null, SlangTypes.IDENTIFIER, SlangTypes.SCOPE)) {
-            if (nextTokenIs(builder, SlangTypes.IDENTIFIER) && builder.lookAhead(1) == SlangTypes.COLON)
-                // An identifier followed by an ":" is a label.
-                result = result && parseLabelStatement(builder, level + 1)
+            result = if (nextTokenIs(builder, SlangTypes.IDENTIFIER) && builder.lookAhead(1) == SlangTypes.COLON)
+            // An identifier followed by an ":" is a label.
+                result && parseLabelStatement(builder, level + 1)
             else {
-                result = result && parseDisambiguateVarDeclOrExpression(builder, level + 1, hadModifiers)
+                result && parseDisambiguateVarDeclOrExpression(builder, level + 1, hadModifiers)
             }
         }
         else if (nextTokenIs(builder, SlangTypes.SEMICOLON)) {
@@ -1581,6 +1582,21 @@ open class SlangParser: PsiParser, LightPsiParser {
         }
 
         exit_section_(builder, marker, SlangTypes.STATEMENT, result)
+        return result
+    }
+
+    private fun parseIfStatementCommon(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseIfStatementCommon"))
+            return false
+
+        var result = consumeToken(builder, SlangTypes.RIGHT_PAREN)
+
+        result = result && parseStatement(builder, level, true)
+
+        if (result && consumeToken(builder, "else")) {
+            result = parseStatement(builder, level, true)
+        }
+
         return result
     }
 
@@ -1603,13 +1619,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             }
             exit_section_(builder, declMarker, SlangTypes.LET_DECLARATION, result)
         }
-        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
-
-        result = result && parseStatement(builder, level + 1, true)
-
-        if (result && consumeToken(builder, "else")) {
-            result = parseStatement(builder, level + 1, true)
-        }
+        result = result && parseIfStatementCommon(builder, level + 1)
 
         exit_section_(builder, marker, SlangTypes.IF_STATEMENT, result)
         return result
@@ -1624,11 +1634,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         var result = consumeToken(builder, "if")
         result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
         result = result && parseExpression(builder, level + 1)
-        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
-
-        result = result && parseStatement(builder, level + 1, true)
-        if (result && consumeToken(builder, "else"))
-            result = parseStatement(builder, level + 1, true)
+        result = result && parseIfStatementCommon(builder, level + 1)
 
         exit_section_(builder, marker, SlangTypes.IF_STATEMENT, result)
         return result
@@ -1913,7 +1919,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             if (nextTokenIs(builder, SlangTypes.GREATER_OP))
                 break
 
-            val (resultDecl, isTypePack) = ParseGenericParamDecl(builder, level + 1)
+            val (resultDecl, isTypePack) = parseGenericParamDecl(builder, level + 1)
             result = resultDecl
 
             if (isTypePack)
@@ -1931,7 +1937,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
-    private fun ParseGenericParamDecl(builder: PsiBuilder, level: Int): Pair<Boolean, Boolean> {
+    private fun parseGenericParamDecl(builder: PsiBuilder, level: Int): Pair<Boolean, Boolean> {
         if (!recursion_guard_(builder, level, "parseGenericParamDecl"))
             return Pair(false, false)
 
