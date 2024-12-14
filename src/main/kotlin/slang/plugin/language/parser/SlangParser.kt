@@ -785,7 +785,8 @@ open class SlangParser: PsiParser, LightPsiParser {
 
     private fun parseOptGenericDecl(builder: PsiBuilder, level: Int, parseInner: (PsiBuilder, Int) -> Boolean): Boolean {
         if (nextTokenIs(builder, SlangTypes.LESS_OP)) {
-            return false // TODO: see slang/slang-parser.cpp:1639
+            val result = parseGenericDeclImpl(builder, level)
+            return result && parseInner(builder, level)
         }
         return parseInner(builder, level)
     }
@@ -1893,7 +1894,112 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseExpandExpr(builder: PsiBuilder, level: Int): Boolean {
         return false // TODO: see slang/slang-parser.cpp:7820
     }
+
     private fun parseEachExpr(builder: PsiBuilder, level: Int): Boolean {
         return false // TODO: see slang/slang-parser.cpp:7824
+    }
+
+    private fun parseGenericDeclImpl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseGenericDecl"))
+            return false
+
+        val wasInVariadicGenerics = isInVariadicGenerics
+
+        val marker = enter_section_(builder)
+
+        var result = consumeToken(builder, SlangTypes.LESS_OP)
+
+        while (result) {
+            if (nextTokenIs(builder, SlangTypes.GREATER_OP))
+                break
+
+            val (resultDecl, isTypePack) = ParseGenericParamDecl(builder, level + 1)
+            result = resultDecl
+
+            if (isTypePack)
+                isInVariadicGenerics = true
+
+            if (result && nextTokenIs(builder, SlangTypes.GREATER_OP))
+                break
+            if (result && !consumeToken(builder, SlangTypes.COMMA))
+                break
+        }
+
+        exit_section_(builder, marker, SlangTypes.GENERIC_DECLARATION, result)
+        isInVariadicGenerics = wasInVariadicGenerics
+
+        return result
+    }
+
+    private fun ParseGenericParamDecl(builder: PsiBuilder, level: Int): Pair<Boolean, Boolean> {
+        if (!recursion_guard_(builder, level, "parseGenericParamDecl"))
+            return Pair(false, false)
+
+        // simple syntax to introduce a value parameter
+        //
+        if (consumeToken(builder, "let")) {
+            val marker = enter_section_(builder)
+            var result = true
+            if (consumeToken(builder, SlangTypes.COLON))
+                result = parseTypeExp(builder, level + 1)
+            if (result && consumeToken(builder, SlangTypes.ASSIGN_OP))
+                result = parseInitExpr(builder, level + 1)
+            exit_section_(builder, marker, SlangTypes.GENERIC_PARAMETER_DECLARATION, result)
+            return Pair(result, false)
+        }
+
+        val marker = enter_section_(builder)
+        val type: IElementType
+
+        var result = true
+        if (consumeToken(builder, "each")) {
+            type = SlangTypes.GENERIC_TYPE_PACK_PARAMETER_DECLARATION
+            result = consumeToken(builder, SlangTypes.IDENTIFIER)
+        }
+        else {
+            // Disambiguate between a type parameter and a value parameter.
+            // If next token is "typename", then it is a type parameter.
+            if (consumeToken(builder, "typename"))
+                type = SlangTypes.GENERIC_TYPE_PARAMETER_DECLARATION
+            else {
+                // Otherwise, if the next token is an identifier, followed by a colon, comma, '=' or
+                // '>', then it is a type parameter.
+                type = if (nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+                    when (builder.lookAhead(1)) {
+                        SlangTypes.COLON, SlangTypes.COMMA, SlangTypes.GREATER_OP, SlangTypes.ASSIGN_OP
+                            -> SlangTypes.GENERIC_TYPE_PARAMETER_DECLARATION
+
+                        else -> SlangTypes.GENERIC_VALUE_PARAMETER_DECLARATION
+                    }
+                } else
+                    SlangTypes.GENERIC_VALUE_PARAMETER_DECLARATION
+
+                if (type == SlangTypes.GENERIC_TYPE_PARAMETER_DECLARATION)
+                    result = consumeToken(builder, SlangTypes.IDENTIFIER)
+                else {
+                    result = parseTypeExp(builder, level + 1)
+                    result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+                    if (result && consumeToken(builder, SlangTypes.ASSIGN_OP)) {
+                        result = parseInitExpr(builder, level + 1)
+                    }
+                }
+            }
+        }
+
+        if (result && (type != SlangTypes.GENERIC_VALUE_PARAMETER_DECLARATION) && consumeToken(builder, SlangTypes.COLON)) {
+            // The user is applying a constraint to this type parameter...
+
+            val constraintMarker = enter_section_(builder)
+            result = parseTypeExp(builder, level + 2)
+            exit_section_(builder, constraintMarker, SlangTypes.GENERIC_TYPE_CONSTRAINT_DECLARATION, result)
+        }
+
+        if (type == SlangTypes.GENERIC_TYPE_PARAMETER_DECLARATION) {
+            if (result && consumeToken(builder, SlangTypes.ASSIGN_OP))
+                result = parseTypeExp(builder, level + 1)
+        }
+
+        exit_section_(builder, marker, type, result)
+        return Pair(result, type == SlangTypes.GENERIC_TYPE_PACK_PARAMETER_DECLARATION)
     }
 }
