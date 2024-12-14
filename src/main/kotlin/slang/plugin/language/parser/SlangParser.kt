@@ -1013,7 +1013,27 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseSpirVAsmExpr(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:7813
+        if (!recursion_guard_(builder, level, "parseSpirVAsmExpression"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        var result = consumeToken(builder, SlangTypes.LEFT_BRACE)
+        while (result) {
+            if (nextTokenIs(builder, SlangTypes.RIGHT_BRACE))
+                break
+
+            result = parseSpirVAsmInst(builder, level + 1)
+            // TODO: handle recovery l7748
+
+            if (result && nextTokenIs(builder, SlangTypes.RIGHT_BRACE))
+                break
+            result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+        }
+        result = result && consumeToken(builder, SlangTypes.RIGHT_BRACE)
+
+        exit_section_(builder, marker, SlangTypes.SPIRV_ASM_EXPRESSION, result)
+        return result
     }
 
     private fun parsePostfixExpr(builder: PsiBuilder, level: Int): Boolean {
@@ -2007,5 +2027,9 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         exit_section_(builder, marker, type, result)
         return Pair(result, type == SlangTypes.GENERIC_TYPE_PACK_PARAMETER_DECLARATION)
+    }
+
+    private fun parseSpirVAsmInst(builder: PsiBuilder, level: Int): Boolean {
+        return false // TODO: see l7579
     }
 }
