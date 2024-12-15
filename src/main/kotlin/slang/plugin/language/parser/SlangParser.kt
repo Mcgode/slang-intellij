@@ -2857,7 +2857,18 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
     
-    private fun parseTreatAsDifferentiableExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseTreatAsDifferentiableExpr(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseTreatAsDifferentiableExpr"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip 'no_diff' keyword
+        builder.advanceLexer()
+        val result = parseLeafExpression(builder, level)
+        exit_section_(builder, marker, SlangTypes.TREAT_AS_DIFFERENTIABLE_EXPRESSION, result)
+        return result
+    }
+
     private fun parseForwardDifferentiate(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseBackwardDifferentiate(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseDispatchKernel(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
