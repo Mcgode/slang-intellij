@@ -65,9 +65,9 @@ open class SlangParser: PsiParser, LightPsiParser {
         if (offset <= 0)
             return false
 
-        val marker = builder.mark();
+        val marker = builder.mark()
         for (i in 0 until offset)
-            builder.advanceLexer();
+            builder.advanceLexer()
         val result = builder.tokenText == name
         marker.rollbackTo()
         return result
