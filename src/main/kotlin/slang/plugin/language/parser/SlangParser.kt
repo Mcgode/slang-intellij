@@ -2216,7 +2216,43 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseCompileTimeStmt(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5522
+        consumeToken(builder, SlangTypes.DOLLAR)
+
+        return nextTokenIs(builder, "for") && parseCompileTimeForStmt(builder, level)
+    }
+
+    private fun parseCompileTimeForStmt(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseCompileTimeForStmt"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        var result = consumeToken(builder, "for")
+        result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
+
+        let {
+            val varMarker = enter_section_(builder)
+            result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+            exit_section_(builder, varMarker, SlangTypes.VARIABLE_DECL, result)
+        }
+        result = result && consumeToken(builder, "in")
+        result = result && consumeToken(builder, "range")
+        result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
+
+        result = result && parseArgExpr(builder, level + 1)
+
+        if (result && consumeToken(builder, SlangTypes.COMMA))
+            result = parseArgExpr(builder, level + 1)
+
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+
+        pushScope(SlangTypes.COMPILE_TIME_FOR_STATEMENT)
+        result = result && parseStatement(builder, level + 1)
+        popScope()
+
+        exit_section_(builder, marker, SlangTypes.COMPILE_TIME_FOR_STATEMENT, result)
+        return result
     }
 
     private fun parseExpressionStatement(builder: PsiBuilder, level: Int): Boolean {
