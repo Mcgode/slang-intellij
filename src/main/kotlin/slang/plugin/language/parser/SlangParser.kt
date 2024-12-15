@@ -2845,7 +2845,18 @@ open class SlangParser: PsiParser, LightPsiParser {
         return true
     }
 
-    private fun parseTryExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseTryExpr(builder: PsiBuilder, level: Int): Boolean { 
+        if (!recursion_guard_(builder, level, "parseTryExpr")) 
+            return false
+        
+        val marker = enter_section_(builder)
+        // Skip 'try' keyword
+        builder.advanceLexer()
+        val result = parseLeafExpression(builder, level)
+        exit_section_(builder, marker, SlangTypes.TRY_EXPRESSION, result)
+        return result
+    }
+    
     private fun parseTreatAsDifferentiableExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseForwardDifferentiate(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseBackwardDifferentiate(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
