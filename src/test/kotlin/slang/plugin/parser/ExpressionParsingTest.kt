@@ -14,5 +14,5 @@ class ExpressionParsingTest: ParsingTestCase(
 
     fun testLiterals() = doTest(true)
     fun testPostfixExpression() = doTest(true)
-
+    fun testThis() = doTest(true)
 }

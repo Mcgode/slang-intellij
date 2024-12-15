@@ -2809,7 +2809,16 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseImplicitConversionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseAttributeTargetModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
 
-    private fun parseThisExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseThisExpr(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseThisExpr"))
+            return false
+
+        val marker = enter_section_(builder)
+        builder.advanceLexer()
+        exit_section_(builder, marker, SlangTypes.THIS_EXPRESSION, true)
+        return true
+    }
+
     private fun parseTrueExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseFalseExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseReturnValExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
