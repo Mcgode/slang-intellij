@@ -1,12 +1,16 @@
 package slang.plugin.language.parser
 
-import ai.grazie.utils.attributes.Attributes
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LightPsiParser
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiParser
 import com.intellij.lang.parser.GeneratedParserUtilBase.*
+import com.intellij.psi.PsiFile
+import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
+import org.intellij.markdown.lexer.pop
+import org.intellij.markdown.lexer.push
+import slang.plugin.language.parser.data.Scope
 import slang.plugin.language.parser.data.TypeSpec
 import slang.plugin.psi.types.SlangTypes
 import slang.plugin.psi.SlangPsiUtil
@@ -23,6 +27,9 @@ open class SlangParser: PsiParser, LightPsiParser {
     private var isInVariadicGenerics = false
     private var genericDepth = 0
     private var genericShrConsumeOffset = -1
+    private var scopes = ArrayList<Scope>()
+    private val scope: Scope?
+        get() = if (scopes.size > 0) scopes.last() else null
     private val identifierLookup = SlangIdentifierLookup()
 
     override fun parse(type: IElementType, builder: PsiBuilder): ASTNode {
@@ -65,10 +72,22 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
+    private fun pushScope(type: IElementType) {
+        scopes.push(Scope(type))
+    }
+
+    private fun pushScope(scope: Scope) {
+        scopes.push(scope)
+    }
+
+    private fun popScope(): Scope {
+        return scopes.pop()
+    }
+
     private fun parseSourceFile(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseRoot"))
             return false
-
+        // pushScope(FILE)
         while (true) {
             val cursor = current_position_(builder)
             // TODO: Implement parseGlslGlobalDecl (see slang/slang-parser.cpp:4889)
@@ -77,6 +96,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             if (!empty_element_parsed_guard_(builder, "parseRoot", cursor))
                 break
         }
+        // popScope()
 
         return true
     }
@@ -634,7 +654,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             exit_section_(builder, level + 1, nameMarker, SlangTypes.STRUCT_NAME, result, false, null)
         }
 
-        val callback: (PsiBuilder, Int) -> Boolean = { b, l ->
+        val callback: (PsiBuilder, Int, Boolean) -> Boolean = { b, l, g ->
             if (!recursion_guard_(b, l, "parseStructCallback"))
                 false
             else {
@@ -645,11 +665,15 @@ open class SlangParser: PsiParser, LightPsiParser {
                     callbackResult
                 }
                 else if (consumeToken(builder, SlangTypes.SEMICOLON)) {
+                    pushScope(SlangTypes.STRUCT_DECLARATION)
+                    popScope()
                     callbackResult
                 }
                 else {
-                    callbackResult = callbackResult && maybeParseGenericConstraints(b, l)
+                    callbackResult = callbackResult && maybeParseGenericConstraints(b, l, g)
+                    pushScope(SlangTypes.STRUCT_DECLARATION)
                     callbackResult = callbackResult && parseDeclBody(b, l)
+                    popScope()
                     callbackResult
                 }
             }
@@ -677,7 +701,10 @@ open class SlangParser: PsiParser, LightPsiParser {
         }
 
         result = result && parseOptionalInheritanceClause(builder, level + 1)
+
+        pushScope(SlangTypes.CLASS_DECLARATION)
         result = result && parseDeclBody(builder, level + 1)
+        popScope()
 
         exit_section_(builder, marker, SlangTypes.CLASS_DECLARATION, result)
         return result
@@ -701,11 +728,12 @@ open class SlangParser: PsiParser, LightPsiParser {
             exit_section_(builder, nameMarker, SlangTypes.ENUM_NAME, result)
         }
 
-        val parseInner: (PsiBuilder, Int) -> Boolean = { b, l ->
+        val parseInner: (PsiBuilder, Int, Boolean) -> Boolean = { b, l, g ->
             var innerResult = parseOptionalInheritanceClause(b, l)
-            innerResult = innerResult && maybeParseGenericConstraints(b, l)
+            innerResult = innerResult && maybeParseGenericConstraints(b, l, g)
             innerResult = innerResult && consumeToken(builder, SlangTypes.LEFT_BRACE)
 
+            pushScope(SlangTypes.ENUM_DECLARATION)
             while (innerResult) {
                 if (consumeToken(builder, SlangTypes.RIGHT_BRACE))
                     break
@@ -715,6 +743,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                 else
                     innerResult = innerResult && consumeToken(builder, SlangTypes.COMMA)
             }
+            popScope()
 
             innerResult
         }
@@ -898,12 +927,19 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
-    private fun parseOptGenericDecl(builder: PsiBuilder, level: Int, parseInner: (PsiBuilder, Int) -> Boolean): Boolean {
+    private fun parseOptGenericDecl(
+        builder: PsiBuilder,
+        level: Int,
+        parseInner: (PsiBuilder, Int, Boolean) -> Boolean)
+            : Boolean
+    {
         if (nextTokenIs(builder, SlangTypes.LESS_OP)) {
+            pushScope(SlangTypes.GENERIC_DECLARATION)
             val result = parseGenericDeclImpl(builder, level)
-            return result && parseInner(builder, level)
+            popScope()
+            return result && parseInner(builder, level, true)
         }
-        return parseInner(builder, level)
+        return parseInner(builder, level, scope?.type == SlangTypes.GENERIC_DECLARATION)
     }
 
     private fun parseOptionalInheritanceClause(builder: PsiBuilder, level: Int): Boolean {
@@ -935,8 +971,32 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
-    private fun maybeParseGenericConstraints(builder: PsiBuilder, level: Int): Boolean {
-        return true // TODO: see slang/slang-parser.cpp:1654
+    private fun maybeParseGenericConstraints(builder: PsiBuilder, level: Int, hasGenericParent: Boolean): Boolean {
+        if (!recursion_guard_(builder, level, "parseGenericConstraints"))
+            return false
+
+        if (!hasGenericParent)
+            return true
+
+        var result = true
+        while (result && nextTokenIs(builder, "where")) {
+            val marker = enter_section_(builder)
+            builder.advanceLexer(); // Consume 'where'
+
+            result = parseTypeExp(builder, level + 1)
+            if (result && consumeToken(builder, SlangTypes.COLON))
+                while (result) {
+                    result = parseTypeExp(builder, level + 1)
+                    if (result && !consumeToken(builder, SlangTypes.COMMA))
+                        break
+                }
+            else if (result && consumeToken(builder, SlangTypes.ASSIGN_OP))
+                result = parseTypeExp(builder, level + 1)
+
+            exit_section_(builder, marker, SlangTypes.GENERIC_TYPE_CONSTRAINT_DECLARATION, result)
+        }
+
+        return result
     }
 
     private fun parseDeclBody(builder: PsiBuilder, level: Int): Boolean {
@@ -1195,7 +1255,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                 builder.advanceLexer()
                 result = consumeToken(builder, SlangTypes.IDENTIFIER)
                 if (nextTokenIs(builder, SlangTypes.LESS_OP)) {
-                    result = result && maybeParseGenericConstraints(builder, level + 1)
+                    result = result && maybeParseGenericApp(builder, level + 1)
                 }
                 exit_section_(builder, level, marker, SlangTypes.STATIC_MEMBER_EXPRESSION, result, false, null)
             }
@@ -1213,6 +1273,10 @@ open class SlangParser: PsiParser, LightPsiParser {
         }
 
         return result
+    }
+
+    private fun maybeParseGenericApp(builder: PsiBuilder, level: Int): Boolean {
+        TODO("Not yet implemented")
     }
 
     private fun parseAtomicExpr(builder: PsiBuilder, level: Int): Boolean {
@@ -1297,7 +1361,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             else {
                 result = consumeToken(builder, SlangTypes.IDENTIFIER)
                 if (nextTokenIs(builder, SlangTypes.LESS_OP)) {
-                    maybeParseGenericConstraints(builder, level + 1)
+                    maybeParseGenericApp(builder, level + 1)
                 }
             }
 
@@ -1314,7 +1378,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
             var result = parseDeclName(builder, level + 1)
             if (nextTokenIs(builder, SlangTypes.LESS_OP)) {
-                result = maybeParseGenericConstraints(builder, level + 1)
+                result = maybeParseGenericApp(builder, level + 1)
             }
             exit_section_(builder, marker, SlangTypes.VARIABLE_EXPRESSION, result)
             return result
@@ -1514,7 +1578,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         if (!recursion_guard_(builder, level, "parseTraditionalFuncDecl"))
             return false
 
-        val parseInner: (PsiBuilder, Int) -> Boolean = { b, l ->
+        val parseInner: (PsiBuilder, Int, Boolean) -> Boolean = { b, l, g ->
             // HACK: The return type of the function will already have been
             // parsed in a scope that didn't include the function's generic
             // parameters.
@@ -1527,14 +1591,22 @@ open class SlangParser: PsiParser, LightPsiParser {
             // as part of the state during semantic checking.
             //
 
+            pushScope(SlangTypes.FUNCTION_DECLARATION)
+
             var result = parseParameterList(b, l)
 
             if (result)
                 consumeToken(b, "throws")
 
             result = result && parseOptSemantics(b, l)
-            result = result && maybeParseGenericConstraints(b, l)
+
+            val funcScope = popScope()
+            result = result && maybeParseGenericConstraints(b, l, g)
+            pushScope(funcScope)
+
             result = result && parseOptBody(b, l)
+
+            popScope()
 
             result
         }
@@ -1593,8 +1665,9 @@ open class SlangParser: PsiParser, LightPsiParser {
         builder.advanceLexer()
         var result = true
 
+        pushScope(SlangTypes.BLOCK_STATEMENT)
         while (result) {
-            if (consumeToken(builder, SlangTypes.RIGHT_BRACE))
+            if (nextTokenIs(builder, SlangTypes.RIGHT_BRACE))
                 break
 
             result = if (nextTokenAfterModifiersIs(builder, "struct"))
@@ -1608,6 +1681,9 @@ open class SlangParser: PsiParser, LightPsiParser {
 
             // TODO: handle recovery
         }
+        popScope()
+
+        result = result && consumeToken(builder, SlangTypes.RIGHT_BRACE)
 
         exit_section_(builder, marker, SlangTypes.BLOCK_STATEMENT, result)
         return result
@@ -1653,8 +1729,11 @@ open class SlangParser: PsiParser, LightPsiParser {
         var result = parseModifiers(builder, level + 1)
         val hadModifiers = currentOffset < builder.currentOffset
 
-        if (nextTokenIs(builder, SlangTypes.LEFT_BRACE))
+        if (nextTokenIs(builder, SlangTypes.LEFT_BRACE)) {
+            pushScope(SlangTypes.STATEMENT)
             result = result && parseDeclBody(builder, level + 1)
+            popScope()
+        }
         else if (nextTokenIs(builder, "if")) {
             result = if (nextTokenAheadIs(builder, "let", 2))
                 result && parseIfLetStatement(builder, level + 1)
@@ -1719,26 +1798,13 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
-    private fun parseIfStatementCommon(builder: PsiBuilder, level: Int): Boolean {
-        if (!recursion_guard_(builder, level, "parseIfStatementCommon"))
-            return false
-
-        var result = consumeToken(builder, SlangTypes.RIGHT_PAREN)
-
-        result = result && parseStatement(builder, level, true)
-
-        if (result && consumeToken(builder, "else")) {
-            result = parseStatement(builder, level, true)
-        }
-
-        return result
-    }
-
     private fun parseIfLetStatement(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseIfStatement"))
             return false
 
         val marker = enter_section_(builder)
+
+        pushScope(SlangTypes.LET_DECLARATION)
         var result = consumeToken(builder, "if")
         result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
         if (result) {
@@ -1753,7 +1819,17 @@ open class SlangParser: PsiParser, LightPsiParser {
             }
             exit_section_(builder, declMarker, SlangTypes.LET_DECLARATION, result)
         }
-        result = result && parseIfStatementCommon(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+
+        pushScope(SlangTypes.IF_STATEMENT)
+        result = result && parseStatement(builder, level + 1, true)
+        popScope()
+
+        if (result && consumeToken(builder, "else")) {
+            result = parseStatement(builder, level + 1, true)
+        }
+
+        popScope()
 
         exit_section_(builder, marker, SlangTypes.IF_STATEMENT, result)
         return result
@@ -1768,7 +1844,13 @@ open class SlangParser: PsiParser, LightPsiParser {
         var result = consumeToken(builder, "if")
         result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
         result = result && parseExpression(builder, level + 1)
-        result = result && parseIfStatementCommon(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+
+        result = result && parseStatement(builder, level + 1, true)
+
+        if (result && consumeToken(builder, "else")) {
+            result = parseStatement(builder, level + 1, true)
+        }
 
         exit_section_(builder, marker, SlangTypes.IF_STATEMENT, result)
         return result
@@ -1778,7 +1860,14 @@ open class SlangParser: PsiParser, LightPsiParser {
         if (!recursion_guard_(builder, level, "parseForStatement"))
             return false
 
+        // HLSL implements the bad approach to scoping a `for` loop
+        // variable, and we want to respect that, but *only* when
+        // parsing HLSL code.
+        //
+        val brokenScoping = false
+
         val marker = enter_section_(builder)
+        pushScope(SlangTypes.FOR_STATEMENT)
         var result = consumeToken(builder, "for")
         result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
 
@@ -1820,6 +1909,8 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
         result = result && parseStatement(builder, level + 1)
+
+        popScope()
 
         exit_section_(builder, marker, SlangTypes.FOR_STATEMENT, result)
         return result
@@ -2040,7 +2131,7 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseGenericDeclImpl(builder: PsiBuilder, level: Int): Boolean {
-        if (!recursion_guard_(builder, level, "parseGenericDecl"))
+        if (!recursion_guard_(builder, level, "parseGenericDeclImpl"))
             return false
 
         val wasInVariadicGenerics = isInVariadicGenerics
