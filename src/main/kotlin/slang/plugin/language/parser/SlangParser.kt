@@ -2174,7 +2174,45 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseGpuForeachStmt(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5519
+        if (!recursion_guard_(builder, level, "parseGpuForeachStmt"))
+            return false
+
+        // Hard-coding parsing of the following:
+        // __GPU_FOREACH(renderer, gridDims, LAMBDA(uint3 dispatchThreadID) {
+        //  kernelCall(args, ...); });
+        val marker = enter_section_(builder)
+
+        var result = consumeToken(builder, "__GPU_FOREACH")
+        result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
+
+        result = result && parseArgExpr(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.COMMA)
+
+        result = result && parseArgExpr(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.COMMA)
+
+        result = result && consumeToken(builder, "LAMBDA")
+        result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
+        let {
+            val varMarker = enter_section_(builder)
+            result = result && parseTypeExp(builder, level + 2)
+            result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+            exit_section_(builder, varMarker, SlangTypes.VARIABLE_DECL, result)
+        }
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        result = result && consumeToken(builder, SlangTypes.LEFT_BRACE)
+
+        pushScope(SlangTypes.GPU_FOREACH_STATEMENT)
+        result = result && parseExpression(builder, level + 1)
+        popScope()
+
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_BRACE)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+
+        exit_section_(builder, marker, SlangTypes.GPU_FOREACH_STATEMENT, result)
+        return result
     }
 
     private fun parseCompileTimeStmt(builder: PsiBuilder, level: Int): Boolean {
