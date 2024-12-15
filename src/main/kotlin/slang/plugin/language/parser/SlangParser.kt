@@ -886,7 +886,16 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseMemberType(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:2333
+        if (!recursion_guard_(builder, level, "parseMemberType"))
+            return false
+
+        val marker = enter_section_(builder, level, _LEFT_)
+
+        // When called the :: or . have been consumed, so don't need to consume here.
+        val result = consumeToken(builder, SlangTypes.IDENTIFIER)
+
+        exit_section_(builder, level, marker, SlangTypes.MEMBER_EXPRESSION, result, false, null)
+        return result
     }
 
     private fun parseOptGenericDecl(builder: PsiBuilder, level: Int, parseInner: (PsiBuilder, Int) -> Boolean): Boolean {
