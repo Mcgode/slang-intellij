@@ -2140,7 +2140,16 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseCaseStmt(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5515
+        if (!recursion_guard_(builder, level, "parseCaseStmt"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, "case")
+        result = result && parseExpression(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.COLON)
+
+        exit_section_(builder, marker, SlangTypes.CASE_STATEMENT, result)
+        return result
     }
 
     private fun parseDefaultStmt(builder: PsiBuilder, level: Int): Boolean {
