@@ -2153,7 +2153,15 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseDefaultStmt(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5517
+        if (!recursion_guard_(builder, level, "parseDefaultStmt"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, "default")
+        result = result && consumeToken(builder, SlangTypes.COLON)
+
+        exit_section_(builder, marker, SlangTypes.DEFAULT_STATEMENT, result)
+        return result
     }
 
     private fun parseGpuForeachStmt(builder: PsiBuilder, level: Int): Boolean {
