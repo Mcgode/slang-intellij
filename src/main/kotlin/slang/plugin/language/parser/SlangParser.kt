@@ -873,7 +873,16 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseStaticMemberType(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:2344
+        if (!recursion_guard_(builder, level, "parseStaticMemberType"))
+            return false
+
+        val marker = enter_section_(builder, level, _LEFT_)
+
+        // When called the :: or . have been consumed, so don't need to consume here.
+        val result = consumeToken(builder, SlangTypes.IDENTIFIER)
+
+        exit_section_(builder, level, marker, SlangTypes.STATIC_MEMBER_TYPE_EXPRESSION, result, false, null)
+        return result
     }
 
     private fun parseMemberType(builder: PsiBuilder, level: Int): Boolean {
