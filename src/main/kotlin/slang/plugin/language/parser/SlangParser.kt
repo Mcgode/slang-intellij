@@ -2897,7 +2897,24 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
-    private fun parseDispatchKernel(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseDispatchKernel(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseDispatchKernel"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip keyword
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && parseArgExpr(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.COMMA)
+        result = result && parseArgExpr(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.COMMA)
+        result = result && parseArgExpr(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        exit_section_(builder, marker, SlangTypes.DISPATCH_KERNEL_EXPRESSION, result)
+        return result
+    }
+
     private fun parseSizeOfExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseAlignOfExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseCountOfExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
