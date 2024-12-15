@@ -87,7 +87,6 @@ object SlangTypes {
     val STRUCT_NAME = SlangElementType("STRUCT_NAME")
     val SWITCH_STATEMENT = SlangElementType("SWITCH_STATEMENT")
     val TARGET_SWITCH_STATEMENT = SlangElementType("TARGET_SWITCH_STATEMENT")
-    val THIS_EXPRESSION = SlangElementType("THIS_EXPRESSION")
     val TYPEALIAS_DECLARATION = SlangElementType("TYPEALIAS_DECLARATION")
     val TYPEDEF_DECLARATION = SlangElementType("TYPEDEF_DECLARATION")
     val TYPE_EXPRESSION = SlangElementType("TYPE_EXPRESSION")
@@ -144,6 +143,12 @@ object SlangTypes {
     val PREFIX_MODIFIER = SlangElementType("PREFIX_MODIFIER")
     val POSTFIX_MODIFIER = SlangElementType("POSTFIX_MODIFIER")
     val EXPORTED_MODIFIER = SlangElementType("EXPORTED_MODIFIER")
+
+    val THIS_EXPRESSION = SlangElementType("THIS_EXPRESSION")
+    val BOOL_LITERAL = SlangElementType("BOOL_LITERAL")
+    val RETURN_VAL_EXPRESSION = SlangElementType("RETURN_VAL_EXPRESSION")
+    val NULLPTR_EXPRESSION = SlangElementType("NULLPTR_EXPRESSION")
+    val NONE_EXPRESSION = SlangElementType("NONE_EXPRESSION")
 
     val LEFT_BRACE = SlangTokenType("{")
     val RIGHT_BRACE = SlangTokenType("}")
@@ -287,7 +292,6 @@ object SlangTypes {
                     STRUCT_NAME -> return SlangStructNameImpl(node)
                     SWITCH_STATEMENT -> return SlangSwitchStatementImpl(node)
                     TARGET_SWITCH_STATEMENT -> return SlangTargetSwitchStatementImpl(node)
-                    THIS_EXPRESSION -> return SlangThisExpressionImpl(node)
                     TYPEALIAS_DECLARATION -> return SlangTypealiasDeclarationImpl(node)
                     TYPEDEF_DECLARATION -> return SlangTypedefDeclarationImpl(node)
                     TYPE_EXPRESSION -> return SlangTypeExpressionImpl(node)

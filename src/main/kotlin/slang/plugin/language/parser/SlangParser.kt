@@ -2810,20 +2810,41 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseAttributeTargetModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
 
     private fun parseThisExpr(builder: PsiBuilder, level: Int): Boolean {
-        if (!recursion_guard_(builder, level, "parseThisExpr"))
-            return false
-
-        val marker = enter_section_(builder)
+        builder.remapCurrentToken(SlangTypes.THIS_EXPRESSION)
         builder.advanceLexer()
-        exit_section_(builder, marker, SlangTypes.THIS_EXPRESSION, true)
         return true
     }
 
-    private fun parseTrueExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseFalseExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseReturnValExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseNullPtrExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseNoneExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseTrueExpr(builder: PsiBuilder, level: Int): Boolean {
+        builder.remapCurrentToken(SlangTypes.BOOL_LITERAL)
+        builder.advanceLexer()
+        return true
+    }
+
+    private fun parseFalseExpr(builder: PsiBuilder, level: Int): Boolean {
+        builder.remapCurrentToken(SlangTypes.BOOL_LITERAL)
+        builder.advanceLexer()
+        return true
+    }
+
+    private fun parseReturnValExpr(builder: PsiBuilder, level: Int): Boolean {
+        builder.remapCurrentToken(SlangTypes.RETURN_VAL_EXPRESSION)
+        builder.advanceLexer()
+        return true
+    }
+
+    private fun parseNullPtrExpr(builder: PsiBuilder, level: Int): Boolean {
+        builder.remapCurrentToken(SlangTypes.NULLPTR_EXPRESSION)
+        builder.advanceLexer()
+        return true
+    }
+
+    private fun parseNoneExpr(builder: PsiBuilder, level: Int): Boolean {
+        builder.remapCurrentToken(SlangTypes.NONE_EXPRESSION)
+        builder.advanceLexer()
+        return true
+    }
+
     private fun parseTryExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseTreatAsDifferentiableExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseForwardDifferentiate(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
