@@ -1831,7 +1831,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         }
         result = result && parseOptGenericDecl(builder, level + 1, parseInner)
 
-        exit_section_(builder, marker, SlangTypes.TYPEDEF_DECLARATION, result)
+        exit_section_(builder, marker, SlangTypes.TYPEALIAS_DECLARATION, result)
         return result
     }
 
@@ -2117,7 +2117,18 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseSwitchStmt(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5509
+        if (!recursion_guard_(builder, level, "parseSwitchStmt"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, "switch")
+        result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && parseExpression(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        result = result && parseBlockStatement(builder, level + 1)
+
+        exit_section_(builder, marker, SlangTypes.SWITCH_STATEMENT, result)
+        return result
     }
 
     private fun parseTargetSwitchStmt(builder: PsiBuilder, level: Int): Boolean {
