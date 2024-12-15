@@ -1,5 +1,6 @@
 package slang.plugin.language.parser
 
+import com.intellij.codeInsight.codeVision.CodeVisionState.NotReady.result
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LightPsiParser
 import com.intellij.lang.PsiBuilder
@@ -1111,7 +1112,29 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseRayPayloadAccessSemantic(builder: PsiBuilder, level: Int, write: Boolean): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:3093
+        if (!recursion_guard_(builder, level, "parseRayPayloadAccess"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        // Read the keyword that introduced the semantic
+        var result = consumeToken(builder, SlangTypes.IDENTIFIER)
+
+        result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
+
+        while (result) {
+            if (consumeToken(builder, SlangTypes.RIGHT_PAREN))
+                break
+
+            result = consumeToken(builder, SlangTypes.IDENTIFIER)
+
+            if (result && consumeToken(builder, SlangTypes.RIGHT_PAREN))
+                break
+            result = result && consumeToken(builder, SlangTypes.COMMA)
+        }
+
+        exit_section_(builder, marker, if (write) SlangTypes.RAY_PAYLOAD_WRITE_SEMANTIC else SlangTypes.RAY_PAYLOAD_READ_SEMANTIC, result)
+        return result
     }
 
     private fun parseLeafExpression(builder: PsiBuilder, level: Int): Boolean {
