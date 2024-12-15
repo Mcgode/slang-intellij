@@ -2106,7 +2106,14 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseDiscardStatement(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5502
+        if (!recursion_guard_(builder, level, "parseDiscardStatement"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, "discard")
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+        exit_section_(builder, marker, SlangTypes.DISCARD_STATEMENT, result)
+        return result
     }
 
     private fun parseSwitchStmt(builder: PsiBuilder, level: Int): Boolean {
