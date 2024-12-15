@@ -1816,7 +1816,23 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseTypeAliasDecl(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5743
+        if (!recursion_guard_(builder, level, "parseTypeAlias"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, SlangTypes.IDENTIFIER)
+
+        val parseInner: (PsiBuilder, Int, Boolean) -> Boolean = { b, l, g ->
+            var r = maybeParseGenericConstraints(b, l, g)
+            r = r && consumeToken(b, SlangTypes.ASSIGN_OP)
+            r = r && parseTypeExp(b, l)
+            r = r && consumeToken(b, SlangTypes.SEMICOLON)
+            r
+        }
+        result = result && parseOptGenericDecl(builder, level + 1, parseInner)
+
+        exit_section_(builder, marker, SlangTypes.TYPEDEF_DECLARATION, result)
+        return result
     }
 
     private fun parseStatement(builder: PsiBuilder, level: Int, isIfStmt: Boolean = false): Boolean {
