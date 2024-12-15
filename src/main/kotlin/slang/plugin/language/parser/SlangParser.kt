@@ -2373,7 +2373,13 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseExpandExpr(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:7820
+        if (!recursion_guard_(builder, level, "parseExpandExpr"))
+            return false
+
+        val marker = enter_section_(builder)
+        val result = parseArgExpr(builder, level + 1)
+        exit_section_(builder, marker, SlangTypes.EXPAND_EXPRESSION, result)
+        return result
     }
 
     private fun parseEachExpr(builder: PsiBuilder, level: Int): Boolean {
