@@ -820,7 +820,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
-    private fun parseGenericApp(builder: PsiBuilder, level: Int): Boolean {
+    private fun parseGenericApp(builder: PsiBuilder, level: Int, isTesting: Boolean = false): Boolean {
         if (!recursion_guard_(builder, level, "parseGenericApp"))
             return false
 
@@ -857,7 +857,10 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         genericDepth--
 
-        exit_section_(builder, level, marker, SlangTypes.GENERIC_APP_EXPRESSION, result, false, null)
+        if (isTesting)
+            marker.rollbackTo()
+        else
+            exit_section_(builder, level, marker, SlangTypes.GENERIC_APP_EXPRESSION, result, false, null)
         return result
     }
 
@@ -1327,10 +1330,11 @@ open class SlangParser: PsiParser, LightPsiParser {
                 val marker = enter_section_(builder, level, _LEFT_)
                 builder.advanceLexer()
                 result = consumeToken(builder, SlangTypes.IDENTIFIER)
-                if (nextTokenIs(builder, SlangTypes.LESS_OP)) {
-                    result = result && maybeParseGenericApp(builder, level + 1)
-                }
                 exit_section_(builder, level, marker, SlangTypes.STATIC_MEMBER_EXPRESSION, result, false, null)
+
+                if (result && nextTokenIs(builder, SlangTypes.LESS_OP)) {
+                    result = maybeParseGenericApp(builder, level)
+                }
             }
             else if (nextTokenIs(builder, SlangTypes.DOT) || nextTokenIs(builder, SlangTypes.RIGHT_ARROW)) {
                 val tokenType = builder.tokenType
@@ -1349,7 +1353,17 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun maybeParseGenericApp(builder: PsiBuilder, level: Int): Boolean {
-        TODO("Not yet implemented")
+        return if (!nextTokenIs(builder, SlangTypes.LESS_OP)) false
+            else tryParseGenericApp(builder, level)
+    }
+
+    private fun tryParseGenericApp(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "tryParseGenericApp"))
+            return false
+
+        if (parseGenericApp(builder, level, true))
+            return parseGenericApp(builder, level)
+        return false
     }
 
     private fun parseAtomicExpr(builder: PsiBuilder, level: Int): Boolean {
@@ -1429,16 +1443,20 @@ open class SlangParser: PsiParser, LightPsiParser {
             builder.advanceLexer()
 
             var result = true
-            if (nextTokenIs(builder, SlangTypes.COMPLETION_REQUEST))
+            val wasIdentifier = if (nextTokenIs(builder, SlangTypes.COMPLETION_REQUEST)) {
                 builder.advanceLexer()
+                false
+            }
             else {
                 result = consumeToken(builder, SlangTypes.IDENTIFIER)
-                if (nextTokenIs(builder, SlangTypes.LESS_OP)) {
-                    maybeParseGenericApp(builder, level + 1)
-                }
+                true
             }
 
             exit_section_(builder, marker, SlangTypes.VARIABLE_EXPRESSION, result)
+
+            if (wasIdentifier)
+                maybeParseGenericApp(builder, level)
+
             return result
         }
         else if (nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
@@ -1450,10 +1468,12 @@ open class SlangParser: PsiParser, LightPsiParser {
             }
 
             var result = parseDeclName(builder, level + 1)
-            if (nextTokenIs(builder, SlangTypes.LESS_OP)) {
-                result = maybeParseGenericApp(builder, level + 1)
-            }
             exit_section_(builder, marker, SlangTypes.VARIABLE_EXPRESSION, result)
+
+            if (result && nextTokenIs(builder, SlangTypes.LESS_OP)) {
+                result = maybeParseGenericApp(builder, level)
+            }
+
             return result
         }
         else {
