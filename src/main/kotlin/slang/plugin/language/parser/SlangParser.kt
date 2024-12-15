@@ -2383,7 +2383,13 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseEachExpr(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:7824
+        if (!recursion_guard_(builder, level, "parseEachExpr"))
+            return false
+
+        val marker = enter_section_(builder)
+        val result = parsePostfixExpr(builder, level + 1)
+        exit_section_(builder, marker, SlangTypes.EACH_EXPRESSION, result)
+        return result
     }
 
     private fun parseGenericDeclImpl(builder: PsiBuilder, level: Int): Boolean {
