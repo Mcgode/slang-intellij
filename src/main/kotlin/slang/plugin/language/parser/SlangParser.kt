@@ -207,7 +207,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             if (nextTokenIs(builder, name))
                 return true
             else if (tryParseUsingSyntaxDecl(builder, level, SyntaxDeclaration.Type.Modifier)) {
-                builder.advanceLexer()
+                // No lexer advance, since the parse has already consumed the tokens
                 continue
             }
             return false
@@ -385,7 +385,6 @@ open class SlangParser: PsiParser, LightPsiParser {
             return false
 
         if (result.parseCallback != null) {
-            builder.advanceLexer()
             result.parseCallback!!.invoke(builder, level)
         }
         else if (result.elementSimpleCast != null) {
@@ -1669,13 +1668,10 @@ open class SlangParser: PsiParser, LightPsiParser {
             return result
         }
         else if (nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
-            val marker = enter_section_(builder)
-
-            if (tryParseUsingSyntaxDecl(builder, level + 1, SyntaxDeclaration.Type.Expression)) {
-                exit_section_(builder, marker, SlangTypes.VARIABLE_EXPRESSION, true)
+            if (tryParseUsingSyntaxDecl(builder, level + 1, SyntaxDeclaration.Type.Expression))
                 return true
-            }
 
+            val marker = enter_section_(builder)
             var result = parseDeclName(builder, level + 1)
             exit_section_(builder, marker, SlangTypes.VARIABLE_EXPRESSION, result)
 
@@ -1974,9 +1970,9 @@ open class SlangParser: PsiParser, LightPsiParser {
 
             result = if (nextTokenAfterModifiersIs(builder, level + 1, "struct"))
                 parseDecl(builder, level + 1)
-            else if (consumeToken(builder, "typedef"))
+            else if (nextTokenIs(builder, "typedef"))
                 parseTypeDef(builder, level + 1)
-            else if (consumeToken(builder, "typealias"))
+            else if (nextTokenIs(builder, "typealias"))
                 parseTypeAliasDecl(builder, level + 1)
             else
                 parseStatement(builder, level + 1)
@@ -2017,6 +2013,9 @@ open class SlangParser: PsiParser, LightPsiParser {
         if (!recursion_guard_(builder, level, "parseTypeDef"))
             return false
 
+        // Skip 'typedef'
+        builder.advanceLexer()
+
         val marker = enter_section_(builder)
         var result = parseTypeExp(builder, level + 1)
         result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
@@ -2027,6 +2026,9 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseTypeAliasDecl(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseTypeAlias"))
             return false
+
+        // Skip 'typealias'
+        builder.advanceLexer()
 
         val marker = enter_section_(builder)
         var result = consumeToken(builder, SlangTypes.IDENTIFIER)
