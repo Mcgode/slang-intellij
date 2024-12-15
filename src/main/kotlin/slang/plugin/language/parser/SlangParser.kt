@@ -582,7 +582,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             typeSpec.expr = true
             return if (parsePrefixExpr(builder, level)) typeSpec else null
         }
-        if (nextTokenIs(builder, "functype")) {
+        if (consumeToken(builder, "functype")) {
             typeSpec.expr = true
             return if (parseFuncTypeExpr(builder, level)) typeSpec else null
         }
@@ -768,7 +768,25 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseFuncTypeExpr(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:2493
+        if (!recursion_guard_(builder, level, "parseFuncTypeExpr"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+        while (result) {
+            if (nextTokenIs(builder, SlangTypes.RIGHT_PAREN))
+                break
+            result = parseTypeExp(builder, level + 1)
+            if (result && nextTokenIs(builder, SlangTypes.RIGHT_PAREN))
+                break
+            result = result && consumeToken(builder, SlangTypes.COMMA)
+        }
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        result = result && parseTypeExp(builder, level + 1)
+
+        exit_section_(builder, marker, SlangTypes.FUNCTYPE_EXPRESSION, result)
+        return result
     }
 
     private fun parseGenericApp(builder: PsiBuilder, level: Int): Boolean {
