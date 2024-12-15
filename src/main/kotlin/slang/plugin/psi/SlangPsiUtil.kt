@@ -2,6 +2,7 @@ package slang.plugin.psi
 
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.parser.GeneratedParserUtilBase
+import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 
 import slang.plugin.psi.types.SlangTypes
@@ -31,6 +32,25 @@ object SlangPsiUtil: GeneratedParserUtilBase() {
         }
 
         return tokenType
+    }
+
+    @JvmStatic fun isFirstNonWhitespaceTokenOnNewLine(builder: PsiBuilder): Boolean {
+        var currentOffset = -1
+        var isNewLine = false
+        while (true) {
+            val tokenType = builder.rawLookup(currentOffset)
+
+            // If we rolled back to the first lexeme of the file, consider it as a new line, since it's the first line
+            if (tokenType == null || tokenType == SlangTypes.NEW_LINE) {
+                isNewLine = true
+                break
+            }
+            else if (tokenType != TokenType.WHITE_SPACE)
+                break
+            currentOffset--
+        }
+
+        return isNewLine
     }
 
 }

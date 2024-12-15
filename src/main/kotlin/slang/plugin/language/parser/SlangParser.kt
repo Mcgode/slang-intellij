@@ -283,15 +283,14 @@ open class SlangParser: PsiParser, LightPsiParser {
         //
         if (typeSpec?.decl == true)
         {
-            // TODO: see slang/slang-parser.cpp:2891
-//            if (builder.eof() || SlangPsiUtil.atStartOfLine(builder)) {
-//                // The token after the `}` is at the start of its
-//                // own line, which means it can't be on the same line.
-//                //
-//                // This means the programmer probably wants to
-//                // just treat this as a declaration.
-//                return result
-//            }
+            if (builder.eof() || SlangPsiUtil.isFirstNonWhitespaceTokenOnNewLine(builder)) {
+                // The token after the `}` is at the start of its
+                // own line, which means it can't be on the same line.
+                //
+                // This means the programmer probably wants to
+                // just treat this as a declaration.
+                return result
+            }
         }
 
         val marker = enter_section_(builder)

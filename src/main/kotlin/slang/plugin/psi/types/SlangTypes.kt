@@ -78,6 +78,7 @@ object SlangTypes {
 
     val LINE_COMMENT = SlangElementType("LINE_COMMENT")
     val MULTILINE_COMMENT = SlangElementType("MULTILINE_COMMENT")
+    val NEW_LINE = SlangElementType("NEW_LINE")
 
     val LEFT_BRACE = SlangTokenType("{")
     val RIGHT_BRACE = SlangTokenType("}")
