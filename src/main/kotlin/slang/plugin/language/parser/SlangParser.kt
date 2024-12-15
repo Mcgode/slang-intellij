@@ -1805,7 +1805,14 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseTypeDef(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5737
+        if (!recursion_guard_(builder, level, "parseTypeDef"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = parseTypeExp(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+        exit_section_(builder, marker, SlangTypes.TYPEDEF_DECLARATION, result)
+        return result
     }
 
     private fun parseTypeAliasDecl(builder: PsiBuilder, level: Int): Boolean {
