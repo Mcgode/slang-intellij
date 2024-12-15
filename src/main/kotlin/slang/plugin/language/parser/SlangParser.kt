@@ -1,13 +1,10 @@
 package slang.plugin.language.parser
 
-import com.intellij.codeInsight.codeVision.CodeVisionState.NotReady.result
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LightPsiParser
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiParser
 import com.intellij.lang.parser.GeneratedParserUtilBase.*
-import com.intellij.psi.PsiFile
-import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import org.intellij.markdown.lexer.pop
 import org.intellij.markdown.lexer.push
@@ -1875,7 +1872,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         else if (nextTokenIs(builder, "__target_switch"))
             result = result && parseTargetSwitchStmt(builder, level + 1)
         else if (nextTokenIs(builder, "__intrisic_asm"))
-            result = result && parseIntrisicAsmStmt(builder, level + 1)
+            result = result && parseIntrnisicAsmStmt(builder, level + 1)
         else if (nextTokenIs(builder, "case"))
             result = result && parseCaseStmt(builder, level + 1)
         else if (nextTokenIs(builder, "default"))
@@ -1883,7 +1880,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         else if (nextTokenIs(builder, "__GPU_FOREACH"))
             result = result && parseGpuForeachStmt(builder, level + 1)
         else if (nextTokenIs(builder, "__intrisic_asm"))
-            result = result && parseIntrisicAsmStmt(builder, level + 1)
+            result = result && parseIntrnisicAsmStmt(builder, level + 1)
         else if (nextTokenIs(builder, SlangTypes.DOLLAR))
             result = result && parseCompileTimeStmt(builder, level + 1)
         else if (nextTokenIs(builder, "try"))
@@ -2135,8 +2132,20 @@ open class SlangParser: PsiParser, LightPsiParser {
         return false // TODO: see slang/slang-parser.cpp:5511
     }
 
-    private fun parseIntrisicAsmStmt(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5513
+    private fun parseIntrnisicAsmStmt(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseIntrisicAsmStmt"))
+            return false
+
+        val marker = enter_section_(builder)
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.STRING_LITERAL)
+        while (result && consumeToken(builder, SlangTypes.COMMA)) {
+            result = parseArgExpr(builder, level + 1)
+        }
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+
+        exit_section_(builder, marker, SlangTypes.INTRINSIC_ASM_STATEMENT, result)
+        return result
     }
 
     private fun parseCaseStmt(builder: PsiBuilder, level: Int): Boolean {
