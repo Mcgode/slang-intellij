@@ -22,6 +22,7 @@ open class SlangParser: PsiParser, LightPsiParser {
     private val enableGlslCode = true
     private var isInVariadicGenerics = false
     private var genericDepth = 0
+    private var genericShrConsumeOffset = -1
     private val identifierLookup = SlangIdentifierLookup()
 
     override fun parse(type: IElementType, builder: PsiBuilder): ASTNode {
@@ -790,7 +791,85 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseGenericApp(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:2240
+        if (!recursion_guard_(builder, level, "parseGenericApp"))
+            return false
+
+        val marker = enter_section_(builder, level, _LEFT_)
+
+        var result = consumeToken(builder, SlangTypes.LESS_OP)
+
+        genericDepth++
+
+        // For now assume all generics have at least one argument
+        result = result && parseGenericArg(builder, level + 1)
+        while (result && consumeToken(builder, SlangTypes.COMMA))
+            result = parseGenericArg(builder, level + 1)
+
+        if (result && nextTokenIs(builder, SlangTypes.SHR_OP)) {
+            when (genericShrConsumeOffset) {
+                -1 -> {
+                    if (genericDepth > 1)
+                        genericShrConsumeOffset = builder.currentOffset
+                    else
+                        result = false
+                }
+                builder.currentOffset -> {
+                    builder.advanceLexer()
+                    genericShrConsumeOffset = -1
+                }
+                else -> {
+                    genericShrConsumeOffset = -1
+                }
+            }
+        }
+        else if (result)
+            result = consumeToken(builder, SlangTypes.GREATER_OP)
+
+        genericDepth--
+
+        exit_section_(builder, level, marker, SlangTypes.GENERIC_APP_EXPRESSION, result, false, null)
+        return result
+    }
+
+    private fun parseGenericArg(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseGenericArg"))
+            return false
+
+        // The grammar for generic arguments needs to be a super-set of the
+        // grammar for types and for expressions, because we do not know
+        // which to expect at each argument position during parsing.
+        //
+        // For the most part the expression grammar is more permissive than
+        // the type grammar, but types support modifiers that are not
+        // (currently) allowed in pure expression contexts.
+        //
+        // We could in theory allow modifiers to appear in expression contexts
+        // and deal with the cases where this should not be allowed downstream,
+        // but doing so runs a high risk of changing the meaning of existing code
+        // (notably in cases where a user might have used a variable name that
+        // overlaps with a language modifier keyword).
+        //
+        // Instead, we will simply detect the case where modifiers appear on
+        // a generic argument here, as a special case.
+        //
+        val marker = enter_section_(builder)
+
+        val beforeModifiersOffset = builder.currentOffset
+        var result = parseModifiers(builder, level + 1)
+
+        if (builder.currentOffset > beforeModifiersOffset) {
+            // If there are any modifiers, then we know that we are actually
+            // in the type case.
+            //
+            result = result && (parseSimpleTypeSpec(builder, level + 1) != null)
+            result = result && parsePostFixTypeExprSuffix(builder, level + 1)
+            result = result && parseInfixTypeExprSuffix(builder, level + 1)
+        }
+        else
+            result = result && parseArgExpr(builder, level + 1)
+
+        exit_section_(builder, marker, SlangTypes.GENERIC_APP_ARGUMENT, result)
+        return result
     }
 
     private fun parseStaticMemberType(builder: PsiBuilder, level: Int): Boolean {
