@@ -1940,7 +1940,8 @@ open class SlangParser: PsiParser, LightPsiParser {
         val brokenScoping = false
 
         val marker = enter_section_(builder)
-        pushScope(SlangTypes.FOR_STATEMENT)
+        if (!brokenScoping)
+            pushScope(SlangTypes.FOR_STATEMENT)
         var result = consumeToken(builder, "for")
         result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
 
@@ -1983,7 +1984,8 @@ open class SlangParser: PsiParser, LightPsiParser {
         result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
         result = result && parseStatement(builder, level + 1)
 
-        popScope()
+        if (!brokenScoping)
+            popScope()
 
         exit_section_(builder, marker, SlangTypes.FOR_STATEMENT, result)
         return result
