@@ -2279,7 +2279,13 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseVarDeclStatement(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5779
+        if (!recursion_guard_(builder, level, "parseVarDeclStatement"))
+            return false
+
+        val marker = enter_section_(builder)
+        val result = parseDeclWithModifiers(builder, level + 1)
+        exit_section_(builder, marker, SlangTypes.DECLARATION_STATEMENT, result)
+        return result
     }
 
     private fun parseEnumCaseDecl(builder: PsiBuilder, level: Int): Boolean {
