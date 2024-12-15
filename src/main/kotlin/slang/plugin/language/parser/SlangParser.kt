@@ -2852,7 +2852,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         val marker = enter_section_(builder)
         // Skip 'try' keyword
         builder.advanceLexer()
-        val result = parseLeafExpression(builder, level)
+        val result = parseLeafExpression(builder, level + 1)
         exit_section_(builder, marker, SlangTypes.TRY_EXPRESSION, result)
         return result
     }
@@ -2864,13 +2864,39 @@ open class SlangParser: PsiParser, LightPsiParser {
         val marker = enter_section_(builder)
         // Skip 'no_diff' keyword
         builder.advanceLexer()
-        val result = parseLeafExpression(builder, level)
+        val result = parseLeafExpression(builder, level + 1)
         exit_section_(builder, marker, SlangTypes.TREAT_AS_DIFFERENTIABLE_EXPRESSION, result)
         return result
     }
 
-    private fun parseForwardDifferentiate(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseBackwardDifferentiate(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseForwardDifferentiate(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseForwardDifferentiate"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip keyword
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && parseExpression(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        exit_section_(builder, marker, SlangTypes.FORWARD_DIFFERENTIATE_EXPRESSION, result)
+        return result
+    }
+
+    private fun parseBackwardDifferentiate(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseBackwardDifferentiate"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip keyword
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && parseExpression(builder, level + 1)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        exit_section_(builder, marker, SlangTypes.BACKWARD_DIFFERENTIATE_EXPRESSION, result)
+        return result
+    }
+
     private fun parseDispatchKernel(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseSizeOfExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseAlignOfExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
