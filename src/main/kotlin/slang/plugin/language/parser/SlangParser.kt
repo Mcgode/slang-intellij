@@ -9,7 +9,10 @@ import com.intellij.psi.tree.IElementType
 import org.intellij.markdown.lexer.pop
 import org.intellij.markdown.lexer.push
 import slang.plugin.language.parser.data.Scope
+import slang.plugin.language.parser.data.SyntaxDeclaration
 import slang.plugin.language.parser.data.TypeSpec
+import slang.plugin.psi.SlangElementType
+import slang.plugin.psi.SlangIFileElementType
 import slang.plugin.psi.types.SlangTypes
 import slang.plugin.psi.SlangPsiUtil
 
@@ -26,9 +29,157 @@ open class SlangParser: PsiParser, LightPsiParser {
     private var genericDepth = 0
     private var genericShrConsumeOffset = -1
     private var scopes = ArrayList<Scope>()
+    private var scopeStack = ArrayList<Scope>()
     private val scope: Scope?
-        get() = if (scopes.size > 0) scopes.last() else null
-    private val identifierLookup = SlangIdentifierLookup()
+        get() = if (scopeStack.size > 0) scopeStack.last() else null
+
+    @Suppress("LeakingThis")
+    private val builtinSyntaxDeclarations = arrayListOf<SyntaxDeclaration>(
+        // !!!!!!!!!!!!!!!!!!!! Decls !!!!!!!!!!!!!!!!!!
+
+        makeParseDeclaration("typedef", this::parseTypeDef),
+        makeParseDeclaration("associatedtype", this::parseAssocType),
+        makeParseDeclaration("type_param", this::parseGlobalGenericTypeParamDecl),
+        makeParseDeclaration("cbuffer", this::parseHLSLCBufferDecl),
+        makeParseDeclaration("tbuffer", this::parseHLSLTBufferDecl),
+        makeParseDeclaration("__generic", this::parseGenericDecl),
+        makeParseDeclaration("__extension", this::parseExtensionDecl),
+        makeParseDeclaration("extension", this::parseExtensionDecl),
+        makeParseDeclaration("__init", this::parseConstructorDecl),
+        makeParseDeclaration("__subscript", this::parseSubscriptDecl),
+        makeParseDeclaration("property", this::parsePropertyDecl),
+        makeParseDeclaration("interface", this::parseInterfaceDecl),
+        makeParseDeclaration("syntax", this::parseSyntaxDecl),
+        makeParseDeclaration("attribute_syntax", this::parseAttributeSyntaxDecl),
+        makeParseDeclaration("__import", this::parseImportDecl),
+        makeParseDeclaration("import", this::parseImportDecl),
+        makeParseDeclaration("__include", this::parseIncludeDecl),
+        makeParseDeclaration("module", this::parseModuleDeclarationDecl),
+        makeParseDeclaration("implementing", this::parseImplementingDecl),
+        makeParseDeclaration("let", this::parseLetDecl),
+        makeParseDeclaration("var", this::parseVarDecl),
+        makeParseDeclaration("func", this::parseFuncDecl),
+        makeParseDeclaration("typealias", this::parseTypeAliasDecl),
+        makeParseDeclaration("__generic_value_param", this::parseGlobalGenericValueParamDecl),
+        makeParseDeclaration("namespace", this::parseNamespaceDecl),
+        makeParseDeclaration("using", this::parseUsingDecl),
+        makeParseDeclaration("__ignored_block", this::parseIgnoredBlockDecl),
+        makeParseDeclaration("__transparent_block", this::parseTransparentBlockDecl),
+        makeParseDeclaration("__file_decl", this::parseFileDecl),
+        makeParseDeclaration("__require_capability", this::parseRequireCapabilityDecl),
+
+        // !!!!!!!!!!!!!!!!!!!!!! Modifier !!!!!!!!!!!!!!!!!!!!!!
+
+        // Add syntax for "simple" modifier keywords.
+        // These are the ones that just appear as a single
+        // keyword (no further tokens expected/allowed),
+        // and which can be represented just by creating
+        // a new AST node of the corresponding type.
+        makeParseModifier("in", SlangTypes.IN_MODIFIER),
+        makeParseModifier("out", SlangTypes.OUT_MODIFIER),
+        makeParseModifier("inout", SlangTypes.INOUT_MODIFIER),
+        makeParseModifier("__ref", SlangTypes.REF_MODIFIER),
+        makeParseModifier("__constref", SlangTypes.CONSTREF_MODIFIER),
+        makeParseModifier("const", SlangTypes.CONST_MODIFIER),
+        makeParseModifier("__builtin", SlangTypes.BUILTIN_MODIFIER),
+        makeParseModifier("highp", SlangTypes.GLSL_PRECISION_MODIFIER),
+        makeParseModifier("lowp", SlangTypes.GLSL_PRECISION_MODIFIER),
+        makeParseModifier("mediump", SlangTypes.GLSL_PRECISION_MODIFIER),
+
+        makeParseModifier("__global", SlangTypes.ACTUAL_GLOBAL_MODIFIER),
+
+        makeParseModifier("inline", SlangTypes.INLINE_MODIFIER),
+        makeParseModifier("public", SlangTypes.PUBLIC_MODIFIER),
+        makeParseModifier("private", SlangTypes.PRIVATE_MODIFIER),
+        makeParseModifier("internal", SlangTypes.INTERNAL_MODIFIER),
+
+        makeParseModifier("require", SlangTypes.REQUIRE_MODIFIER),
+        makeParseModifier("param", SlangTypes.PARAM_MODIFIER),
+        makeParseModifier("extern", SlangTypes.EXTERN_MODIFIER),
+
+        makeParseModifier("row_major", SlangTypes.HLSL_ROW_MAJOR_LAYOUT_MODIFIER),
+        makeParseModifier("column_major", SlangTypes.HLSL_COLUMN_MAJOR_LAYOUT_MODIFIER),
+
+        makeParseModifier("nointerpolation", SlangTypes.HLSL_NO_INTERPOLATION_MODIFIER),
+        makeParseModifier("noperspective", SlangTypes.HLSL_NO_PERSPECTIVE_MODIFIER),
+        makeParseModifier("linear", SlangTypes.HLSL_LINEAR_MODIFIER),
+        makeParseModifier("sample", SlangTypes.HLSL_SAMPLE_MODIFIER),
+        makeParseModifier("centroid", SlangTypes.HLSL_CENTROID_MODIFIER),
+        makeParseModifier("precise", SlangTypes.PRECISE_MODIFIER),
+        makeParseModifier("shared", SlangTypes.HLSL_EFFECT_SHARED_MODIFIER),
+        makeParseModifier("groupshared", SlangTypes.HLSL_GROUP_SHARED_MODIFIER),
+        makeParseModifier("static", SlangTypes.HLSL_STATIC_MODIFIER),
+        makeParseModifier("uniform", SlangTypes.HLSL_UNIFORM_MODIFIER),
+        makeParseModifier("volatile", this::parseVolatileModifier),
+        makeParseModifier("coherent", this::parseCoherentModifier),
+        makeParseModifier("restrict", this::parseRestrictModifier),
+        makeParseModifier("readonly", this::parseReadonlyModifier),
+        makeParseModifier("writeonly", this::parseWriteonlyModifier),
+        makeParseModifier("export", SlangTypes.HLSL_EXPORT_MODIFIER),
+        makeParseModifier("dynamic_uniform", SlangTypes.HLSL_DYNAMIC_UNIFORM_MODIFIER),
+
+        // Modifiers for geometry shader input
+        makeParseModifier("point", SlangTypes.HLSL_POINT_MODIFIER),
+        makeParseModifier("line", SlangTypes.HLSL_LINE_MODIFIER),
+        makeParseModifier("triangle", SlangTypes.HLSL_TRIANGLE_MODIFIER),
+        makeParseModifier("lineadj", SlangTypes.HLSL_LINE_ADJ_MODIFIER),
+        makeParseModifier("triangleadj", SlangTypes.HLSL_TRIANGLE_ADJ_MODIFIER),
+
+        // Modifiers for mesh shader parameters
+        makeParseModifier("vertices", SlangTypes.HLSL_VERTICES_MODIFIER),
+        makeParseModifier("indices", SlangTypes.HLSL_INDICES_MODIFIER),
+        makeParseModifier("primitives", SlangTypes.HLSL_PRIMITIVES_MODIFIER),
+        makeParseModifier("payload", SlangTypes.HLSL_PAYLOAD_MODIFIER),
+
+        // Modifiers for unary operator declarations
+        makeParseModifier("__prefix", SlangTypes.PREFIX_MODIFIER),
+        makeParseModifier("__postfix", SlangTypes.POSTFIX_MODIFIER),
+
+        // Modifier to apply to `import` that should be re-exported
+        makeParseModifier("__exported", SlangTypes.EXPORTED_MODIFIER),
+
+        // Add syntax for more complex modifiers, which allow
+        // or expect more tokens after the initial keyword.
+
+        makeParseModifier("layout", this::parseLayoutModifier),
+        makeParseModifier("hitAttributeEXT", this::parseHitAttributeEXTModifier),
+        makeParseModifier("__intrinsic_op", this::parseIntrinsicOpModifier),
+        makeParseModifier("__target_intrinsic", this::parseTargetIntrinsicModifier),
+        makeParseModifier("__specialized_for_target", this::parseSpecializedForTargetModifier),
+        makeParseModifier("__glsl_extension", this::parseGLSLExtensionModifier),
+        makeParseModifier("__glsl_version", this::parseGLSLVersionModifier),
+        makeParseModifier("__spirv_version", this::parseSPIRVVersionModifier),
+        makeParseModifier("__cuda_sm_version", this::parseCUDASMVersionModifier),
+
+        makeParseModifier("__builtin_type", this::parseBuiltinTypeModifier),
+        makeParseModifier("__builtin_requirement", this::parseBuiltinRequirementModifier),
+
+        makeParseModifier("__magic_type", this::parseMagicTypeModifier),
+        makeParseModifier("__intrinsic_type", this::parseIntrinsicTypeModifier),
+        makeParseModifier("__implicit_conversion", this::parseImplicitConversionModifier),
+
+        makeParseModifier("__attributeTarget", this::parseAttributeTargetModifier),
+
+        // !!!!!!!!!!!!!!!!!!!!!!! Expr !!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        makeParseExpression("this", this::parseThisExpr),
+        makeParseExpression("true", this::parseTrueExpr),
+        makeParseExpression("false", this::parseFalseExpr),
+        makeParseExpression("__return_val", this::parseReturnValExpr),
+        makeParseExpression("nullptr", this::parseNullPtrExpr),
+        makeParseExpression("none", this::parseNoneExpr),
+        makeParseExpression("try", this::parseTryExpr),
+        makeParseExpression("no_diff", this::parseTreatAsDifferentiableExpr),
+        makeParseExpression("__fwd_diff", this::parseForwardDifferentiate),
+        makeParseExpression("__bwd_diff", this::parseBackwardDifferentiate),
+        makeParseExpression("fwd_diff", this::parseForwardDifferentiate),
+        makeParseExpression("bwd_diff", this::parseBackwardDifferentiate),
+        makeParseExpression("__dispatch_kernel", this::parseDispatchKernel),
+        makeParseExpression("sizeof", this::parseSizeOfExpr),
+        makeParseExpression("alignof", this::parseAlignOfExpr),
+        makeParseExpression("countof", this::parseCountOfExpr),
+
+    )
 
     override fun parse(type: IElementType, builder: PsiBuilder): ASTNode {
         parseLight(type, builder)
@@ -38,19 +189,24 @@ open class SlangParser: PsiParser, LightPsiParser {
     override fun parseLight(type: IElementType, baseBuilder: PsiBuilder) {
 
         val builder = adapt_builder_(type, baseBuilder, this, null)
-        identifierLookup.initDefault("")
         val marker = enter_section_(builder, 0, _COLLAPSE_, null)
+
+        pushScope(SlangIFileElementType())
+        for (syntaxDeclaration in builtinSyntaxDeclarations)
+            scope?.syntaxDeclarations?.set(syntaxDeclaration.name, syntaxDeclaration)
+
         val result = parseSourceFile(builder, 1)
+        popScope()
 
         exit_section_(builder, 0, marker, type, result, true, TRUE_CONDITION)
 
     }
 
-    private fun nextTokenAfterModifiersIs(builder: PsiBuilder, name: String): Boolean {
+    private fun nextTokenAfterModifiersIs(builder: PsiBuilder, level: Int, name: String): Boolean {
         while (true) {
             if (nextTokenIs(builder, name))
                 return true
-            else if (identifierLookup.lookUp(builder.tokenText ?: "n/a")?.identifier == SlangIdentifierLookup.IdentifierStyle.TypeModifier) {
+            else if (tryParseUsingSyntaxDecl(builder, level, SyntaxDeclaration.Type.Modifier)) {
                 builder.advanceLexer()
                 continue
             }
@@ -71,21 +227,47 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun pushScope(type: IElementType) {
-        scopes.push(Scope(type))
+        val scope = Scope(type)
+        pushScope(scope)
     }
 
     private fun pushScope(scope: Scope) {
+        scope.parent = if (scopeStack.size > 0) scopeStack.last() else null
+        scopeStack.push(scope)
         scopes.push(scope)
     }
 
     private fun popScope(): Scope {
-        return scopes.pop()
+        return scopeStack.pop()
+    }
+
+    private fun makeParseDeclaration(name: String, callback: (PsiBuilder, Int) -> Boolean): SyntaxDeclaration {
+        val syntaxDeclaration = SyntaxDeclaration(name, SyntaxDeclaration.Type.Declaration)
+        syntaxDeclaration.parseCallback = callback
+        return syntaxDeclaration
+    }
+
+    private fun makeParseModifier(name: String, elementCast: SlangElementType): SyntaxDeclaration {
+        val syntaxDeclaration = SyntaxDeclaration(name, SyntaxDeclaration.Type.Modifier)
+        syntaxDeclaration.elementSimpleCast = elementCast
+        return syntaxDeclaration
+    }
+
+    private fun makeParseModifier(name: String, callback: (PsiBuilder, Int) -> Boolean): SyntaxDeclaration {
+        val syntaxDeclaration = SyntaxDeclaration(name, SyntaxDeclaration.Type.Modifier)
+        syntaxDeclaration.parseCallback = callback
+        return syntaxDeclaration
+    }
+
+    private fun makeParseExpression(name: String, callback: (PsiBuilder, Int) -> Boolean): SyntaxDeclaration {
+        val syntaxDeclaration = SyntaxDeclaration(name, SyntaxDeclaration.Type.Expression)
+        syntaxDeclaration.parseCallback = callback
+        return syntaxDeclaration
     }
 
     private fun parseSourceFile(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseRoot"))
             return false
-        // pushScope(FILE)
         while (true) {
             val cursor = current_position_(builder)
             // TODO: Implement parseGlslGlobalDecl (see slang/slang-parser.cpp:4889)
@@ -94,7 +276,6 @@ open class SlangParser: PsiParser, LightPsiParser {
             if (!empty_element_parsed_guard_(builder, "parseRoot", cursor))
                 break
         }
-        // popScope()
 
         return true
     }
@@ -117,25 +298,24 @@ open class SlangParser: PsiParser, LightPsiParser {
         while (true) {
             when (builder.tokenType) {
                 SlangTypes.IDENTIFIER -> {
-                    if (tryParseUsingSyntaxDecl(builder, level, SyntaxType.Modifier)) {
-                        val marker = enter_section_(builder)
-                        builder.advanceLexer()
+                    val marker = enter_section_(builder)
+                    if (tryParseUsingSyntaxDecl(builder, level, SyntaxDeclaration.Type.Modifier)) {
+                        // No lexer advance, since the parse has already consumed the tokens
                         exit_section_(builder, marker, SlangTypes.TYPE_MODIFIER, true)
                         continue
                     }
                     else if (nextTokenIs(builder, "no_diff")) {
-                        val marker = enter_section_(builder)
                         builder.advanceLexer()
                         exit_section_(builder, marker, SlangTypes.TYPE_MODIFIER, true)
                         continue
                     }
                     else if (enableGlslCode)
                         if (consumeToken(builder, "flat")) {
-                            val marker = enter_section_(builder)
                             builder.advanceLexer()
                             exit_section_(builder, marker, SlangTypes.TYPE_MODIFIER, true)
                             continue
                         }
+                    exit_section_(builder, marker, null, true)
                     break
                 }
                 SlangTypes.LEFT_BRACKET -> {
@@ -155,7 +335,15 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         when (builder.tokenType) {
             SlangTypes.IDENTIFIER -> {
-                // TODO: see slang/slang-parser.cpp:4706
+                // A declaration that starts with an identifier might be:
+                //
+                // - A keyword-based declaration (e.g., `cbuffer ...`)
+                // - The beginning of a type in a declarator-based declaration (e.g., `int ...`)
+
+                if (tryParseUsingSyntaxDecl(builder, level, SyntaxDeclaration.Type.Declaration))
+                    return true
+
+                // TODO: see slang/slang-parser.cpp:4723
 
                 return parseDeclaratorDecl(builder, level)
             }
@@ -183,27 +371,51 @@ open class SlangParser: PsiParser, LightPsiParser {
         return true
     }
 
-    private enum class SyntaxType {
-        Modifier,
-        Declaration,
-        Expression
-    }
-
-    private fun tryParseUsingSyntaxDecl(builder: PsiBuilder, level: Int, type: SyntaxType): Boolean {
-        if (!recursion_guard_(builder, level, "parseUsingSyntaxDecl"))
+    private fun tryParseUsingSyntaxDecl(builder: PsiBuilder, level: Int, type: SyntaxDeclaration.Type): Boolean {
+        if (!recursion_guard_(builder, level, "tryParseUsingSyntaxDecl"))
             return false
 
         if (!nextTokenIs(builder, SlangTypes.IDENTIFIER))
             return false
 
         val name = builder.tokenText!!
-        val result = identifierLookup.lookUp(name) ?: return false
-        // TODO: operation is a lot more complex in slang/slang-parser.cpp:1154
+        val result = lookUp(name) ?: return false
 
-        return when (type) {
-            SyntaxType.Modifier -> result.identifier == SlangIdentifierLookup.IdentifierStyle.TypeModifier
-            else -> false
+        if (result.type != type)
+            return false
+
+        if (result.parseCallback != null) {
+            builder.advanceLexer()
+            result.parseCallback!!.invoke(builder, level)
         }
+        else if (result.elementSimpleCast != null) {
+            builder.remapCurrentToken(result.elementSimpleCast!!)
+            builder.advanceLexer()
+        }
+        else {
+            throw IllegalStateException()
+        }
+        return true
+    }
+
+    private fun lookUp(name: String): SyntaxDeclaration? {
+        var currentScope = scope
+
+        while (currentScope != null) {
+            val originalParent = currentScope.parent
+
+            while (currentScope != null)
+            {
+                if (currentScope.syntaxDeclarations.containsKey(name))
+                    return currentScope.syntaxDeclarations[name]
+
+                currentScope = currentScope.nextSibling
+            }
+
+            currentScope = originalParent
+        }
+
+        return null
     }
 
     private fun parseSquareBracketAttributes(builder: PsiBuilder, level: Int): Boolean {
@@ -1459,7 +1671,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         else if (nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
             val marker = enter_section_(builder)
 
-            if (tryParseUsingSyntaxDecl(builder, level + 1, SyntaxType.Expression)) {
+            if (tryParseUsingSyntaxDecl(builder, level + 1, SyntaxDeclaration.Type.Expression)) {
                 exit_section_(builder, marker, SlangTypes.VARIABLE_EXPRESSION, true)
                 return true
             }
@@ -1760,7 +1972,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             if (nextTokenIs(builder, SlangTypes.RIGHT_BRACE))
                 break
 
-            result = if (nextTokenAfterModifiersIs(builder, "struct"))
+            result = if (nextTokenAfterModifiersIs(builder, level + 1, "struct"))
                 parseDecl(builder, level + 1)
             else if (consumeToken(builder, "typedef"))
                 parseTypeDef(builder, level + 1)
@@ -2545,4 +2757,68 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseSpirVAsmInst(builder: PsiBuilder, level: Int): Boolean {
         return false // TODO: see l7579
     }
+
+
+    private fun parseAssocType(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseGlobalGenericTypeParamDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseHLSLCBufferDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseHLSLTBufferDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseGenericDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseExtensionDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseConstructorDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseSubscriptDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parsePropertyDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseInterfaceDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseSyntaxDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseAttributeSyntaxDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseImportDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseIncludeDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseModuleDeclarationDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseImplementingDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseLetDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseVarDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseFuncDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseGlobalGenericValueParamDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseNamespaceDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseUsingDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseIgnoredBlockDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseTransparentBlockDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseFileDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseRequireCapabilityDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseVolatileModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseCoherentModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseRestrictModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseReadonlyModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseWriteonlyModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseLayoutModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseHitAttributeEXTModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseIntrinsicOpModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseTargetIntrinsicModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseSpecializedForTargetModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseGLSLExtensionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseGLSLVersionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseSPIRVVersionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseCUDASMVersionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseBuiltinTypeModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseBuiltinRequirementModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseMagicTypeModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseIntrinsicTypeModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseImplicitConversionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseAttributeTargetModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseThisExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseTrueExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseFalseExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseReturnValExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseNullPtrExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseNoneExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseTryExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseTreatAsDifferentiableExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseForwardDifferentiate(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseBackwardDifferentiate(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseDispatchKernel(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseSizeOfExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseAlignOfExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseCountOfExpr(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
 }

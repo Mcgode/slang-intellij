@@ -47,7 +47,7 @@ Slang File
             PsiElement(SlangTokenType.])(']')
             PsiWhiteSpace(' ')
             SlangTypeModifierImpl(SlangElementType.TYPE_MODIFIER)
-              PsiElement(SlangTokenType.IDENTIFIER)('const')
+              PsiElement(SlangElementType.CONST_MODIFIER)('const')
             PsiWhiteSpace(' ')
             SlangTypeSpecImpl(SlangElementType.TYPE_SPEC)
               PsiElement(SlangTokenType.IDENTIFIER)('float3')
