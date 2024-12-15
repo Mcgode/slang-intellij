@@ -881,7 +881,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         // When called the :: or . have been consumed, so don't need to consume here.
         val result = consumeToken(builder, SlangTypes.IDENTIFIER)
 
-        exit_section_(builder, level, marker, SlangTypes.STATIC_MEMBER_TYPE_EXPRESSION, result, false, null)
+        exit_section_(builder, level, marker, SlangTypes.STATIC_MEMBER_EXPRESSION, result, false, null)
         return result
     }
 
