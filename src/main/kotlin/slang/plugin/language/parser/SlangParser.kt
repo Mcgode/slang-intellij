@@ -981,7 +981,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         var result = true
         while (result && nextTokenIs(builder, "where")) {
             val marker = enter_section_(builder)
-            builder.advanceLexer(); // Consume 'where'
+            builder.advanceLexer() // Consume 'where'
 
             result = parseTypeExp(builder, level + 1)
             if (result && consumeToken(builder, SlangTypes.COLON))
@@ -1052,8 +1052,41 @@ open class SlangParser: PsiParser, LightPsiParser {
         return consumeToken(builder, SlangTypes.IDENTIFIER)
     }
 
+    private fun parseHLSLRegisterNameAndOptionalComponentMask(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseHlslRegisterNameAndOptionalComponentMask"))
+            return false
+
+        var result = consumeToken(builder, SlangTypes.IDENTIFIER)
+
+        if (result && consumeToken(builder, SlangTypes.DOT))
+            result = consumeToken(builder, SlangTypes.IDENTIFIER)
+
+        return result
+    }
+
     private fun parseHlslRegisterSemantic(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:3024
+        if (!recursion_guard_(builder, level, "parseHlslRegisterSemantic"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        // Read the `register` keyword
+        var result = consumeToken(builder, "register")
+
+        // Expect a parenthesized list of additional arguments
+        result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
+
+        // First argument is a required register name and optional component mask
+        result = result && parseHLSLRegisterNameAndOptionalComponentMask(builder, level + 1)
+
+        // Second argument is an optional register space
+        if (result && consumeToken(builder, SlangTypes.COMMA))
+            result = consumeToken(builder, SlangTypes.IDENTIFIER)
+
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+
+        exit_section_(builder, marker, SlangTypes.HLSL_REGISTER_SEMANTIC, result)
+        return result
     }
 
     private fun parseHlslPackOffsetSemantic(builder: PsiBuilder, level: Int): Boolean {
