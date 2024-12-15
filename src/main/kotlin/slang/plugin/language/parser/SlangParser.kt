@@ -2267,7 +2267,15 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseLabelStatement(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:6025
+        if (!recursion_guard_(builder, level, "parseLabelStatement"))
+            return false
+
+        val marker = enter_section_(builder)
+        var result = consumeToken(builder, SlangTypes.IDENTIFIER)
+        result = result && consumeToken(builder, SlangTypes.COLON)
+        result = result && parseStatement(builder, level + 1)
+        exit_section_(builder, marker, SlangTypes.LABEL_STATEMENT, result)
+        return result
     }
 
     private fun parseVarDeclStatement(builder: PsiBuilder, level: Int): Boolean {
