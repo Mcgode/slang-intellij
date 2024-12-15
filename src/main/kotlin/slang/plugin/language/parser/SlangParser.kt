@@ -2129,7 +2129,53 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseTargetSwitchStmt(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:5511
+        if (!recursion_guard_(builder, level, "parseTargetSwitchStmt"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.LEFT_BRACE)
+
+        while (result && !consumeToken(builder, SlangTypes.RIGHT_BRACE)) {
+            pushScope(SlangTypes.TARGET_SWITCH_STATEMENT)
+
+            val beforeCasesOffset = builder.currentOffset
+            while (result) {
+                if (nextTokenIs(builder, "case")) {
+                    result = consumeToken(builder, "case")
+                    result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+                    result = result && consumeToken(builder, SlangTypes.COLON)
+                }
+                else if (nextTokenIs(builder, "default")) {
+                    result = consumeToken(builder, "default")
+                    result = result && consumeToken(builder, SlangTypes.COLON)
+                }
+                else
+                    break
+            }
+
+            if (builder.currentOffset == beforeCasesOffset) {
+                builder.error("Unexpected token type ${builder.tokenType}, expected 'case', or 'default'")
+                result = false
+                // TODO: Handle recovery
+            }
+            else {
+                while (result) {
+                    if (nextTokenIs(builder, "case")
+                        || nextTokenIs(builder, "default")
+                        || nextTokenIs(builder, SlangTypes.RIGHT_BRACE))
+                        break
+
+                    result = parseStatement(builder, level + 1)
+                }
+            }
+
+            popScope()
+        }
+
+        exit_section_(builder, marker, SlangTypes.TARGET_SWITCH_STATEMENT, result)
+        return result
     }
 
     private fun parseIntrnisicAsmStmt(builder: PsiBuilder, level: Int): Boolean {
