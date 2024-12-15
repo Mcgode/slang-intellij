@@ -1871,16 +1871,16 @@ open class SlangParser: PsiParser, LightPsiParser {
             result = result && parseSwitchStmt(builder, level + 1)
         else if (nextTokenIs(builder, "__target_switch"))
             result = result && parseTargetSwitchStmt(builder, level + 1)
-        else if (nextTokenIs(builder, "__intrisic_asm"))
-            result = result && parseIntrnisicAsmStmt(builder, level + 1)
+        else if (nextTokenIs(builder, "__intrinsic_asm"))
+            result = result && parseIntrinsicAsmStmt(builder, level + 1)
         else if (nextTokenIs(builder, "case"))
             result = result && parseCaseStmt(builder, level + 1)
         else if (nextTokenIs(builder, "default"))
             result = result && parseDefaultStmt(builder, level + 1)
         else if (nextTokenIs(builder, "__GPU_FOREACH"))
             result = result && parseGpuForeachStmt(builder, level + 1)
-        else if (nextTokenIs(builder, "__intrisic_asm"))
-            result = result && parseIntrnisicAsmStmt(builder, level + 1)
+        else if (nextTokenIs(builder, "__intrinsic_asm"))
+            result = result && parseIntrinsicAsmStmt(builder, level + 1)
         else if (nextTokenIs(builder, SlangTypes.DOLLAR))
             result = result && parseCompileTimeStmt(builder, level + 1)
         else if (nextTokenIs(builder, "try"))
@@ -2178,8 +2178,8 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
-    private fun parseIntrnisicAsmStmt(builder: PsiBuilder, level: Int): Boolean {
-        if (!recursion_guard_(builder, level, "parseIntrisicAsmStmt"))
+    private fun parseIntrinsicAsmStmt(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseIntrinsicAsmStmt"))
             return false
 
         val marker = enter_section_(builder)
