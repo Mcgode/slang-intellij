@@ -7,6 +7,7 @@ import slang.plugin.psi.SlangTokenType
 import slang.plugin.psi.types.impl.*
 
 object SlangTypes {
+    val ALIGN_OF_EXPRESSION = SlangElementType("ALIGN_OF_EXPRESSION")
     val AND_TYPE_EXPRESSION = SlangElementType("AND_TYPE_EXPRESSION")
     val ARRAY_DECLARATOR = SlangElementType("ARRAY_DECLARATOR")
     val ARRAY_SPECIFIER = SlangElementType("ARRAY_SPECIFIER")
@@ -22,6 +23,7 @@ object SlangTypes {
     val CLASS_NAME = SlangElementType("CLASS_NAME")
     val COMPILE_TIME_FOR_STATEMENT = SlangElementType("COMPILE_TIME_FOR_STATEMENT")
     val CONTINUE_STATEMENT = SlangElementType("CONTINUE_STATEMENT")
+    val COUNT_OF_EXPRESSION = SlangElementType("COUNT_OF_EXPRESSION")
     val DECLARATION = SlangElementType("DECLARATION")
     val DECLARATION_NAME = SlangElementType("DECLARATION_NAME")
     val DECLARATION_STATEMENT = SlangElementType("DECLARATION_STATEMENT")
@@ -82,6 +84,7 @@ object SlangTypes {
     val RETURN_STATEMENT = SlangElementType("RETURN_STATEMENT")
     val SELECT_EXPRESSION = SlangElementType("SELECT_EXPRESSION")
     val SIDE_EFFECT_EXPRESSION = SlangElementType("SIDE_EFFECT_EXPRESSION")
+    val SIZE_OF_EXPRESSION = SlangElementType("SIZE_OF_EXPRESSION")
     val SPIRV_ASM_EXPRESSION = SlangElementType("SPIRV_ASM_EXPRESSION")
     val SPIRV_ASM_INSTRUCTION = SlangElementType("SPIRV_ASM_INSTRUCTION")
     val STATEMENT = SlangElementType("STATEMENT")
@@ -217,6 +220,7 @@ object SlangTypes {
         companion object {
             fun createElement(node: ASTNode?): PsiElement {
                 when (node?.elementType) {
+                    ALIGN_OF_EXPRESSION -> return SlangAlignOfExpressionImpl(node)
                     AND_TYPE_EXPRESSION -> return SlangAndTypeExpressionImpl(node)
                     ARRAY_DECLARATOR -> return SlangArrayDeclaratorImpl(node)
                     ARRAY_SPECIFIER -> return SlangArraySpecifierImpl(node)
@@ -232,6 +236,7 @@ object SlangTypes {
                     CLASS_NAME -> return SlangClassNameImpl(node)
                     COMPILE_TIME_FOR_STATEMENT -> return SlangCompileTimeForStatementImpl(node)
                     CONTINUE_STATEMENT -> return SlangContinueStatementImpl(node)
+                    COUNT_OF_EXPRESSION -> return SlangCountOfExpressionImpl(node)
                     DECLARATION -> return SlangDeclarationImpl(node)
                     DECLARATION_NAME -> return SlangDeclarationNameImpl(node)
                     DECLARATION_STATEMENT -> return SlangDeclarationStatementImpl(node)
@@ -292,6 +297,7 @@ object SlangTypes {
                     RETURN_STATEMENT -> return SlangReturnStatementImpl(node)
                     SELECT_EXPRESSION -> return SlangSelectExpressionImpl(node)
                     SIDE_EFFECT_EXPRESSION -> return SlangSideEffectExpressionImpl(node)
+                    SIZE_OF_EXPRESSION -> return SlangSizeOfExpressionImpl(node)
                     SPIRV_ASM_EXPRESSION -> return SlangSpirVAsmExpressionImpl(node)
                     SPIRV_ASM_INSTRUCTION -> return SlangSpirVAsmInstructionImpl(node)
                     STATEMENT -> return SlangStatementImpl(node)
