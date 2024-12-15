@@ -1090,7 +1090,24 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseHlslPackOffsetSemantic(builder: PsiBuilder, level: Int): Boolean {
-        return false // TODO: see slang/slang-parser.cpp:3024
+        if (!recursion_guard_(builder, level, "parseHlslPackOffset"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        // Read the `packoffset` keyword
+        var result = consumeToken(builder, "packoffset")
+
+        // Expect a parenthesized list of additional arguments
+        result = result && consumeToken(builder, SlangTypes.LEFT_PAREN)
+
+        // First and only argument is a required register name and optional component mask
+        result = result && parseHLSLRegisterNameAndOptionalComponentMask(builder, level + 1)
+
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+
+        exit_section_(builder, marker, SlangTypes.HLSL_PACK_OFFSET_SEMANTIC, result)
+        return result
     }
 
     private fun parseRayPayloadAccessSemantic(builder: PsiBuilder, level: Int, write: Boolean): Boolean {
