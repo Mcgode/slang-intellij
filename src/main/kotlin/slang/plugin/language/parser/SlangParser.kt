@@ -2802,8 +2802,34 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseGLSLVersionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseSPIRVVersionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseCUDASMVersionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseBuiltinTypeModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseBuiltinRequirementModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseBuiltinTypeModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseBuiltinTypeModifier"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__builtin_type' keyword
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        exit_section_(builder, marker, SlangTypes.BUILTIN_TYPE_MODIFIER, result)
+        return result
+    }
+
+    private fun parseBuiltinRequirementModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseBuiltinTypeModifier"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__builtin_requirement' keyword
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        exit_section_(builder, marker, SlangTypes.BUILTIN_REQUIREMENT_MODIFIER, result)
+        return result
+    }
 
     private fun parseMagicTypeModifier(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseMagicTypeModifier"))
@@ -2818,7 +2844,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             result = consumeToken(builder, SlangTypes.INTEGER_LITERAL)
         result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
         // TODO: Check if valid magic class name, slang-parser.cpp:8526
-        exit_section_(builder, marker, SlangTypes.IMPLICIT_CONVERSION_MODIFIER, result)
+        exit_section_(builder, marker, SlangTypes.MAGIC_TYPE_MODIFIER, result)
         return result
     }
 
@@ -2834,7 +2860,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         while (result && consumeToken(builder, SlangTypes.COMMA))
             result = consumeToken(builder, SlangTypes.INTEGER_LITERAL)
         result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
-        exit_section_(builder, marker, SlangTypes.IMPLICIT_CONVERSION_MODIFIER, result)
+        exit_section_(builder, marker, SlangTypes.INTRINSIC_TYPE_MODIFIER, result)
         return result
     }
 
