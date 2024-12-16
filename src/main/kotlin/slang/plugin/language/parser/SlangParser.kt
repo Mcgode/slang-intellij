@@ -2845,6 +2845,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                     result = result && consumeToken(builder, SlangTypes.COMMA)
                 }
                 if (result && nextTokenIs(builder, SlangTypes.STRING_LITERAL)) {
+                    @Suppress("ControlFlowWithEmptyBody")
                     while (consumeToken(builder, SlangTypes.STRING_LITERAL)) {}
                 }
                 else {
