@@ -142,7 +142,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         // or expect more tokens after the initial keyword.
 
         makeParseModifier("layout", this::parseLayoutModifier),
-        makeParseModifier("hitAttributeEXT", this::parseHitAttributeEXTModifier),
+        makeParseModifier("hitAttributeEXT", SlangTypes.VULKAN_HIT_ATTRIBUTES_MODIFIER),
         makeParseModifier("__intrinsic_op", this::parseIntrinsicOpModifier),
         makeParseModifier("__target_intrinsic", this::parseTargetIntrinsicModifier),
         makeParseModifier("__specialized_for_target", this::parseSpecializedForTargetModifier),
@@ -2794,12 +2794,87 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseReadonlyModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseWriteonlyModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseLayoutModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseHitAttributeEXTModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseIntrinsicOpModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseTargetIntrinsicModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseSpecializedForTargetModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseIntrinsicOpModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseIntrinsicOpModifier"))
+            return false
+
+        // We allow a few difference forms here:
+        //
+        // First, we can specify the intrinsic op `enum` value directly:
+        //
+        //     __intrinsic_op(<integer literal>)
+        //
+        // Second, we can specify the operation by name:
+        //
+        //     __intrinsic_op(<identifier>)
+        //
+        // Finally, we can leave off the specification, so that the
+        // op name will be derived from the function name:
+        //
+        //     __intrinsic_op
+        //
+        val marker = enter_section_(builder)
+        // Skip '__intrinsic_op' keyword
+        builder.advanceLexer()
+        var result = true
+        if (consumeToken(builder, SlangTypes.LEFT_PAREN)) {
+            result = parseIROp(builder, level + 1)
+            result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        }
+        exit_section_(builder, marker, SlangTypes.INTRINSIC_OP_MODIFIER, result)
+        return result
+    }
+
+    private fun parseTargetIntrinsicModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseTargetIntrinsicModifier"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__target_intrinsic' keyword
+        builder.advanceLexer()
+        var result = true
+        if (consumeToken(builder, SlangTypes.LEFT_PAREN)) {
+            result = consumeToken(builder, SlangTypes.IDENTIFIER)
+            if (result && consumeToken(builder, SlangTypes.COMMA)) {
+                if (builder.lookAhead(1) == SlangTypes.LEFT_PAREN) {
+                    result = consumeToken(builder, SlangTypes.IDENTIFIER)
+                    if (result) builder.advanceLexer()
+                    result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+                    result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+                    result = result && consumeToken(builder, SlangTypes.COMMA)
+                }
+                if (result && nextTokenIs(builder, SlangTypes.STRING_LITERAL)) {
+                    while (consumeToken(builder, SlangTypes.STRING_LITERAL)) {}
+                }
+                else {
+                    result = consumeToken(builder, SlangTypes.IDENTIFIER)
+                }
+            }
+            result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        }
+        exit_section_(builder, marker, SlangTypes.TARGET_INTRINSIC_MODIFIER, result)
+        return result
+    }
+
+    private fun parseSpecializedForTargetModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseSpecializedForTargetModifier"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__specialized_for_target' keyword
+        builder.advanceLexer()
+        var result = true
+        if (consumeToken(builder, SlangTypes.LEFT_PAREN)) {
+            result = consumeToken(builder, SlangTypes.IDENTIFIER)
+            result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        }
+        exit_section_(builder, marker, SlangTypes.SPECIALIZED_FOR_TARGET_MODIFIER, result)
+        return result
+    }
+
     private fun parseGLSLExtensionModifier(builder: PsiBuilder, level: Int): Boolean {
-        if (!recursion_guard_(builder, level, "parseGLSLVersionModifier"))
+        if (!recursion_guard_(builder, level, "parseGLSLExtensionModifier"))
         return false
 
         val marker = enter_section_(builder)
