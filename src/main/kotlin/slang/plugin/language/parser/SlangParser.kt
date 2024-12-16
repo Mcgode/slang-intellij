@@ -2798,7 +2798,19 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseIntrinsicOpModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseTargetIntrinsicModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseSpecializedForTargetModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseGLSLExtensionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+    private fun parseGLSLExtensionModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseGLSLVersionModifier"))
+        return false
+
+        val marker = enter_section_(builder)
+        // Skip '__glsl_extension' keyword
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        exit_section_(builder, marker, SlangTypes.REQUIRED_GLSL_EXTENSION_MODIFIER, result)
+        return result
+    }
 
     private fun parseGLSLVersionModifier(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseGLSLVersionModifier"))
