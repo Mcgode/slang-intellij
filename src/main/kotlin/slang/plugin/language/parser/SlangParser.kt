@@ -2799,9 +2799,53 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseTargetIntrinsicModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseSpecializedForTargetModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseGLSLExtensionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseGLSLVersionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseSPIRVVersionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseCUDASMVersionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseGLSLVersionModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseGLSLVersionModifier"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__glsl_version' keyword
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        exit_section_(builder, marker, SlangTypes.REQUIRED_GLSL_VERSION_MODIFIER, result)
+        return result
+    }
+
+    private fun parseSPIRVVersionModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseGLSLVersionModifier"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__spirv_version' keyword
+        builder.advanceLexer()
+        val result = parseSemanticVersion(builder)
+        exit_section_(builder, marker, SlangTypes.REQUIRED_SPIRV_VERSION_MODIFIER, result)
+        return result
+    }
+
+    private fun parseCUDASMVersionModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseGLSLVersionModifier"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__cuda_sm_version' keyword
+        builder.advanceLexer()
+        val result = parseSemanticVersion(builder)
+        exit_section_(builder, marker, SlangTypes.REQUIRED_CUDASM_VERSION_MODIFIER, result)
+        return result
+    }
+
+    private fun parseSemanticVersion(builder: PsiBuilder): Boolean {
+        // We allow specified as major.minor or as a string (in quotes)
+        if (nextTokenIs(builder, null, SlangTypes.FLOAT_LITERAL, SlangTypes.STRING_LITERAL)) {
+            builder.advanceLexer()
+            return true
+        }
+        return false
+    }
 
     private fun parseBuiltinTypeModifier(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseBuiltinTypeModifier"))

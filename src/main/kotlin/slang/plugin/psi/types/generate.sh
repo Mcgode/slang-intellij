@@ -26,7 +26,7 @@ fi
   echo "";
   echo "import com.intellij.psi.PsiElement";
   echo "";
-  echo "interface Slang$1: PsiElement {" >> "$INTERFACE_FILENAME";
+  echo "interface Slang$1: PsiElement {";
   echo "}";
 } > "$INTERFACE_FILENAME"
 
