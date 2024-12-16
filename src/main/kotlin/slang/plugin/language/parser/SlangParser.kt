@@ -2804,11 +2804,76 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseCUDASMVersionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseBuiltinTypeModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseBuiltinRequirementModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseMagicTypeModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseIntrinsicTypeModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseImplicitConversionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseMagicTypeModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseMagicTypeModifier"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__magic_type' keyword
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+        if (consumeToken(builder, SlangTypes.COMMA))
+            result = consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        // TODO: Check if valid magic class name, slang-parser.cpp:8526
+        exit_section_(builder, marker, SlangTypes.IMPLICIT_CONVERSION_MODIFIER, result)
+        return result
+    }
+
+    private fun parseIntrinsicTypeModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseIntrinsicTypeModifier"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__intrinsic_type' keyword
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && parseIROp(builder, level + 1)
+        while (result && consumeToken(builder, SlangTypes.COMMA))
+            result = consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        exit_section_(builder, marker, SlangTypes.IMPLICIT_CONVERSION_MODIFIER, result)
+        return result
+    }
+
+    private fun parseIROp(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseIntrinsicTypeModifier"))
+            return false
+
+        return if (consumeToken(builder, SlangTypes.SUB_OP)) // Optional sub op
+            consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+        else if (consumeToken(builder, SlangTypes.INTEGER_LITERAL))
+            true
+        else {
+            // TODO: Support IR, slang-parser.cpp:8042
+            false
+        }
+    }
+
+    private fun parseImplicitConversionModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseImplicitConversionModifier"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__implicit_conversion' keyword
+        builder.advanceLexer()
+        var result = true
+        if (consumeToken(builder, SlangTypes.LEFT_PAREN)) {
+            result = consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+            if (result && consumeToken(builder, SlangTypes.COMMA))
+                result = consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+            result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        }
+        exit_section_(builder, marker, SlangTypes.IMPLICIT_CONVERSION_MODIFIER, result)
+        return result
+    }
 
     private fun parseAttributeTargetModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseAttributeTargetModifier"))
+            return false
+
         val marker = enter_section_(builder)
         // Skip '__attributeTarget' keyword
         builder.advanceLexer()
