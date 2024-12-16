@@ -2807,7 +2807,17 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseMagicTypeModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseIntrinsicTypeModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseImplicitConversionModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseAttributeTargetModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseAttributeTargetModifier(builder: PsiBuilder, level: Int): Boolean {
+        val marker = enter_section_(builder)
+        // Skip '__attributeTarget' keyword
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+        result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+        result = result && consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        exit_section_(builder, marker, SlangTypes.ATTRIBUTE_TARGET_MODIFIER, result)
+        return result
+    }
 
     private fun parseThisExpr(builder: PsiBuilder, level: Int): Boolean {
         builder.remapCurrentToken(SlangTypes.THIS_EXPRESSION)
