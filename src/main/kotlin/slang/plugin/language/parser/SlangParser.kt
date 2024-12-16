@@ -2884,43 +2884,43 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
-    private fun parseThisExpr(builder: PsiBuilder, level: Int): Boolean {
+    private fun parseThisExpr(builder: PsiBuilder, @Suppress("UNUSED_PARAMETER") level: Int): Boolean {
         builder.remapCurrentToken(SlangTypes.THIS_EXPRESSION)
         builder.advanceLexer()
         return true
     }
 
-    private fun parseTrueExpr(builder: PsiBuilder, level: Int): Boolean {
+    private fun parseTrueExpr(builder: PsiBuilder, @Suppress("UNUSED_PARAMETER") level: Int): Boolean {
         builder.remapCurrentToken(SlangTypes.BOOL_LITERAL)
         builder.advanceLexer()
         return true
     }
 
-    private fun parseFalseExpr(builder: PsiBuilder, level: Int): Boolean {
+    private fun parseFalseExpr(builder: PsiBuilder, @Suppress("UNUSED_PARAMETER") level: Int): Boolean {
         builder.remapCurrentToken(SlangTypes.BOOL_LITERAL)
         builder.advanceLexer()
         return true
     }
 
-    private fun parseReturnValExpr(builder: PsiBuilder, level: Int): Boolean {
+    private fun parseReturnValExpr(builder: PsiBuilder, @Suppress("UNUSED_PARAMETER") level: Int): Boolean {
         builder.remapCurrentToken(SlangTypes.RETURN_VAL_EXPRESSION)
         builder.advanceLexer()
         return true
     }
 
-    private fun parseNullPtrExpr(builder: PsiBuilder, level: Int): Boolean {
+    private fun parseNullPtrExpr(builder: PsiBuilder, @Suppress("UNUSED_PARAMETER") level: Int): Boolean {
         builder.remapCurrentToken(SlangTypes.NULLPTR_EXPRESSION)
         builder.advanceLexer()
         return true
     }
 
-    private fun parseNoneExpr(builder: PsiBuilder, level: Int): Boolean {
+    private fun parseNoneExpr(builder: PsiBuilder, @Suppress("UNUSED_PARAMETER") level: Int): Boolean {
         builder.remapCurrentToken(SlangTypes.NONE_EXPRESSION)
         builder.advanceLexer()
         return true
     }
 
-    private fun parseTryExpr(builder: PsiBuilder, level: Int): Boolean { 
+    private fun parseTryExpr(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseTryExpr")) 
             return false
         
