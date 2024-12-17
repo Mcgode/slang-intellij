@@ -2780,7 +2780,39 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseFuncDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseGlobalGenericValueParamDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseNamespaceDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseUsingDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseUsingDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseUsingDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip 'using' keyword
+        builder.advanceLexer()
+
+        // TODO: We may eventually want to support declarations
+        // of the form `using <id> = <expr>;` which introduce
+        // a shorthand alias for a namespace/type/whatever.
+        //
+        // For now we are just sticking to the most basic form.
+
+        // As a compatibility feature for programmers used to C++,
+        // we allow the `namespace` keyword to come after `using`,
+        // where it has no effect.
+        //
+        consumeToken(builder, "namespace")
+
+        // The entity that is going to be used is identified
+        // using an arbitrary expression (although we expect
+        // that valid code will not typically use the full
+        // freedom of what the expression grammar supports.)
+        //
+        var result = parseExpression(builder, level + 1)
+
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+
+        exit_section_(builder, marker, SlangTypes.USING_DECLARATION, result)
+        return result
+    }
 
     private fun parseIgnoredBlockDecl(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseIgnoredBLockDecl"))
