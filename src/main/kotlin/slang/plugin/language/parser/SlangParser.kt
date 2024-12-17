@@ -8,10 +8,7 @@ import com.intellij.lang.parser.GeneratedParserUtilBase.*
 import com.intellij.psi.tree.IElementType
 import org.intellij.markdown.lexer.pop
 import org.intellij.markdown.lexer.push
-import slang.plugin.language.parser.data.GlslImageFormats
-import slang.plugin.language.parser.data.Scope
-import slang.plugin.language.parser.data.SyntaxDeclaration
-import slang.plugin.language.parser.data.TypeSpec
+import slang.plugin.language.parser.data.*
 import slang.plugin.psi.SlangElementType
 import slang.plugin.psi.SlangIFileElementType
 import slang.plugin.psi.types.SlangTypes
@@ -2785,9 +2782,53 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseNamespaceDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseUsingDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseIgnoredBlockDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseTransparentBlockDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseFileDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseRequireCapabilityDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseTransparentBlockDecl(builder: PsiBuilder, level: Int): Boolean {
+        // TODO: test scope slang-parser.cpp:3731
+        builder.remapCurrentToken(SlangTypes.TRANSPARENT_BLOCK_DECLARATION)
+        builder.advanceLexer()
+        return parseDeclBody(builder, level)
+    }
+
+    private fun parseFileDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseFileDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__file_decl' keyword
+        builder.advanceLexer()
+        val result = parseDeclBody(builder, level + 1)
+        exit_section_(builder, marker, SlangTypes.FILE_DECLARATION, result)
+        return result
+    }
+
+    private fun parseRequireCapabilityDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseRequireCapabilityDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        // Skip '__require_capability' keyword
+        builder.advanceLexer()
+
+        var result = true
+        while (result && nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+            if (CapabilityNames.entries.find { it.tokenText == builder.tokenText } == null) {
+                result = false
+                builder.error("Unknown capability: ${builder.tokenText}")
+            }
+            else
+                builder.advanceLexer()
+            if (result && consumeToken(builder, SlangTypes.ADD_OP) && consumeToken(builder, SlangTypes.COMMA))
+                continue
+
+            result = false
+        }
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+
+        exit_section_(builder, marker, SlangTypes.REQUIRE_CAPABILITIES_DECLARATION, result)
+        return result
+    }
 
     private fun parseLayoutModifier(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseLayoutModifier"))
@@ -2795,7 +2836,9 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         val marker = enter_section_(builder)
 
+        // Skip 'layout' keyword
         builder.advanceLexer()
+
         var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
         while (result && !consumeToken(builder, SlangTypes.RIGHT_PAREN)) {
             if (nextTokenIs(builder, "local_size_x")
