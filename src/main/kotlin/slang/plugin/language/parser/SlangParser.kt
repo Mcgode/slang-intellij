@@ -2781,7 +2781,20 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseGlobalGenericValueParamDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseNamespaceDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseUsingDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseIgnoredBlockDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseIgnoredBlockDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseIgnoredBLockDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__ignored_block' keyword
+        builder.advanceLexer()
+        val result = nextTokenIs(builder, SlangTypes.LEFT_BRACE)
+        if (result)
+            SlangPsiUtil.skipBalancedToken(builder)
+        exit_section_(builder, marker, SlangTypes.EMPTY_DECLARATION, result)
+        return result
+    }
 
     private fun parseTransparentBlockDecl(builder: PsiBuilder, level: Int): Boolean {
         // TODO: test scope slang-parser.cpp:3731
