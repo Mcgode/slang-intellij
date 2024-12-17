@@ -111,11 +111,11 @@ open class SlangParser: PsiParser, LightPsiParser {
         makeParseModifier("groupshared", SlangTypes.HLSL_GROUP_SHARED_MODIFIER),
         makeParseModifier("static", SlangTypes.HLSL_STATIC_MODIFIER),
         makeParseModifier("uniform", SlangTypes.HLSL_UNIFORM_MODIFIER),
-        makeParseModifier("volatile", this::parseVolatileModifier),
-        makeParseModifier("coherent", this::parseCoherentModifier),
-        makeParseModifier("restrict", this::parseRestrictModifier),
-        makeParseModifier("readonly", this::parseReadonlyModifier),
-        makeParseModifier("writeonly", this::parseWriteonlyModifier),
+        makeParseModifier("volatile", SlangTypes.VOLATILE_MODIFIER),
+        makeParseModifier("coherent", SlangTypes.GLSL_COHERENT_MODIFIER),
+        makeParseModifier("restrict", SlangTypes.GLSL_RESTRICT_MODIFIER),
+        makeParseModifier("readonly", SlangTypes.GLSL_READ_ONLY_MODIFIER),
+        makeParseModifier("writeonly", SlangTypes.GLSL_WRITE_ONLY_MODIFIER),
         makeParseModifier("export", SlangTypes.HLSL_EXPORT_MODIFIER),
         makeParseModifier("dynamic_uniform", SlangTypes.HLSL_DYNAMIC_UNIFORM_MODIFIER),
 
@@ -2788,12 +2788,6 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseTransparentBlockDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseFileDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseRequireCapabilityDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-
-    private fun parseVolatileModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseCoherentModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseRestrictModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseReadonlyModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseWriteonlyModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
 
     private fun parseLayoutModifier(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseLayoutModifier"))
