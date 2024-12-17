@@ -53,4 +53,11 @@ object SlangPsiUtil: GeneratedParserUtilBase() {
         return isNewLine
     }
 
+    @JvmStatic fun nextTokenIs(builder: PsiBuilder, names: Iterable<String>): Boolean {
+        for (name in names)
+            if (nextTokenIs(builder, name))
+                return true
+        return false
+    }
+
 }

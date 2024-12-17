@@ -8,6 +8,7 @@ import com.intellij.lang.parser.GeneratedParserUtilBase.*
 import com.intellij.psi.tree.IElementType
 import org.intellij.markdown.lexer.pop
 import org.intellij.markdown.lexer.push
+import slang.plugin.language.parser.data.GlslImageFormats
 import slang.plugin.language.parser.data.Scope
 import slang.plugin.language.parser.data.SyntaxDeclaration
 import slang.plugin.language.parser.data.TypeSpec
@@ -2793,7 +2794,136 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseRestrictModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseReadonlyModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseWriteonlyModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseLayoutModifier(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseLayoutModifier(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseLayoutModifier"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        builder.advanceLexer()
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+        while (result && !consumeToken(builder, SlangTypes.RIGHT_PAREN)) {
+            if (nextTokenIs(builder, "local_size_x")
+                || nextTokenIs(builder, "local_size_y")
+                || nextTokenIs(builder, "local_size_z"))
+            {
+                val localSizeMarker = enter_section_(builder)
+                builder.advanceLexer()
+                if (consumeToken(builder, SlangTypes.ASSIGN_OP))
+                    result = parseAtomicExpr(builder, level + 2)
+                exit_section_(builder, localSizeMarker, SlangTypes.GLSL_LAYOUT_LOCAL_SIZE_ATTRIBUTE, result)
+            }
+            else if (nextTokenIs(builder, "derivative_group_quadsNV")) {
+                builder.remapCurrentToken(SlangTypes.GLSL_LAYOUT_DERIVATIVE_GROUP_QUAD_ATTRIBUTE)
+                builder.advanceLexer()
+            }
+            else if (nextTokenIs(builder, "derivative_group_linearNV")) {
+                builder.remapCurrentToken(SlangTypes.GLSL_LAYOUT_DERIVATIVE_GROUP_LINEAR_ATTRIBUTE)
+                builder.advanceLexer()
+            }
+            else if (nextTokenIs(builder, "input_attachment_index")) {
+                val attachmentMarker = enter_section_(builder)
+                builder.advanceLexer()
+                if (consumeToken(builder, SlangTypes.ASSIGN_OP))
+                    result = consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+                exit_section_(builder, attachmentMarker, SlangTypes.GLSL_INPUT_ATTACHMENT_INDEX_LAYOUT_ATTRIBUTE, result)
+            }
+            else if (nextTokenIs(builder, "binding") || nextTokenIs(builder, "set")) {
+                val attachmentMarker = enter_section_(builder)
+                builder.advanceLexer()
+                result = consumeToken(builder, SlangTypes.ASSIGN_OP)
+                result = result && consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+                exit_section_(builder, attachmentMarker, SlangTypes.GLSL_BINDING_ATTRIBUTE, result)
+            }
+            else if (nextTokenIs(builder, "binding") || nextTokenIs(builder, "set")) {
+                val bindingMarker = enter_section_(builder)
+                builder.advanceLexer()
+                result = consumeToken(builder, SlangTypes.ASSIGN_OP)
+                result = result && consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+                exit_section_(builder, bindingMarker, SlangTypes.GLSL_BINDING_ATTRIBUTE, result)
+            }
+            else if (SlangPsiUtil.nextTokenIs(builder, GlslImageFormats.array)) {
+                builder.remapCurrentToken(SlangTypes.FORMAT_ATTRIBUTE)
+                builder.advanceLexer()
+            }
+            else if (nextTokenIs(builder, "push_constant")) {
+                builder.remapCurrentToken(SlangTypes.PUSH_CONSTANT_ATTRIBUTE)
+                builder.advanceLexer()
+            }
+            else if (SlangPsiUtil.nextTokenIs(builder, arrayListOf("shaderRecordNV", "shaderRecordEXT"))) {
+                builder.remapCurrentToken(SlangTypes.SHADER_RECORD_ATTRIBUTE)
+                builder.advanceLexer()
+            }
+            else if (nextTokenIs(builder, "constant_id")) {
+                val idMarker = enter_section_(builder)
+                builder.advanceLexer()
+                result = consumeToken(builder, SlangTypes.ASSIGN_OP)
+                result = result && consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+                exit_section_(builder, idMarker, SlangTypes.VK_CONSTANT_ID_ATTRIBUTE, result)
+            }
+            else if (nextTokenIs(builder, "std140")) {
+                builder.remapCurrentToken(SlangTypes.GLSL_STD140_MODIFIER)
+                builder.advanceLexer()
+            }
+            else if (nextTokenIs(builder, "std430")) {
+                builder.remapCurrentToken(SlangTypes.GLSL_STD430_MODIFIER)
+                builder.advanceLexer()
+            }
+            else if (nextTokenIs(builder, "scalar")) {
+                builder.remapCurrentToken(SlangTypes.GLSL_SCALAR_MODIFIER)
+                builder.advanceLexer()
+            }
+            else if (nextTokenIs(builder, "offset")) {
+                val offsetMarker = enter_section_(builder)
+                builder.advanceLexer()
+                result = consumeToken(builder, SlangTypes.ASSIGN_OP)
+                result = result && consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+                exit_section_(builder, offsetMarker, SlangTypes.GLSL_OFFSET_LAYOUT_ATTRIBUTE, result)
+            }
+            else if (nextTokenIs(builder, "location")) {
+                val locationMarker = enter_section_(builder)
+                builder.advanceLexer()
+                result = consumeToken(builder, SlangTypes.ASSIGN_OP)
+                result = result && consumeToken(builder, SlangTypes.INTEGER_LITERAL)
+                exit_section_(builder, locationMarker, SlangTypes.GLSL_LOCATION_LAYOUT_ATTRIBUTE, result)
+            }
+            else if (nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+                builder.remapCurrentToken(SlangTypes.GLSL_UNPARSED_ATTRIBUTE)
+                builder.advanceLexer()
+            }
+            else
+                result = false
+
+            if (result && consumeToken(builder, SlangTypes.RIGHT_PAREN))
+                break
+            result = result && consumeToken(builder, SlangTypes.COMMA)
+        }
+
+        if (result && SlangPsiUtil.nextTokenIs(builder, arrayListOf("rayPayloadEXT", "rayPayloadNV"))) {
+            builder.remapCurrentToken(SlangTypes.VULKAN_RAY_PAYLOAD_ATTRIBUTE)
+            builder.advanceLexer()
+        }
+        else if (result && SlangPsiUtil.nextTokenIs(builder, arrayListOf("rayPayloadInEXT", "rayPayloadInNV"))) {
+            builder.remapCurrentToken(SlangTypes.VULKAN_RAY_PAYLOAD_IN_ATTRIBUTE)
+            builder.advanceLexer()
+        }
+        else if (result && nextTokenIs(builder, "hitObjectAttributeNV")) {
+            builder.remapCurrentToken(SlangTypes.VULKAN_HIT_OBJECT_ATTRIBUTE)
+            builder.advanceLexer()
+        }
+        else if (result && nextTokenIs(builder, "callableDataEXT")) {
+            builder.remapCurrentToken(SlangTypes.VULKAN_CALLABLE_PAYLOAD_ATTRIBUTE)
+            builder.advanceLexer()
+        }
+        else if (result && nextTokenIs(builder, "callableDataInEXT")) {
+            builder.remapCurrentToken(SlangTypes.VULKAN_CALLABLE_PAYLOAD_IN_ATTRIBUTE)
+            builder.advanceLexer()
+        }
+
+        exit_section_(builder, marker, SlangTypes.GLSL_LAYOUT_MODIFIER_GROUP, result)
+        return result
+    }
 
     private fun parseIntrinsicOpModifier(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseIntrinsicOpModifier"))
