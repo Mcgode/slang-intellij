@@ -11,6 +11,5 @@ Slang File
         PsiElement(SlangTokenType.=)('=')
         PsiWhiteSpace(' ')
         SlangExpressionImpl(SlangElementType.EXPRESSION)
-          SlangThisExpressionImpl(SlangElementType.THIS_EXPRESSION)
-            PsiElement(SlangTokenType.IDENTIFIER)('this')
+          PsiElement(SlangElementType.THIS_EXPRESSION)('this')
     PsiElement(SlangTokenType.;)(';')
