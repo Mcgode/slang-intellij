@@ -224,8 +224,8 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
-    private fun pushScope(type: IElementType) {
-        val scope = Scope(type)
+    private fun pushScope(type: IElementType, namespaceName: String? = null) {
+        val scope = Scope(type, this.scope, namespaceName)
         pushScope(scope)
     }
 
@@ -2779,7 +2779,49 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseVarDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseFuncDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseGlobalGenericValueParamDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseNamespaceDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseNamespaceDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseNamespaceDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip 'namespace' keyword
+        builder.advanceLexer()
+
+        val initialScopeStackSize = scopeStack.size
+
+        var result = true
+        var namespaceName = this.scope!!.namespaceName
+        do {
+            if (!nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+                result = false
+                break
+            }
+            namespaceName += "${builder.tokenText}::"
+            val existingScope = SlangPsiUtil.findNamespaceScope(namespaceName, this.scopes)
+
+            if (existingScope == null)
+                pushScope(SlangTypes.NAMESPACE_DECLARATION, namespaceName)
+            else
+                pushScope(existingScope)
+
+            builder.remapCurrentToken(SlangTypes.NAMESPACE_NAME)
+            builder.advanceLexer()
+        } while (consumeToken(builder, SlangTypes.DOT) || consumeToken(builder, SlangTypes.SCOPE))
+
+        // Now that we have a namespace declaration to fill in
+        // (whether a new or existing one), we can parse the
+        // `{}`-enclosed body to add declarations as children
+        // of the namespace.
+        //
+        result = result && parseDeclBody(builder, level + 1)
+
+        while (scopeStack.size > initialScopeStackSize)
+            popScope()
+
+        exit_section_(builder, marker, SlangTypes.NAMESPACE_DECLARATION, result)
+        return result
+    }
 
     private fun parseUsingDecl(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseUsingDecl"))

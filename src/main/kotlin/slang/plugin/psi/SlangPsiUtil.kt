@@ -4,6 +4,7 @@ import com.intellij.lang.PsiBuilder
 import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
+import slang.plugin.language.parser.data.Scope
 
 import slang.plugin.psi.types.SlangTypes
 
@@ -58,6 +59,10 @@ object SlangPsiUtil: GeneratedParserUtilBase() {
             if (nextTokenIs(builder, name))
                 return true
         return false
+    }
+
+    @JvmStatic fun findNamespaceScope(name: String, scopes: Iterable<Scope>): Scope? {
+        return scopes.find { it.type == SlangTypes.NAMESPACE_DECLARATION && it.namespaceName == name }
     }
 
 }

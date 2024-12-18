@@ -86,6 +86,7 @@ object SlangTypes {
     val MEMBER_EXPRESSION = SlangElementType("MEMBER_EXPRESSION")
     val MODIFIER_ARGUMENT = SlangElementType("MODIFIER_ARGUMENT")
     val NAME_DECLARATOR = SlangElementType("NAME_DECLARATOR")
+    val NAMESPACE_DECLARATION = SlangElementType("NAMESPACE_DECLARATION")
     val NEW_EXPRESSION = SlangElementType("NEW_EXPRESSION")
     val OPERATOR = SlangElementType("OPERATOR")
     val PARAMETER_DECLARATION = SlangElementType("PARAMETER_DECLARATION")
@@ -128,10 +129,6 @@ object SlangTypes {
     val VARIABLE_EXPRESSION = SlangElementType("VARIABLE_EXPRESSION")
     val VK_CONSTANT_ID_ATTRIBUTE = SlangElementType("VK_CONSTANT_ID_ATTRIBUTE")
     val WHILE_STATEMENT = SlangElementType("WHILE_STATEMENT")
-
-    val LINE_COMMENT = SlangElementType("LINE_COMMENT")
-    val MULTILINE_COMMENT = SlangElementType("MULTILINE_COMMENT")
-    val NEW_LINE = SlangElementType("NEW_LINE")
 
     val TRANSPARENT_BLOCK_DECLARATION = SlangElementType("TRANSPARENT_BLOCK_DECLARATION")
 
@@ -192,6 +189,12 @@ object SlangTypes {
     val RETURN_VAL_EXPRESSION = SlangElementType("RETURN_VAL_EXPRESSION")
     val NULLPTR_EXPRESSION = SlangElementType("NULLPTR_EXPRESSION")
     val NONE_EXPRESSION = SlangElementType("NONE_EXPRESSION")
+
+    val NAMESPACE_NAME = SlangElementType("NAMESPACE_NAME")
+
+    val LINE_COMMENT = SlangElementType("LINE_COMMENT")
+    val MULTILINE_COMMENT = SlangElementType("MULTILINE_COMMENT")
+    val NEW_LINE = SlangElementType("NEW_LINE")
 
     val FORMAT_ATTRIBUTE = SlangElementType("FORMAT_ATTRIBUTE")
     val GLSL_LAYOUT_DERIVATIVE_GROUP_LINEAR_ATTRIBUTE = SlangElementType("GLSL_LAYOUT_DERIVATIVE_GROUP_LINEAR_ATTRIBUTE")
@@ -346,6 +349,7 @@ object SlangTypes {
                     MEMBER_EXPRESSION -> return SlangMemberExpressionImpl(node)
                     MODIFIER_ARGUMENT -> return SlangModifierArgumentImpl(node)
                     NAME_DECLARATOR -> return SlangNameDeclaratorImpl(node)
+                    NAMESPACE_DECLARATION -> return SlangNamespaceDeclarationImpl(node)
                     NEW_EXPRESSION -> return SlangNewExpressionImpl(node)
                     OPERATOR -> return SlangOperatorImpl(node)
                     PARAMETER_DECLARATION -> return SlangParameterDeclarationImpl(node)
