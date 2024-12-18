@@ -193,9 +193,10 @@ object SlangTypes {
     val NONE_EXPRESSION = SlangElementType("NONE_EXPRESSION")
 
     val FUNCTION_NAME = SlangElementType("FUNCTION_NAME")
-    val PARAMETER_NAME = SlangElementType("PARAMETER_NAME")
     val GLOBAL_GENERIC_VALUE_PARAMETER_NAME = SlangElementType("GLOBAL_GENERIC_VALUE_PARAMETER_NAME")
     val NAMESPACE_NAME = SlangElementType("NAMESPACE_NAME")
+    val PARAMETER_NAME = SlangElementType("PARAMETER_NAME")
+    val VARIABLE_NAME = SlangElementType("VARIABLE_NAME")
 
     val LINE_COMMENT = SlangElementType("LINE_COMMENT")
     val MULTILINE_COMMENT = SlangElementType("MULTILINE_COMMENT")

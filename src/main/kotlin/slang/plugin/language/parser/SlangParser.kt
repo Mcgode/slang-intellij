@@ -2775,8 +2775,39 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseIncludeDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseModuleDeclarationDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseImplementingDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseLetDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseVarDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseLetDecl(builder: PsiBuilder, level: Int): Boolean {
+        return parseModernVarDeclCommon(builder, level)
+    }
+    private fun parseVarDecl(builder: PsiBuilder, level: Int): Boolean {
+        return parseModernVarDeclCommon(builder, level)
+    }
+
+    private fun parseModernVarDeclCommon(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseModernVarDeclCommon"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        // Skip 'var' or 'let' keyword
+        builder.advanceLexer()
+
+        var result = nextTokenIs(builder, SlangTypes.IDENTIFIER)
+        if (result) {
+            builder.remapCurrentToken(SlangTypes.VARIABLE_NAME)
+            builder.advanceLexer()
+        }
+
+        if (result && consumeToken(builder, SlangTypes.COLON))
+            result = parseTypeExp(builder, level + 1)
+
+
+        if (result && consumeToken(builder, SlangTypes.ASSIGN_OP))
+            result = parseInitExpr(builder, level + 1)
+
+        exit_section_(builder, marker, SlangTypes.VARIABLE_DECL, result)
+        return result
+    }
 
     private fun parseFuncDecl(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseFuncDecl"))
