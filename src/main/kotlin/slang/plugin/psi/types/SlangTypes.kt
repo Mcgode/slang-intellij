@@ -85,6 +85,7 @@ object SlangTypes {
     val LET_DECLARATION = SlangElementType("LET_DECLARATION")
     val MAGIC_TYPE_MODIFIER = SlangElementType("MAGIC_TYPE_MODIFIER")
     val MEMBER_EXPRESSION = SlangElementType("MEMBER_EXPRESSION")
+    val MODERN_PARAMETER_DECLARATION = SlangElementType("MODERN_PARAMETER_DECLARATION")
     val MODIFIER_ARGUMENT = SlangElementType("MODIFIER_ARGUMENT")
     val NAME_DECLARATOR = SlangElementType("NAME_DECLARATOR")
     val NAMESPACE_DECLARATION = SlangElementType("NAMESPACE_DECLARATION")
@@ -191,6 +192,8 @@ object SlangTypes {
     val NULLPTR_EXPRESSION = SlangElementType("NULLPTR_EXPRESSION")
     val NONE_EXPRESSION = SlangElementType("NONE_EXPRESSION")
 
+    val FUNCTION_NAME = SlangElementType("FUNCTION_NAME")
+    val PARAMETER_NAME = SlangElementType("PARAMETER_NAME")
     val GLOBAL_GENERIC_VALUE_PARAMETER_NAME = SlangElementType("GLOBAL_GENERIC_VALUE_PARAMETER_NAME")
     val NAMESPACE_NAME = SlangElementType("NAMESPACE_NAME")
 
@@ -350,6 +353,7 @@ object SlangTypes {
                     LET_DECLARATION -> return SlangLetDeclarationImpl(node)
                     MAGIC_TYPE_MODIFIER -> return SlangMagicTypeModifierImpl(node)
                     MEMBER_EXPRESSION -> return SlangMemberExpressionImpl(node)
+                    MODERN_PARAMETER_DECLARATION -> return SlangModernParameterDeclarationImpl(node)
                     MODIFIER_ARGUMENT -> return SlangModifierArgumentImpl(node)
                     NAME_DECLARATOR -> return SlangNameDeclaratorImpl(node)
                     NAMESPACE_DECLARATION -> return SlangNamespaceDeclarationImpl(node)

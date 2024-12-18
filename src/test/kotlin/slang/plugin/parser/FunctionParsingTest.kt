@@ -15,4 +15,5 @@ class FunctionParsingTest: ParsingTestCase(
 
     fun testBasic() = doTest(true)
     fun testDeclarationAndDefinition() = doTest(true)
+    fun testModernFunction() = doTest(true)
 }

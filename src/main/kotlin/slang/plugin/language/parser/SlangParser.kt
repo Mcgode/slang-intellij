@@ -2777,7 +2777,121 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseImplementingDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseLetDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseVarDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseFuncDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseFuncDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseFuncDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        // Skip 'func' keyword
+        builder.advanceLexer()
+
+        var result = nextTokenIs(builder, SlangTypes.IDENTIFIER)
+        if (result) {
+            builder.remapCurrentToken(SlangTypes.FUNCTION_NAME)
+            builder.advanceLexer()
+        }
+
+        val parseInner: (PsiBuilder, Int, Boolean) -> Boolean = { b, l, g ->
+            pushScope(SlangTypes.FUNCTION_DECLARATION)
+            var r = parseModernParamList(b, l)
+            if (r && consumeToken(builder, "throws"))
+                r = parseTypeExp(b, l)
+            if (r && consumeToken(builder, SlangTypes.RIGHT_ARROW))
+                r = parseTypeExp(b, l)
+            val funcScope = this.scope!!
+            popScope()
+            r = r && maybeParseGenericConstraints(b, l, g)
+            pushScope(funcScope)
+            r = r && parseOptBody(b, l)
+            popScope()
+            r
+        }
+        result = result && parseOptGenericDecl(builder, level + 1, parseInner)
+
+        exit_section_(builder, marker, SlangTypes.FUNCTION_DECLARATION, result)
+        return result
+    }
+
+    private fun parseModernParamList(builder: PsiBuilder, level: Int): Boolean {
+        var result = consumeToken(builder, SlangTypes.LEFT_PAREN)
+
+        while (result && !consumeToken(builder, SlangTypes.RIGHT_PAREN)) {
+            result = parseModernParamDecl(builder, level)
+            if (result && consumeToken(builder, SlangTypes.RIGHT_PAREN))
+                break
+            result = result && consumeToken(builder, SlangTypes.COMMA)
+        }
+
+        return result
+    }
+
+    private fun parseModernParamDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseModernParamDecl"))
+            return false
+
+        // TODO: For "modern" parameters, we should probably
+        // not allow arbitrary keyword-based modifiers (only allowing
+        // `[attribute]`s), and should require that direction modifiers
+        // like `in`, `out`, and `in out`/`inout` be applied to the
+        // type (after the colon).
+        //
+
+        val marker = enter_section_(builder)
+
+        var result = parseModifiers(builder, level + 1)
+
+        // We want to allow both "modern"-style and traditional-style
+        // parameters to appear in any modern-style parameter list,
+        // in order to allow programmers the flexibility to code in
+        // a way that feels natural and not run into lots of
+        // errors.
+        //
+
+        val isModernDecl = let {
+            if (!nextTokenIs(builder, SlangTypes.IDENTIFIER))
+                false
+            else {
+                when (builder.lookAhead(1)) {
+                    SlangTypes.COLON,
+                    SlangTypes.COMMA,
+                    SlangTypes.RIGHT_PAREN,
+                    SlangTypes.RIGHT_BRACE,
+                    SlangTypes.RIGHT_BRACKET,
+                    SlangTypes.LEFT_BRACE -> true
+                    else -> false
+                }
+            }
+        }
+
+        result = if (isModernDecl)
+            result && parseModernVarDeclBaseCommon(builder, level + 1)
+        else
+            result && parseTraditionalParamDeclCommonBase(builder, level + 1)
+
+        exit_section_(builder, marker, if (isModernDecl) SlangTypes.MODERN_PARAMETER_DECLARATION else SlangTypes.PARAMETER_DECLARATION, result)
+        return result
+    }
+
+    private fun parseModernVarDeclBaseCommon(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseModernVarDeclBaseCommon"))
+            return false
+
+        var result = nextTokenIs(builder, SlangTypes.IDENTIFIER)
+        if (result) {
+            builder.remapCurrentToken(SlangTypes.PARAMETER_NAME)
+            builder.advanceLexer()
+        }
+
+        if (result && consumeToken(builder, SlangTypes.COLON))
+            result = parseTypeExp(builder, level)
+
+        if (result && consumeToken(builder, SlangTypes.ASSIGN_OP))
+            result = parseInitExpr(builder, level)
+
+        return result
+    }
 
     private fun parseGlobalGenericValueParamDecl(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseGlobalGenericValueParamDecl"))
