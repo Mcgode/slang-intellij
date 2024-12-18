@@ -2771,10 +2771,58 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseInterfaceDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseSyntaxDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseAttributeSyntaxDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseImportDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseIncludeDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseModuleDeclarationDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseImplementingDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseImportDecl(builder: PsiBuilder, level: Int): Boolean {
+        return parseFileReferenceDeclBase(builder, level, SlangTypes.IMPORT_DECLARATION)
+    }
+
+    private fun parseIncludeDecl(builder: PsiBuilder, level: Int): Boolean {
+        return parseFileReferenceDeclBase(builder, level, SlangTypes.INCLUDE_DECLARATION)
+    }
+
+    private fun parseImplementingDecl(builder: PsiBuilder, level: Int): Boolean {
+        return parseFileReferenceDeclBase(builder, level, SlangTypes.IMPLEMENTING_DECLARATION)
+    }
+
+    private fun parseFileReferenceDeclBase(builder: PsiBuilder, level: Int, elementType: SlangElementType): Boolean {
+        if (!recursion_guard_(builder, level, "parseFileReferenceDeclBase"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        // Skip '__import', 'import', '__include' or 'implementing' keyword
+        builder.advanceLexer()
+
+        var result = true
+
+        if (consumeToken(builder, SlangTypes.IDENTIFIER)) {
+            while (result && consumeToken(builder, SlangTypes.DOT))
+                result = consumeToken(builder, SlangTypes.IDENTIFIER)
+        }
+        else if (!consumeToken(builder, SlangTypes.STRING_LITERAL))
+            result = false
+
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+
+        exit_section_(builder, marker, elementType, result)
+        return result
+    }
+
+    private fun parseModuleDeclarationDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseModuleDeclarationDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        // Skip 'module' keyword
+        builder.advanceLexer()
+
+        consumeToken(builder, SlangTypes.IDENTIFIER) || consumeToken(builder, SlangTypes.STRING_LITERAL)
+        val result = consumeToken(builder, SlangTypes.SEMICOLON)
+
+        exit_section_(builder, marker, SlangTypes.MODULE_DECLARATION, result)
+        return result
+    }
 
     private fun parseLetDecl(builder: PsiBuilder, level: Int): Boolean {
         return parseModernVarDeclCommon(builder, level)
