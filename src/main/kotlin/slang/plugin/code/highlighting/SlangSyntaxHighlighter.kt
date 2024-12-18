@@ -26,6 +26,10 @@ class SlangSyntaxHighlighter: SyntaxHighlighterBase() {
         val SLANG_PAREN_TEXT = createTextAttributesKey("Slang.Parentheses", PARENTHESES)
         val SLANG_SEMICOLON_TEXT = createTextAttributesKey("Slang.Semicolon", SEMICOLON)
         val SLANG_BAD_CHARACTER_TEXT = createTextAttributesKey("Slang.BadCharacter", HighlighterColors.BAD_CHARACTER)
+        val SLANG_FUNCTION_DECL_TEXT = createTextAttributesKey("Slang.FunctionDeclaration", FUNCTION_DECLARATION)
+        val SLANG_PARAMETER_TEXT = createTextAttributesKey("Slang.Parameter", PARAMETER)
+        val SLANG_STRUCT_NAME_TEXT = createTextAttributesKey("Slang.StructName", CLASS_NAME)
+        val SLANG_CLASS_NAME_TEXT = createTextAttributesKey("Slang.ClassName", CLASS_NAME)
     }
 
     override fun getHighlightingLexer(): Lexer {
@@ -44,6 +48,10 @@ class SlangSyntaxHighlighter: SyntaxHighlighterBase() {
             SlangTypes.COMMA -> SlangTextAttributes.SLANG_COMMA_TEXT
             SlangTypes.DOT -> SlangTextAttributes.SLANG_DOT_TEXT
             SlangTypes.SEMICOLON -> SlangTextAttributes.SLANG_SEMICOLON_TEXT
+            SlangTypes.FUNCTION_NAME -> SlangTextAttributes.SLANG_FUNCTION_DECL_TEXT
+            SlangTypes.PARAMETER_NAME -> SlangTextAttributes.SLANG_PARAMETER_TEXT
+            SlangTypes.STRUCT_NAME -> SlangTextAttributes.SLANG_STRUCT_NAME_TEXT
+            SlangTypes.CLASS_NAME -> SlangTextAttributes.SLANG_CLASS_NAME_TEXT
             TokenType.BAD_CHARACTER -> SlangTextAttributes.SLANG_BAD_CHARACTER_TEXT
             else -> null
         }
