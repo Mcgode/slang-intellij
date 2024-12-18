@@ -57,6 +57,7 @@ object SlangTypes {
     val GENERIC_TYPE_PACK_PARAMETER_DECLARATION = SlangElementType("GENERIC_TYPE_PACK_PARAMETER_DECLARATION")
     val GENERIC_TYPE_PARAMETER_DECLARATION = SlangElementType("GENERIC_TYPE_PARAMETER_DECLARATION")
     val GENERIC_VALUE_PARAMETER_DECLARATION = SlangElementType("GENERIC_VALUE_PARAMETER_DECLARATION")
+    val GLOBAL_GENERIC_VALUE_PARAMETER_DECLARATION = SlangElementType("GENERIC_GENERIC_VALUE_PARAMETER_DECLARATION")
     val GLSL_BINDING_ATTRIBUTE = SlangElementType("GLSL_BINDING_ATTRIBUTE")
     val GLSL_INPUT_ATTACHMENT_INDEX_LAYOUT_ATTRIBUTE = SlangElementType("GLSL_INPUT_ATTACHMENT_INDEX_LAYOUT_ATTRIBUTE")
     val GLSL_LAYOUT_LOCAL_SIZE_ATTRIBUTE = SlangElementType("GLSL_LAYOUT_LOCAL_SIZE_ATTRIBUTE")
@@ -190,6 +191,7 @@ object SlangTypes {
     val NULLPTR_EXPRESSION = SlangElementType("NULLPTR_EXPRESSION")
     val NONE_EXPRESSION = SlangElementType("NONE_EXPRESSION")
 
+    val GLOBAL_GENERIC_VALUE_PARAMETER_NAME = SlangElementType("GLOBAL_GENERIC_VALUE_PARAMETER_NAME")
     val NAMESPACE_NAME = SlangElementType("NAMESPACE_NAME")
 
     val LINE_COMMENT = SlangElementType("LINE_COMMENT")
@@ -320,6 +322,7 @@ object SlangTypes {
                     GENERIC_TYPE_PACK_PARAMETER_DECLARATION -> return SlangGenericTypePackParameterDeclarationImpl(node)
                     GENERIC_TYPE_PARAMETER_DECLARATION -> return SlangGenericTypeParameterDeclarationImpl(node)
                     GENERIC_VALUE_PARAMETER_DECLARATION -> return SlangGenericValueParameterDeclarationImpl(node)
+                    GLOBAL_GENERIC_VALUE_PARAMETER_DECLARATION -> return SlangGlobalGenericValueParameterDeclarationImpl(node)
                     GLSL_BINDING_ATTRIBUTE -> return SlangGlslBindingAttributeImpl(node)
                     GLSL_INPUT_ATTACHMENT_INDEX_LAYOUT_ATTRIBUTE -> return SlangGlslInputAttachmentIndexLayoutAttributeImpl(node)
                     GLSL_LAYOUT_LOCAL_SIZE_ATTRIBUTE -> return SlangGlslLayoutLocalSizeAttributeImpl(node)

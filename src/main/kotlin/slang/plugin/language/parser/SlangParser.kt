@@ -2778,7 +2778,32 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseLetDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseVarDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseFuncDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseGlobalGenericValueParamDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseGlobalGenericValueParamDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseGlobalGenericValueParamDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip '__generic_value_param' keyword
+        builder.advanceLexer()
+
+        var result = nextTokenIs(builder, SlangTypes.IDENTIFIER)
+        if (result) {
+            builder.remapCurrentToken(SlangTypes.GLOBAL_GENERIC_VALUE_PARAMETER_NAME)
+            builder.advanceLexer()
+        }
+
+        if (result && consumeToken(builder, SlangTypes.COLON))
+            result = parseTypeExp(builder, level + 1)
+
+        if (result && consumeToken(builder, SlangTypes.ASSIGN_OP))
+            result = parseInitExpr(builder, level + 1)
+
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+
+        exit_section_(builder, marker, SlangTypes.GLOBAL_GENERIC_VALUE_PARAMETER_DECLARATION, result)
+        return result
+    }
 
     private fun parseNamespaceDecl(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseNamespaceDecl"))
