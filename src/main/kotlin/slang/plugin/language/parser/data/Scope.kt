@@ -11,7 +11,7 @@ class Scope(val type: IElementType, parent: Scope?, namespaceName: String? = nul
     var nextSibling: Scope? = null
 
     init {
-        assert(type == SlangTypes.NAMESPACE_DECLARATION && namespaceName != null)
+        assert(type != SlangTypes.NAMESPACE_DECLARATION || namespaceName != null)
         this.parent = parent
         this.namespaceName = namespaceName ?: parent?.namespaceName ?: "::"
     }
