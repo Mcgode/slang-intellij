@@ -80,6 +80,7 @@ object SlangTypes {
     val INIT_DECLARATOR = SlangElementType("INIT_DECLARATOR")
     val INITIALIZER_LIST = SlangElementType("INITIALIZER_LIST")
     val INITIAL_STATEMENT = SlangElementType("INITIAL_STATEMENT")
+    val INTERFACE_DECLARATION = SlangElementType("INTERFACE_DECLARATION")
     val INTRINSIC_ASM_STATEMENT = SlangElementType("INTRINSIC_ASM_STATEMENT")
     val INTRINSIC_OP_MODIFIER = SlangElementType("INTRINSIC_OP_MODIFIER")
     val INTRINSIC_TYPE_MODIFIER = SlangElementType("INTRINSIC_TYPE_MODIFIER")
@@ -197,6 +198,7 @@ object SlangTypes {
     val NULLPTR_EXPRESSION = SlangElementType("NULLPTR_EXPRESSION")
     val NONE_EXPRESSION = SlangElementType("NONE_EXPRESSION")
 
+    val INTERFACE_NAME = SlangElementType("INTERFACE_NAME")
     val FUNCTION_NAME = SlangElementType("FUNCTION_NAME")
     val GLOBAL_GENERIC_VALUE_PARAMETER_NAME = SlangElementType("GLOBAL_GENERIC_VALUE_PARAMETER_NAME")
     val NAMESPACE_NAME = SlangElementType("NAMESPACE_NAME")
@@ -354,6 +356,7 @@ object SlangTypes {
                     INIT_DECLARATOR -> return SlangInitDeclaratorImpl(node)
                     INITIALIZER_LIST -> return SlangInitializerListImpl(node)
                     INITIAL_STATEMENT -> return SlangInitialStatementImpl(node)
+                    INTERFACE_DECLARATION -> return SlangInterfaceDeclarationImpl(node)
                     INTRINSIC_ASM_STATEMENT -> return SlangIntrinsicAsmStatementImpl(node)
                     INTRINSIC_OP_MODIFIER -> return SlangIntrinsicOpModifierImpl(node)
                     INTRINSIC_TYPE_MODIFIER -> return SlangIntrinsicTypeModifierImpl(node)

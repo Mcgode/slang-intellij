@@ -2768,7 +2768,36 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseConstructorDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseSubscriptDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parsePropertyDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseInterfaceDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseInterfaceDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseInterfaceDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        // Skip "interface" keyword
+        builder.advanceLexer()
+
+        consumeToken(builder, SlangTypes.COMPLETION_REQUEST)
+
+        var result = nextTokenIs(builder, SlangTypes.IDENTIFIER)
+        if (result) {
+            builder.remapCurrentToken(SlangTypes.INTERFACE_NAME)
+            builder.advanceLexer()
+        }
+
+        val parseInner: (PsiBuilder, Int, Boolean) -> Boolean = { b, l, g ->
+            var r = parseOptionalInheritanceClause(b, l)
+            r = r && maybeParseGenericConstraints(b, l, g)
+            r = r && parseDeclBody(b, l)
+            r
+        }
+        result = result && parseOptGenericDecl(builder, level + 1, parseInner)
+
+        exit_section_(builder, marker, SlangTypes.PARAMETER_DECLARATION, result)
+        return result
+    }
+
     private fun parseSyntaxDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
 
     // Parse declaration of a name to be used for resolving `[attribute(...)]` style modifiers.
