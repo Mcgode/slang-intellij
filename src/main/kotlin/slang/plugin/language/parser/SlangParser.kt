@@ -2770,7 +2770,81 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parsePropertyDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseInterfaceDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseSyntaxDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseAttributeSyntaxDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    // Parse declaration of a name to be used for resolving `[attribute(...)]` style modifiers.
+    //
+    // These are distinct from `syntax` declarations, because their names don't get added
+    // to the current scope using their default name.
+    //
+    // Also, attribute-specific code doesn't get invoked during parsing. We always parse
+    // using the default attribute-parsing logic and then all specialized behavior takes
+    // place during semantic checking.
+    //
+    private fun parseAttributeSyntaxDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseAttributeSyntaxDecl"))
+            return false
+
+        // Right now the basic form is:
+        //
+        // attribute_syntax <name:id> : <syntaxClass:id>;
+        //
+        // - `name` gives the name of the attribute to define.
+        // - `syntaxClass` is the name of an AST node class that we expect
+        //   this attribute to create when checked.
+        // - `existingKeyword` is the name of an existing keyword that
+        //   the new syntax should be an alias for.
+        //
+        val marker = enter_section_(builder)
+
+        // Skip "attribute_syntax" keyword
+        builder.advanceLexer()
+
+        var result = consumeToken(builder, SlangTypes.LEFT_BRACKET)
+        result = result && consumeToken(builder, SlangTypes.IDENTIFIER)
+
+        if (result && consumeToken(builder, SlangTypes.LEFT_PAREN)) {
+            while (result && !consumeToken(builder, SlangTypes.RIGHT_PAREN)) {
+                result = parseAttributeParamDecl(builder, level + 1)
+
+                if (result && consumeToken(builder, SlangTypes.RIGHT_PAREN))
+                    break
+
+                result = result && consumeToken(builder, SlangTypes.COMMA)
+            }
+        }
+
+        result = result && consumeToken(builder, SlangTypes.RIGHT_BRACKET)
+
+        // Next we look for a clause that specified the AST node class.
+        if (result && consumeToken(builder, SlangTypes.COLON)) {
+            result = consumeToken(builder, SlangTypes.IDENTIFIER)
+            // TODO: Validate AST node syntax (slang-parser:4546)
+        }
+
+        result = result && consumeToken(builder, SlangTypes.SEMICOLON)
+
+        exit_section_(builder, marker, SlangTypes.ATTRIBUTE_SYNTAX_DECLARATION, result)
+        return result
+    }
+
+    private fun parseAttributeParamDecl(builder: PsiBuilder, level: Int): Boolean {
+        val marker = enter_section_(builder)
+
+        var result = nextTokenIs(builder, SlangTypes.IDENTIFIER)
+        if (result) {
+            builder.remapCurrentToken(SlangTypes.PARAMETER_NAME)
+            builder.advanceLexer()
+        }
+
+        if (result && consumeToken(builder, SlangTypes.COLON))
+            result = parseTypeExp(builder, level + 1)
+
+        if (result && consumeToken(builder, SlangTypes.ASSIGN_OP))
+            result = parseInitExpr(builder, level + 1)
+
+        exit_section_(builder, marker, SlangTypes.PARAMETER_DECLARATION, result)
+        return result
+    }
 
     private fun parseImportDecl(builder: PsiBuilder, level: Int): Boolean {
         return parseFileReferenceDeclBase(builder, level, SlangTypes.IMPORT_DECLARATION)
