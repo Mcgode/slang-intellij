@@ -65,4 +65,20 @@ object SlangPsiUtil: GeneratedParserUtilBase() {
         return scopes.find { it.type == SlangTypes.NAMESPACE_DECLARATION && it.namespaceName == name }
     }
 
+    @JvmStatic fun peekModernStyleVarDeclaration(builder: PsiBuilder): Boolean {
+        return if (!nextTokenIs(builder, SlangTypes.IDENTIFIER))
+            false
+        else {
+            when (builder.lookAhead(1)) {
+                SlangTypes.COLON,
+                SlangTypes.COMMA,
+                SlangTypes.RIGHT_PAREN,
+                SlangTypes.RIGHT_BRACE,
+                SlangTypes.RIGHT_BRACKET,
+                SlangTypes.LEFT_BRACE -> true
+                else -> false
+            }
+        }
+    }
+
 }

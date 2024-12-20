@@ -2767,7 +2767,128 @@ open class SlangParser: PsiParser, LightPsiParser {
     private fun parseExtensionDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseConstructorDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseSubscriptDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parsePropertyDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parsePropertyDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseInterfaceDecl"))
+            return false
+
+        pushScope(SlangTypes.PARAMETER_DECLARATION)
+
+        // We want to support property declarations with two
+        // different syntaxes.
+        //
+        // First, we want to support a syntax that is consistent
+        // with C-style ("traditional") variable declarations:
+        //
+        //                int myVar = 2;
+        //      proprerty int myProp { ... }
+        //
+        // Second we want to support a syntax that is
+        // consistent with `let` and `var` declarations:
+        //
+        //      let      myVar  : int = 2;
+        //      property myProp : int { ... }
+        //
+        // The latter case is more constrained, and we will
+        // detect with two tokens of lookahead. If the
+        // next token (after `property`) is an identifier,
+        // and the token after that is a colon (`:`), then
+        // we assume we are in the `let`/`var`-style case.
+        //
+
+        if (!recursion_guard_(builder, level, "parseInterfaceDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+
+        // Skip 'property' keyword
+        builder.advanceLexer()
+
+        var result = true
+        if (SlangPsiUtil.peekModernStyleVarDeclaration(builder)) {
+            builder.remapCurrentToken(SlangTypes.VARIABLE_NAME)
+            builder.advanceLexer()
+
+            result = consumeToken(builder, SlangTypes.COLON)
+            result = result && parseTypeExp(builder, level + 1)
+        }
+        else {
+            // The traditional syntax requires a bit more
+            // care to parse, since it needs to support
+            // C declarator syntax.
+            //
+            result = parseType(builder, level + 1)
+
+            result = result && parseDeclarator(builder, level + 1, false)
+        }
+        result = result && parseStorageDeclBody(builder, level + 1)
+
+        popScope()
+
+        exit_section_(builder, marker, SlangTypes.PARAMETER_DECLARATION, result)
+        return result
+    }
+
+    private fun parseStorageDeclBody(builder: PsiBuilder, level: Int): Boolean {
+        var result = true
+
+        if (consumeToken(builder, SlangTypes.LEFT_BRACE)) {
+            while (result && !consumeToken(builder, SlangTypes.RIGHT_BRACE)) {
+                result = parseAccessorDecl(builder, level)
+            }
+        }
+        else {
+            result = consumeToken(builder, SlangTypes.SEMICOLON)
+        }
+
+        return result
+    }
+
+    private fun parseAccessorDecl(builder: PsiBuilder, level: Int): Boolean {
+        if (!recursion_guard_(builder, level, "parseAccessorDecl"))
+            return false
+
+        var type: IElementType? = null
+
+        val marker = enter_section_(builder)
+
+        var result = parseModifiers(builder, level + 1)
+
+        if (result && consumeToken(builder, "get"))
+            type = SlangTypes.GETTER_DECLARATION
+        else if (result && consumeToken(builder, "set"))
+            type = SlangTypes.SETTER_DECLARATION
+        else if (result && consumeToken(builder, "ref"))
+            type = SlangTypes.SETTER_DECLARATION
+        else {
+            result = false
+            builder.error("Unexpected accessor '${builder.tokenText}'")
+        }
+
+        if (type != null)
+            pushScope(type)
+
+        // A `set` declaration should support declaring an explicit
+        // name for the parameter representing the new value.
+        //
+        // We handle this by supporting an arbitrary parameter list
+        // on any accessor, and then assume that semantic checking
+        // will diagnose any cases that aren't allowed.
+        //
+        if (result && nextTokenIs(builder, SlangTypes.LEFT_PAREN))
+            result = parseModernParamList(builder, level + 1)
+
+        result = if (result && nextTokenIs(builder, SlangTypes.LEFT_BRACE))
+            parseBlockStatement(builder, level + 1)
+        else
+            result && consumeToken(builder, SlangTypes.SEMICOLON)
+
+        if (type != null)
+            popScope()
+
+        exit_section_(builder, marker, type, result)
+        return result
+    }
 
     private fun parseInterfaceDecl(builder: PsiBuilder, level: Int): Boolean {
         if (!recursion_guard_(builder, level, "parseInterfaceDecl"))
@@ -3031,21 +3152,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         // errors.
         //
 
-        val isModernDecl = let {
-            if (!nextTokenIs(builder, SlangTypes.IDENTIFIER))
-                false
-            else {
-                when (builder.lookAhead(1)) {
-                    SlangTypes.COLON,
-                    SlangTypes.COMMA,
-                    SlangTypes.RIGHT_PAREN,
-                    SlangTypes.RIGHT_BRACE,
-                    SlangTypes.RIGHT_BRACKET,
-                    SlangTypes.LEFT_BRACE -> true
-                    else -> false
-                }
-            }
-        }
+        val isModernDecl = SlangPsiUtil.peekModernStyleVarDeclaration(builder)
 
         result = if (isModernDecl)
             result && parseModernVarDeclBaseCommon(builder, level + 1)
