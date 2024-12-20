@@ -2758,11 +2758,45 @@ open class SlangParser: PsiParser, LightPsiParser {
         return false // TODO: see l7579
     }
 
-
     private fun parseAssocType(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseGlobalGenericTypeParamDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseHLSLCBufferDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
-    private fun parseHLSLTBufferDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
+
+    private fun parseHLSLCBufferDecl(builder: PsiBuilder, level: Int): Boolean {
+        return parseBufferBlockDecl(builder, level, SlangTypes.HLSL_CBUFFER_DECLARATION)
+    }
+
+    private fun parseHLSLTBufferDecl(builder: PsiBuilder, level: Int): Boolean {
+        return parseBufferBlockDecl(builder, level, SlangTypes.HLSL_TBUFFER_DECLARATION)
+    }
+
+    private fun parseBufferBlockDecl(builder: PsiBuilder, level: Int, type: SlangElementType): Boolean {
+        if (!recursion_guard_(builder, level, "parseBufferBlockDecl"))
+            return false
+
+        val marker = enter_section_(builder)
+        // Skip 'cbuffer' or 'tbuffer' keyword
+        builder.advanceLexer()
+
+        var result = nextTokenIs(builder, SlangTypes.IDENTIFIER)
+        if (result) {
+            builder.remapCurrentToken(SlangTypes.VARIABLE_NAME)
+            builder.advanceLexer()
+        }
+
+        result = result && parseOptSemantics(builder, level + 1)
+
+        result = result && parseDeclBody(builder, level + 1)
+
+        if (result && nextTokenIs(builder, SlangTypes.IDENTIFIER) && builder.lookAhead(1) == SlangTypes.SEMICOLON) {
+            builder.remapCurrentToken(SlangTypes.VARIABLE_NAME)
+            builder.advanceLexer()
+            builder.advanceLexer()
+        }
+
+        exit_section_(builder, marker, type, result)
+        return result
+    }
+
     private fun parseGenericDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseExtensionDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
     private fun parseConstructorDecl(builder: PsiBuilder, level: Int): Boolean { TODO("Not yet implemented") }
@@ -2804,7 +2838,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         // Skip 'property' keyword
         builder.advanceLexer()
 
-        var result = true
+        var result: Boolean
         if (SlangPsiUtil.peekModernStyleVarDeclaration(builder)) {
             builder.remapCurrentToken(SlangTypes.VARIABLE_NAME)
             builder.advanceLexer()
