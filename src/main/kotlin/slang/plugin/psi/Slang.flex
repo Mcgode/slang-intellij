@@ -67,7 +67,7 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
 
 <YYINITIAL> {
     {WHITE_SPACE}       { return WHITE_SPACE; }
-    {NEW_LINE}          { return NEW_LINE; }
+    {NEW_LINE}          { return INSTANCE.getNEW_LINE(); }
     {BACK_SLASH}        { return WHITE_SPACE; }
 
     {LINE_COMMENT}      { return INSTANCE.getLINE_COMMENT(); }
@@ -87,6 +87,7 @@ PREDEFINED_MACROS=(__cplusplus|__DATE__|__FILE__|__LINE__|__STDC__|__STDC_HOSTED
     "."                 { return INSTANCE.getDOT(); }
     "->"                { return INSTANCE.getRIGHT_ARROW(); }
     "?"                 { return INSTANCE.getQUESTION_MARK(); }
+    "$"                 { return INSTANCE.getDOLLAR(); }
 
     "+"                 { return INSTANCE.getADD_OP(); }
     "-"                 { return INSTANCE.getSUB_OP(); }

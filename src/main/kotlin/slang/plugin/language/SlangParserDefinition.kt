@@ -8,14 +8,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 import slang.plugin.language.parser.SlangParser
+import slang.plugin.psi.*
 import slang.plugin.psi.types.SlangTypes
-import slang.plugin.psi.SlangFile
-import slang.plugin.psi.SlangIFileElementType
-import slang.plugin.psi.SlangLexerAdapter
-import slang.plugin.psi.SlangTokenSets
 
 class SlangParserDefinition: ParserDefinition {
 
@@ -31,12 +29,16 @@ class SlangParserDefinition: ParserDefinition {
         return SlangIFileElementType();
     }
 
+    override fun getWhitespaceTokens(): TokenSet {
+        return TokenSet.create(TokenType.WHITE_SPACE, SlangTypes.NEW_LINE)
+    }
+
     override fun getCommentTokens(): TokenSet {
         return SlangTokenSets.COMMENTS
     }
 
     override fun getStringLiteralElements(): TokenSet {
-        return TokenSet.EMPTY
+        return TokenSet.create(SlangTypes.STRING_LITERAL)
     }
 
     override fun createElement(node: ASTNode?): PsiElement {

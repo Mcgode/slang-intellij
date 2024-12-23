@@ -43,4 +43,5 @@ class StructDeclarationParsingTest: ParsingTestCase(
     }
 
     fun testAttributes() = doTest(true)
+    fun testNoSemiColon() = doTest(true)
 }

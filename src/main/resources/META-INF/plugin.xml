@@ -6,6 +6,9 @@
 
     <depends>com.intellij.modules.platform</depends>
 
+    <!--lsp4ij is an optional dependency, for improved slang support using LSP-->
+    <depends optional="true" config-file="lsp4ij.xml">com.redhat.devtools.lsp4ij</depends>
+
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -21,5 +24,10 @@
         <lang.syntaxHighlighterFactory
             language="Slang"
             implementationClass="slang.plugin.code.highlighting.SlangSyntaxHighlighterFactory" />
+        <notificationGroup
+                displayType="BALLOON"
+                id="Slang" />
+        <colorSettingsPage
+                implementation="slang.plugin.code.highlighting.SlangColorSettingsPage" />
     </extensions>
 </idea-plugin>

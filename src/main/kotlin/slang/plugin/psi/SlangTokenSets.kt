@@ -20,7 +20,7 @@ interface SlangTokenSets {
             get() = TokenSet.create(SlangTypes.LEFT_BRACKET, SlangTypes.RIGHT_BRACKET)
 
         val VARIABLES: TokenSet
-            get() = TokenSet.create()
+            get() = TokenSet.create(SlangTypes.VARIABLE_NAME)
 
         val NUMERIC_LITERALS: TokenSet
             get() = TokenSet.create(SlangTypes.INTEGER_LITERAL, SlangTypes.FLOAT_LITERAL)

@@ -7,20 +7,23 @@
 <!-- Plugin description -->
 Plugin support for [Slang](https://shader-slang.com/) Shading Language.
 
-The plugin is still in development, so use it at your own risk
+The plugin is still in development, so use it at your own risk.
+
+This plugin currently has an optional dependency to [LSP4IJ](https://github.com/redhat-developer/lsp4ij),
+which provides LSP support. To enable it, make sure to install the plugin alongside this one.
 
 Features:
 - Slang language parsing (Work in progress)
 - Code highlighting (Work in progress)
 
-Planned features:
+LSP only features:
 - Core identifiers referencing
 - User Identifier referencing
 - Refactoring
 - Formatting
 - Macro support
 - Code completion
-- Code analysis (?)
+- Code analysis
 <!-- Plugin description end -->
 
 ## Installation

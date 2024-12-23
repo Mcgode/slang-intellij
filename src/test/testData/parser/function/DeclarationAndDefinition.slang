@@ -1,0 +1,4 @@
+uint Foo();
+
+uint Foo()
+{}
