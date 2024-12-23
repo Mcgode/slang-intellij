@@ -18,19 +18,23 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-class SlangLanguageServerDownloader(
-    private val project: Project,
-    private val outputPath: Path,
-    private val uri: URI) {
+class SlangLanguageServerDownloader {
 
     enum class Status {
+        Idle,
         Scheduled,
         Downloading,
         Downloaded,
         Cancelled
     }
 
-    private var status: Status = Status.Scheduled
+    var status: Status = Status.Idle
+        private set(value) {
+            field = value
+            for (listener in listeners)
+                listener(value)
+        }
+
     private val LOG = logger<SlangLanguageServerDownloader>()
 
     fun isDone(): Boolean {
@@ -39,8 +43,7 @@ class SlangLanguageServerDownloader(
 
     private var listeners = HashSet<(Status) -> Unit>()
 
-    fun addListener(listener: (Status) -> Unit) = listeners.add(listener)
-    fun removeListener(listener: (Status) -> Unit) = listeners.remove(listener)
+    fun addStatusChangeListener(listener: (Status) -> Unit) = listeners.add(listener)
 
     private suspend fun runCancellableBackgroundTaskSuspending(
         title: String,
@@ -62,13 +65,13 @@ class SlangLanguageServerDownloader(
         }
     }
 
-    private suspend fun download() =
+    private suspend fun download(project: Project, provider: SlangLanguageServerProvider) =
         runCancellableBackgroundTaskSuspending("Downloading slangd", project) { indicator ->
 
-            LOG.info("Downloading SlangD from $uri")
+            LOG.info("Downloading SlangD from ${provider.uri()}")
 
             indicator.text = "Download Slang language server"
-            val zipInputStream = ZipInputStream(uri.toURL().openStream())
+            val zipInputStream = ZipInputStream(provider.uri().toURL().openStream())
 
             var entry: ZipEntry?
 
@@ -77,13 +80,11 @@ class SlangLanguageServerDownloader(
             var fractionOffset = 0.0
 
             while (zipInputStream.nextEntry.also { entry = it } != null) {
+                val filename = Path.of(entry!!.name).fileName.toString()
 
-                val path = if (entry!!.name.contains("slangd"))
-                    outputPath
-                else if (entry!!.name.contains("slang.dll") || entry!!.name.contains("libslang.")) {
-                    val fileName = Path.of(entry!!.name).fileName.toString()
-                    outputPath.parent.resolve(fileName)
-                } else
+                val path = if (provider.isSlangDExecutableFileName(filename) || provider.isSlangDynamicLibraryFileName(filename))
+                    provider.getLanguageServerDirectoryPath().resolve(filename)
+                else
                     null
 
                 path?.let {
@@ -109,12 +110,13 @@ class SlangLanguageServerDownloader(
             }
         }
 
-    init {
+    fun launchDownload(project: Project, provider: SlangLanguageServerProvider) {
+        status = Status.Scheduled
         ApplicationManager.getApplication().executeOnPooledThread {
             runBlocking {
                 status = Status.Downloading
                 try {
-                    download()
+                    download(project, provider)
                     status = Status.Downloaded
                 } catch (_: CancellationException) {
                     NotificationGroupManager.getInstance()
