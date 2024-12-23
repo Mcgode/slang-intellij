@@ -131,8 +131,7 @@ tasks {
 
     publishPlugin {
         dependsOn(patchChangelog)
-        channels.set(arrayListOf("Alpha"))
-        hidden = true
+        channels.set(arrayListOf("Beta"))
     }
 }
 
