@@ -42,7 +42,6 @@ dependencies {
 
         // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file for plugin from JetBrains Marketplace.
         plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
-        plugin("com.redhat.devtools.lsp4ij:0.9.0")
 
         pluginVerifier()
         zipSigner()

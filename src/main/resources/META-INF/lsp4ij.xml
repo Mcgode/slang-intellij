@@ -1,0 +1,14 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+        <server
+                id="slangLanguageServer"
+                name="Slang Language Server"
+                factoryClass="slang.plugin.lsp.lsp4ij.SlangLanguageServerFactory" />
+
+        <languageMapping language="Slang" serverId="slangLanguageServer" />
+
+        <semanticTokensColorsProvider
+                serverId="slangLanguageServer"
+                class="slang.plugin.code.highlighting.SlangSemanticTokenColorsProvider" />
+    </extensions>
+</idea-plugin>

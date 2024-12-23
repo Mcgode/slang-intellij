@@ -5,7 +5,9 @@
     <vendor>Max Godefroy</vendor>
 
     <depends>com.intellij.modules.platform</depends>
-    <depends>com.redhat.devtools.lsp4ij</depends>
+
+    <!--lsp4ij is an optional dependency, for improved slang support using LSP-->
+    <depends optional="true" config-file="lsp4ij.xml">com.redhat.devtools.lsp4ij</depends>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
@@ -27,18 +29,5 @@
                 id="Slang" />
         <colorSettingsPage
                 implementation="slang.plugin.code.highlighting.SlangColorSettingsPage" />
-    </extensions>
-
-    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
-        <server
-                id="slangLanguageServer"
-                name="Slang Language Server"
-                factoryClass="slang.plugin.lsp.SlangLanguageServerFactory" />
-
-        <languageMapping language="Slang" serverId="slangLanguageServer" />
-
-        <semanticTokensColorsProvider
-                serverId="slangLanguageServer"
-                class="slang.plugin.code.highlighting.SlangSemanticTokenColorsProvider" />
     </extensions>
 </idea-plugin>
