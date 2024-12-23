@@ -36,5 +36,9 @@
                 factoryClass="slang.plugin.lsp.SlangLanguageServerFactory" />
 
         <languageMapping language="Slang" serverId="slangLanguageServer" />
+
+        <semanticTokensColorsProvider
+                serverId="slangLanguageServer"
+                class="slang.plugin.code.highlighting.SlangSemanticTokenColorsProvider" />
     </extensions>
 </idea-plugin>
