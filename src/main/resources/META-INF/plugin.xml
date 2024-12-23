@@ -5,6 +5,7 @@
     <vendor>Max Godefroy</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.redhat.devtools.lsp4ij</depends>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
@@ -21,5 +22,17 @@
         <lang.syntaxHighlighterFactory
             language="Slang"
             implementationClass="slang.plugin.code.highlighting.SlangSyntaxHighlighterFactory" />
+        <notificationGroup
+                displayType="BALLOON"
+                id="Slang" />
+    </extensions>
+
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+        <server
+                id="slangLanguageServer"
+                name="Slang Language Server"
+                factoryClass="slang.plugin.lsp.SlangLanguageServerFactory" />
+
+        <languageMapping language="Slang" serverId="slangLanguageServer" />
     </extensions>
 </idea-plugin>
