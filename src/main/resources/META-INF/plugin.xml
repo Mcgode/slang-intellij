@@ -25,6 +25,8 @@
         <notificationGroup
                 displayType="BALLOON"
                 id="Slang" />
+        <colorSettingsPage
+                implementation="slang.plugin.code.highlighting.SlangColorSettingsPage" />
     </extensions>
 
     <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
