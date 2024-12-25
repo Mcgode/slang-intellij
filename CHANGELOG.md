@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+- Native Intellij LSP API support (for Ultimate-tier IDEs only)
+- Language settings page: <kbd>Settings/Preferences</kbd> > <kbd>Languages & Frameworks</kbd> > <kbd>Slang</kbd>
+  - LSP toggle
+  - Choose preferred LSP method
+
 ## [0.1.0] - 2024-12-23
 
 ### Added
