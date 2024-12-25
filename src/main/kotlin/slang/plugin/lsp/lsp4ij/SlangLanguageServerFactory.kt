@@ -23,7 +23,7 @@ class SlangLanguageServerFactory: LanguageServerFactory, LanguageServerEnablemen
     override fun isEnabled(project: Project): Boolean {
         val slangConfig = SlangConfigService.getInstance(project)
         val provider = SlangLanguageServerProvider.getInstance(project)
-        if (slangConfig.enableLsp && slangConfig.useLsp4ij)
+        if (!slangConfig.enableLsp || !slangConfig.useLsp4ij)
             return false
         val enabled = provider.checkValidLanguageServerFiles()
         if (!enabled)
