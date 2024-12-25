@@ -8,6 +8,7 @@ import com.redhat.devtools.lsp4ij.client.LanguageClientImpl
 import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
 import slang.plugin.lsp.SlangLanguageServerDownloader
 import slang.plugin.lsp.SlangLanguageServerProvider
+import slang.plugin.settings.SlangConfigService
 
 class SlangLanguageServerFactory: LanguageServerFactory, LanguageServerEnablementSupport {
 
@@ -20,8 +21,9 @@ class SlangLanguageServerFactory: LanguageServerFactory, LanguageServerEnablemen
     }
 
     override fun isEnabled(project: Project): Boolean {
+        val slangConfig = SlangConfigService.getInstance(project)
         val provider = SlangLanguageServerProvider.getInstance(project)
-        if (provider.intellijLspClientSupported.value || !provider.lsp4ijSupported.value)
+        if (slangConfig.enableLsp && slangConfig.useLsp4ij)
             return false
         val enabled = provider.checkValidLanguageServerFiles()
         if (!enabled)

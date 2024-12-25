@@ -20,27 +20,6 @@ class SlangLanguageServerProvider {
 
     }
 
-    val intellijLspClientSupported = lazy {
-        try {
-            @Suppress("UnstableApiUsage")
-            LspServerSupportProvider
-            true
-        }
-        catch (e: NoClassDefFoundError) {
-            false
-        }
-    }
-
-    val lsp4ijSupported = lazy {
-        try {
-            LanguageServerManager.StartOptions.DEFAULT
-            true
-        }
-        catch (e: NoClassDefFoundError) {
-            false
-        }
-    }
-
     private val slangdVersion = "2024.17"
     private val downloader = SlangLanguageServerDownloader();
 

@@ -31,5 +31,10 @@
                 id="Slang" />
         <colorSettingsPage
                 implementation="slang.plugin.code.highlighting.SlangColorSettingsPage" />
+        <projectConfigurable
+            parentId="language"
+            instance="slang.plugin.settings.SlangSettingsConfigurable"
+            id="slang.plugin.settings.SlangSettingConfigurable"
+            displayName="Slang" />
     </extensions>
 </idea-plugin>

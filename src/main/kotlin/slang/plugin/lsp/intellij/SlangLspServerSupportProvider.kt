@@ -7,6 +7,7 @@ import com.intellij.platform.lsp.api.LspServerManager
 import com.intellij.platform.lsp.api.LspServerSupportProvider
 import slang.plugin.language.SlangFileType
 import slang.plugin.lsp.SlangLanguageServerProvider
+import slang.plugin.settings.SlangConfigService
 
 @Suppress("UnstableApiUsage")
 class SlangLspServerSupportProvider: LspServerSupportProvider {
@@ -16,6 +17,10 @@ class SlangLspServerSupportProvider: LspServerSupportProvider {
         file: VirtualFile,
         serverStarter: LspServerSupportProvider.LspServerStarter
     ) {
+        val slangConfig = SlangConfigService.getInstance(project)
+        if (!slangConfig.enableLsp || !slangConfig.useIntellijLspClient)
+            return
+
         if (FileTypeManager.getInstance().getFileTypeByFile(file) is SlangFileType) {
             val provider = SlangLanguageServerProvider.getInstance(project)
             if (provider.checkValidLanguageServerFiles())
