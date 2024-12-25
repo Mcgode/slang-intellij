@@ -3,6 +3,7 @@ package slang.plugin.lsp
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import com.intellij.platform.lsp.api.LspServerSupportProvider
 import com.redhat.devtools.lsp4ij.LanguageServerManager
 import java.net.URI
 import java.nio.file.Files
@@ -17,6 +18,27 @@ class SlangLanguageServerProvider {
             return project.getService(SlangLanguageServerProvider::class.java)
         }
 
+    }
+
+    val intellijLspClientSupported = lazy {
+        try {
+            @Suppress("UnstableApiUsage")
+            LspServerSupportProvider
+            true
+        }
+        catch (e: NoClassDefFoundError) {
+            false
+        }
+    }
+
+    val lsp4ijSupported = lazy {
+        try {
+            LanguageServerManager.StartOptions.DEFAULT
+            true
+        }
+        catch (e: NoClassDefFoundError) {
+            false
+        }
     }
 
     private val slangdVersion = "2024.17"
@@ -76,14 +98,10 @@ class SlangLanguageServerProvider {
         ))
     }
 
-    fun tryAutoDownload(project: Project) {
+    fun tryAutoDownload(project: Project, onDownloaded: (SlangLanguageServerDownloader.Status) -> Unit) {
         if (downloader.status == SlangLanguageServerDownloader.Status.Idle) {
             downloader.launchDownload(project, this)
-            downloader.addStatusChangeListener {
-                if (it == SlangLanguageServerDownloader.Status.Downloaded) {
-                    LanguageServerManager.getInstance(project).start("slangLanguageServer")
-                }
-            }
+            downloader.addStatusChangeListener(onDownloaded)
         }
     }
 }
