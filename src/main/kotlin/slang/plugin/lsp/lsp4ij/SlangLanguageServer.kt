@@ -10,6 +10,6 @@ class SlangLanguageServer(project: Project): OSProcessStreamConnectionProvider()
     init {
         val provider = SlangLanguageServerProvider.getInstance(project)
         assert(provider.checkValidLanguageServerFiles())
-        commandLine = GeneralCommandLine(provider.getSlangDExecutablePath().absolutePathString(), "--stdio")
+        commandLine = GeneralCommandLine(provider.getSlangDExecutablePath().absolutePathString(), "--stdio", "--debug")
     }
 }

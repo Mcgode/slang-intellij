@@ -8,6 +8,7 @@
 - Language settings page: <kbd>Settings/Preferences</kbd> > <kbd>Languages & Frameworks</kbd> > <kbd>Slang</kbd>
   - LSP toggle
   - Choose preferred LSP method
+- Added LSP configuration file (`slang-config.json`) support for LSP4IJ 
 
 ## [0.1.0] - 2024-12-23
 
