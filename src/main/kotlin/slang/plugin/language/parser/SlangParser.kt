@@ -3909,8 +3909,8 @@ open class SlangParser: PsiParser, LightPsiParser {
         val directive = builder.tokenText!!.replace(Regex("\\s"), "")
 
         when (directive) {
-            "#define" ->  parseDefineDirective(builder, level)
             "#include" -> parseIncludeDirective(builder, level)
+            "#define" ->  parseDefineDirective(builder, level)
             else -> TODO("Not yet implemented")
         }
 
@@ -3927,6 +3927,21 @@ open class SlangParser: PsiParser, LightPsiParser {
             builder.remapCurrentToken(SlangTypes.NEW_LINE)
             builder.advanceLexer()
         }
+    }
+
+    private fun parseIncludeDirective(builder: PsiBuilder, level: Int) {
+        val marker = enter_section_(builder)
+
+        builder.advanceLexer()
+
+        if (!util.nextTokenIs(builder, SlangTypes.STRING_LITERAL)) {
+            builder.error("Expected include string literal")
+        }
+        builder.advanceLexer()
+
+        // TODO: Parse preprocessors from included file
+
+        exit_section_(builder, marker, SlangTypes.INCLUDE_DIRECTIVE, true)
     }
 
     private fun parseDefineDirective(builder: PsiBuilder, level: Int) {
@@ -3962,20 +3977,5 @@ open class SlangParser: PsiParser, LightPsiParser {
         }
 
         exit_section_(builder, marker, SlangTypes.DEFINE_DIRECTIVE, true)
-    }
-
-    private fun parseIncludeDirective(builder: PsiBuilder, level: Int) {
-        val marker = enter_section_(builder)
-
-        builder.advanceLexer()
-
-        if (!util.nextTokenIs(builder, SlangTypes.STRING_LITERAL)) {
-            builder.error("Expected include string literal")
-        }
-        builder.advanceLexer()
-
-        // TODO: Parse preprocessors from included file
-
-        exit_section_(builder, marker, SlangTypes.INCLUDE_DIRECTIVE, true)
     }
 }
