@@ -35,6 +35,7 @@ open class SlangParser: PsiParser, LightPsiParser {
     private var scopeStack = ArrayList<Scope>()
     private val scope: Scope?
         get() = if (scopeStack.size > 0) scopeStack.last() else null
+    private val macros = HashMap<String, MacroExpansion>()
 
     @Suppress("LeakingThis")
     private val builtinSyntaxDeclarations = arrayListOf<SyntaxDeclaration>(
@@ -299,33 +300,33 @@ open class SlangParser: PsiParser, LightPsiParser {
             return false
 
         while (true) {
-            when (builder.tokenType) {
-                SlangTypes.IDENTIFIER -> {
-                    val marker = enter_section_(builder)
-                    if (tryParseUsingSyntaxDecl(builder, level, SyntaxDeclaration.Type.Modifier)) {
-                        // No lexer advance, since the parse has already consumed the tokens
-                        exit_section_(builder, marker, SlangTypes.TYPE_MODIFIER, true)
-                        continue
-                    }
-                    else if (util.nextTokenIs(builder, "no_diff")) {
+            if (util.nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+                val marker = enter_section_(builder)
+                if (tryParseUsingSyntaxDecl(builder, level, SyntaxDeclaration.Type.Modifier)) {
+                    // No lexer advance, since the parse has already consumed the tokens
+                    exit_section_(builder, marker, SlangTypes.TYPE_MODIFIER, true)
+                    continue
+                }
+                else if (util.nextTokenIs(builder, "no_diff")) {
+                    util.advanceLexer(builder)
+                    exit_section_(builder, marker, SlangTypes.TYPE_MODIFIER, true)
+                    continue
+                }
+                else if (enableGlslCode)
+                    if (util.consumeToken(builder, "flat")) {
                         util.advanceLexer(builder)
                         exit_section_(builder, marker, SlangTypes.TYPE_MODIFIER, true)
                         continue
                     }
-                    else if (enableGlslCode)
-                        if (util.consumeToken(builder, "flat")) {
-                            util.advanceLexer(builder)
-                            exit_section_(builder, marker, SlangTypes.TYPE_MODIFIER, true)
-                            continue
-                        }
-                    exit_section_(builder, marker, null, true)
-                    break
-                }
-                SlangTypes.LEFT_BRACKET -> {
-                    if (!parseSquareBracketAttributes(builder, level))
-                        return false
-                }
-                else -> break
+                exit_section_(builder, marker, null, true)
+                break
+            }
+            else if (util.nextTokenIs(builder, SlangTypes.LEFT_BRACKET)) {
+                if (!parseSquareBracketAttributes(builder, level))
+                    return false
+            }
+            else {
+                break
             }
         }
 
@@ -336,39 +337,34 @@ open class SlangParser: PsiParser, LightPsiParser {
         if (!recursion_guard_(builder, level, "parseDeclWithModifiers"))
             return false
 
-        when (builder.tokenType) {
-            SlangTypes.IDENTIFIER -> {
-                // A declaration that starts with an identifier might be:
-                //
-                // - A keyword-based declaration (e.g., `cbuffer ...`)
-                // - The beginning of a type in a declarator-based declaration (e.g., `int ...`)
+        if (util.nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+            // A declaration that starts with an identifier might be:
+            //
+            // - A keyword-based declaration (e.g., `cbuffer ...`)
+            // - The beginning of a type in a declarator-based declaration (e.g., `int ...`)
 
-                if (tryParseUsingSyntaxDecl(builder, level, SyntaxDeclaration.Type.Declaration))
-                    return true
+            if (tryParseUsingSyntaxDecl(builder, level, SyntaxDeclaration.Type.Declaration))
+                return true
 
-                // TODO: see slang/slang-parser.cpp:4723
+            // TODO: see slang/slang-parser.cpp:4723
 
-                return parseDeclaratorDecl(builder, level)
-            }
-
-            // It is valid in HLSL/GLSL to have an "empty" declaration
-            // that consists of just a semicolon. In particular, this
-            // gets used a lot in GLSL to attach custom semantics to
-            // shader input or output.
-            SlangTypes.SEMICOLON -> {
-                util.advanceLexer(builder)
-            }
-
-            SlangTypes.LEFT_BRACE, SlangTypes.LEFT_PAREN -> {
-                // We shouldn't be seeing an LBrace or an LParent when expecting a decl.
-                // However, recovery logic may lead us here. In this case we just
-                // skip the whole `{}` block and return an empty decl.
-                util.skipBalancedToken(builder)
-            }
-
-            else -> {
-                return parseDeclaratorDecl(builder, level)
-            }
+            return parseDeclaratorDecl(builder, level)
+        }
+        // It is valid in HLSL/GLSL to have an "empty" declaration
+        // that consists of just a semicolon. In particular, this
+        // gets used a lot in GLSL to attach custom semantics to
+        // shader input or output.
+        else if (util.nextTokenIs(builder, SlangTypes.SEMICOLON)) {
+            util.advanceLexer(builder)
+        }
+        else if (util.nextTokenIs(builder, SlangTypes.LEFT_BRACE, SlangTypes.LEFT_PAREN)) {
+            // We shouldn't be seeing an LBrace or an LParent when expecting a decl.
+            // However, recovery logic may lead us here. In this case we just
+            // skip the whole `{}` block and return an empty decl.
+            util.skipBalancedToken(builder)
+        }
+        else {
+            return parseDeclaratorDecl(builder, level)
         }
 
         return true
@@ -550,15 +546,13 @@ open class SlangParser: PsiParser, LightPsiParser {
             exit_section_(builder, marker, SlangTypes.VARIABLE_DECL, result)
 
             while (result) {
-                when (builder.tokenType) {
-                    SlangTypes.COMMA -> {
-                        val markerB = enter_section_(builder)
-                        result = parseInitDeclarator(builder, level + 1) != null
-                        exit_section_(builder, markerB, SlangTypes.VARIABLE_DECL, result)
-                    }
-
-                    else -> break
+                if (util.nextTokenIs(builder, SlangTypes.COMMA)) {
+                    val markerB = enter_section_(builder)
+                    result = parseInitDeclarator(builder, level + 1) != null
+                    exit_section_(builder, markerB, SlangTypes.VARIABLE_DECL, result)
                 }
+                else
+                    break
             }
 
             result = result && util.consumeToken(builder, SlangTypes.SEMICOLON)
@@ -581,23 +575,22 @@ open class SlangParser: PsiParser, LightPsiParser {
             return false
 
         while (true) {
-            when (builder.tokenType) {
-                SlangTypes.LEFT_BRACKET -> {
-                    val marker = enter_section_(builder)
-                    var result = util.consumeToken(builder, SlangTypes.LEFT_BRACKET)
+            if (util.nextTokenIs(builder, SlangTypes.LEFT_BRACKET)) {
+                val marker = enter_section_(builder)
+                var result = util.consumeToken(builder, SlangTypes.LEFT_BRACKET)
 
-                    if (!util.nextTokenIs(builder, SlangTypes.RIGHT_BRACKET)) {
-                        result = result && parseExpression(builder, level + 1)
-                    }
-                    result = result && util.consumeToken(builder, SlangTypes.RIGHT_BRACKET)
-
-                    exit_section_(builder, marker, SlangTypes.ARRAY_SPECIFIER, result)
-
-                    if (!result)
-                        return false
+                if (!util.nextTokenIs(builder, SlangTypes.RIGHT_BRACKET)) {
+                    result = result && parseExpression(builder, level + 1)
                 }
-                else -> break
+                result = result && util.consumeToken(builder, SlangTypes.RIGHT_BRACKET)
+
+                exit_section_(builder, marker, SlangTypes.ARRAY_SPECIFIER, result)
+
+                if (!result)
+                    return false
             }
+            else
+                break
         }
 
         return true
@@ -729,55 +722,55 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result: Boolean
 
-        when (builder.tokenType) {
-            SlangTypes.IDENTIFIER -> {
-                val marker = enter_section_(builder)
-                result = util.consumeToken(builder, SlangTypes.IDENTIFIER)
-                exit_section_(builder, marker, SlangTypes.NAME_DECLARATOR, result)
-            }
-            SlangTypes.LEFT_PAREN -> {
-                // Note(tfoley): This is a point where disambiguation is required.
-                // We could be looking at an abstract declarator for a function-type
-                // parameter:
-                //
-                //     void F( int(int) );
-                //
-                // Or we could be looking at the use of parentheses in an ordinary
-                // declarator:
-                //
-                //     void (*f)(int);
-                //
-                // The difference really doesn't matter right now, but we err in
-                // the direction of assuming the second case.
-                //
-                // TODO: We should consider just not supporting this case at all,
-                // since it can't come up in current Slang (no pointer or function-type
-                // support), and we might be able to introduce alternative syntax
-                // to get around these issues when those features come online.
-                //
-                result = util.consumeToken(builder, SlangTypes.LEFT_PAREN)
-                result = result && parseDeclarator(builder, level, allowEmpty)
-                result = result && util.consumeToken(builder, SlangTypes.RIGHT_PAREN)
-            }
-            else -> return allowEmpty
+        if (util.nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+            val marker = enter_section_(builder)
+            result = util.consumeToken(builder, SlangTypes.IDENTIFIER)
+            exit_section_(builder, marker, SlangTypes.NAME_DECLARATOR, result)
         }
+        else if (util.nextTokenIs(builder, SlangTypes.LEFT_PAREN)) {
+            // Note(tfoley): This is a point where disambiguation is required.
+            // We could be looking at an abstract declarator for a function-type
+            // parameter:
+            //
+            //     void F( int(int) );
+            //
+            // Or we could be looking at the use of parentheses in an ordinary
+            // declarator:
+            //
+            //     void (*f)(int);
+            //
+            // The difference really doesn't matter right now, but we err in
+            // the direction of assuming the second case.
+            //
+            // TODO: We should consider just not supporting this case at all,
+            // since it can't come up in current Slang (no pointer or function-type
+            // support), and we might be able to introduce alternative syntax
+            // to get around these issues when those features come online.
+            //
+            result = util.consumeToken(builder, SlangTypes.LEFT_PAREN)
+            result = result && parseDeclarator(builder, level, allowEmpty)
+            result = result && util.consumeToken(builder, SlangTypes.RIGHT_PAREN)
+        }
+        else
+            return allowEmpty
 
         // Postfix additions
         while (result) {
-            when (builder.tokenType) {
-                SlangTypes.LEFT_BRACKET -> {
-                    val marker = enter_section_(builder, level, GeneratedParserUtilBase._LEFT_, SlangTypes.ARRAY_DECLARATOR, null)
-                    result = util.consumeToken(builder, SlangTypes.LEFT_BRACKET)
-                    if (!util.nextTokenIs(builder, SlangTypes.RIGHT_BRACKET))
-                        result = result && parseExpression(builder, level + 1)
-                    result = result && util.consumeToken(builder, SlangTypes.RIGHT_BRACKET)
-                    exit_section_(builder, level, marker, result, false, null)
-                    break
-                }
-                SlangTypes.LEFT_PAREN -> break
-                SlangTypes.LESS_OP -> break // TODO: see slang/slang-parser.cpp:2011
-                else -> break
+            if (util.nextTokenIs(builder, SlangTypes.LEFT_BRACKET)) {
+                val marker = enter_section_(builder, level, GeneratedParserUtilBase._LEFT_, SlangTypes.ARRAY_DECLARATOR, null)
+                result = util.consumeToken(builder, SlangTypes.LEFT_BRACKET)
+                if (!util.nextTokenIs(builder, SlangTypes.RIGHT_BRACKET))
+                    result = result && parseExpression(builder, level + 1)
+                result = result && util.consumeToken(builder, SlangTypes.RIGHT_BRACKET)
+                exit_section_(builder, level, marker, result, false, null)
+                break
             }
+            else if (util.nextTokenIs(builder, SlangTypes.LEFT_PAREN))
+                break
+            else if (util.nextTokenIs(builder, SlangTypes.LESS_OP))
+                break // TODO: see slang/slang-parser.cpp:2011
+            else
+                break // TODO: see slang/slang-parser.cpp:2011
         }
 
         return result
@@ -828,20 +821,19 @@ open class SlangParser: PsiParser, LightPsiParser {
         typeSpec.expr = true
 
         while (result) {
-            when (builder.tokenType) {
-                SlangTypes.LESS_OP -> {
-                    result = parseGenericApp(builder, level)
-                }
-                SlangTypes.SCOPE -> {
-                    result = util.consumeToken(builder, SlangTypes.SCOPE)
-                    result = result && parseStaticMemberType(builder, level)
-                }
-                SlangTypes.DOT -> {
-                    result = util.consumeToken(builder, SlangTypes.DOT)
-                    result = result && parseMemberType(builder, level)
-                }
-                else -> break
+            if (util.nextTokenIs(builder, SlangTypes.LESS_OP)) {
+                result = parseGenericApp(builder, level)
             }
+            else if (util.nextTokenIs(builder, SlangTypes.SCOPE)) {
+                result = util.consumeToken(builder, SlangTypes.SCOPE)
+                result = result && parseStaticMemberType(builder, level)
+            }
+            else if (util.nextTokenIs(builder, SlangTypes.DOT)) {
+                result = util.consumeToken(builder, SlangTypes.DOT)
+                result = result && parseMemberType(builder, level)
+            }
+            else
+                break
         }
 
         return if (result) typeSpec else null
@@ -1222,13 +1214,12 @@ open class SlangParser: PsiParser, LightPsiParser {
         var result = util.consumeToken(builder, SlangTypes.LEFT_BRACE)
         while (result)
         {
-            when (builder.tokenType) {
-                SlangTypes.RIGHT_BRACE -> {
-                    result = util.consumeToken(builder, SlangTypes.RIGHT_BRACE)
-                    break
-                }
-                else -> result = parseDecl(builder, level + 1)
+            if (util.nextTokenIs(builder, SlangTypes.RIGHT_BRACE)) {
+                result = util.consumeToken(builder, SlangTypes.RIGHT_BRACE)
+                break
             }
+            else
+                result = parseDecl(builder, level + 1)
         }
 
         exit_section_(builder, marker, SlangTypes.BODY_DECL, result)
@@ -3909,5 +3900,67 @@ open class SlangParser: PsiParser, LightPsiParser {
         result = result && util.consumeToken(builder, SlangTypes.RIGHT_PAREN)
         exit_section_(builder, marker, SlangTypes.COUNT_OF_EXPRESSION, result)
         return result
+    }
+
+    fun parsePreprocessorDirective(builder: PsiBuilder, level: Int) {
+        if (!recursion_guard_(builder, level, "parsePreprocessorDirective"))
+            return
+
+        val directive = builder.tokenText!!.replace(Regex("\\s"), "")
+
+        if (directive == "#define") {
+            parseDefineDirective(builder, level)
+        } else {
+            TODO("Not yet implemented")
+        }
+
+        // Advance until new line or EOF if it hasn't been reached yet.
+        // Alternatively, we can chain it with another preprocessor directive.
+        while (!builder.eof()
+            && builder.tokenType != SlangTypes.PREPROCESSOR_DIRECTIVE_END
+            && builder.tokenType != SlangTypes.PREPROCESSOR_DIRECTIVE)
+        {
+            builder.error("Extraneous code")
+            builder.advanceLexer()
+        }
+        if (builder.tokenType == SlangTypes.PREPROCESSOR_DIRECTIVE_END) {
+            builder.remapCurrentToken(SlangTypes.NEW_LINE)
+            builder.advanceLexer()
+        }
+    }
+
+    private fun parseDefineDirective(builder: PsiBuilder, level: Int) {
+        val marker = enter_section_(builder)
+
+        builder.advanceLexer()
+
+        val result = util.nextTokenIs(builder, SlangTypes.IDENTIFIER)
+        val macroName = builder.tokenText ?: ""
+        if (!result)
+            builder.error("Expected identifier")
+        else {
+            builder.remapCurrentToken(SlangTypes.DEFINE_NAME)
+            macros[macroName] = MacroExpansion()
+        }
+        builder.advanceLexer()
+
+        if (result && util.consumeToken(builder, SlangTypes.LEFT_PAREN)) {
+            TODO("Not yet implemented")
+        }
+
+        while (result
+            && !builder.eof()
+            && builder.tokenType != SlangTypes.PREPROCESSOR_DIRECTIVE
+            && builder.tokenType != SlangTypes.PREPROCESSOR_DIRECTIVE_END)
+        {
+            macros[macroName]!!.content.push(builder.tokenType!!)
+            builder.advanceLexer()
+        }
+
+        if (result && macros[macroName]!!.content.isEmpty()) {
+            builder.error("Expected macro content")
+        }
+
+        exit_section_(builder, marker, SlangTypes.DEFINE_DIRECTIVE, true)
     }
 }

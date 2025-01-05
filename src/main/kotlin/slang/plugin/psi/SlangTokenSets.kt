@@ -27,8 +27,7 @@ interface SlangTokenSets {
 
         val PREPROCESSORS: TokenSet
             get() = TokenSet.create(
-                SlangTypes.PREPROCESSOR,
-                SlangTypes.PREPROCESSOR_WHITE_SPACE,
+                SlangTypes.PREPROCESSOR_DIRECTIVE,
             )
 
     }

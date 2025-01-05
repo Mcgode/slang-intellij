@@ -32,6 +32,7 @@ object SlangTypes {
     val DECLARATION_NAME = SlangElementType("DECLARATION_NAME")
     val DECLARATION_STATEMENT = SlangElementType("DECLARATION_STATEMENT")
     val DEFAULT_STATEMENT = SlangElementType("DEFAULT_STATEMENT")
+    val DEFINE_DIRECTIVE = SlangElementType("DEFINE_DIRECTIVE")
     val DISCARD_STATEMENT = SlangElementType("DISCARD_STATEMENT")
     val DISPATCH_KERNEL_EXPRESSION = SlangElementType("DISPATCH_KERNEL_EXPRESSION")
     val DO_WHILE_STATEMENT = SlangElementType("DO_WHILE_STATEMENT")
@@ -215,8 +216,9 @@ object SlangTypes {
     val MULTILINE_COMMENT = SlangElementType("MULTILINE_COMMENT")
     val NEW_LINE = SlangElementType("NEW_LINE")
 
-    val PREPROCESSOR = SlangElementType("PREPROCESSOR")
-    val PREPROCESSOR_WHITE_SPACE = SlangElementType("PREPROCESSOR_WHITE_SPACE")
+    val PREPROCESSOR_DIRECTIVE = SlangElementType("PREPROCESSOR_DIRECTIVE")
+    val PREPROCESSOR_DIRECTIVE_END = SlangElementType("PREPROCESSOR_DIRECTIVE_END")
+    val DEFINE_NAME = SlangElementType("DEFINE_NAME")
 
     val FORMAT_ATTRIBUTE = SlangElementType("FORMAT_ATTRIBUTE")
     val GLSL_LAYOUT_DERIVATIVE_GROUP_LINEAR_ATTRIBUTE = SlangElementType("GLSL_LAYOUT_DERIVATIVE_GROUP_LINEAR_ATTRIBUTE")
@@ -317,6 +319,7 @@ object SlangTypes {
                     DECLARATION_NAME -> return SlangDeclarationNameImpl(node)
                     DECLARATION_STATEMENT -> return SlangDeclarationStatementImpl(node)
                     DEFAULT_STATEMENT -> return SlangDefaultStatementImpl(node)
+                    DEFINE_DIRECTIVE -> return SlangDefineDirectiveImpl(node)
                     DEREF_MEMBER_EXPRESSION -> return SlangDerefMemberExpressionImpl(node)
                     DISCARD_STATEMENT -> return SlangDiscardStatementImpl(node)
                     DISPATCH_KERNEL_EXPRESSION -> return SlangDispatchKernelExpressionImpl(node)

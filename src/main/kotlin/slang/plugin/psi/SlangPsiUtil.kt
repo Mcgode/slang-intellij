@@ -4,11 +4,15 @@ import com.intellij.lang.PsiBuilder
 import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
+import slang.plugin.language.parser.SlangParser
 import slang.plugin.language.parser.data.Scope
 
 import slang.plugin.psi.types.SlangTypes
 
 class SlangPsiUtil {
+
+    fun getParser(builder: PsiBuilder): SlangParser =
+        (builder as GeneratedParserUtilBase.Builder).parser as SlangParser
 
     fun skipToMatchingToken(builder: PsiBuilder, tokenType: IElementType): IElementType? {
         while (true) {
@@ -54,17 +58,20 @@ class SlangPsiUtil {
         return isNewLine
     }
 
-    fun advanceLexer(builder: PsiBuilder) {
-        builder.advanceLexer()
-
-        while (builder.tokenType in SlangTokenSets.PREPROCESSORS) {
-            builder.advanceLexer()
+    private fun consumePreprocessorDirectives(builder: PsiBuilder) {
+        while (builder.tokenType == SlangTypes.PREPROCESSOR_DIRECTIVE) {
+            val level = GeneratedParserUtilBase.ErrorState.get(builder).currentFrame.level
+            getParser(builder).parsePreprocessorDirective(builder, level)
         }
     }
 
+    fun advanceLexer(builder: PsiBuilder) {
+        builder.advanceLexer()
+        consumePreprocessorDirectives(builder)
+    }
+
     fun nextTokenIs(builder: PsiBuilder, tokenType: IElementType): Boolean {
-        if (builder.tokenType in SlangTokenSets.PREPROCESSORS)
-            advanceLexer(builder)
+        consumePreprocessorDirectives(builder)
         return GeneratedParserUtilBase.nextTokenIs(builder, tokenType)
     }
 
@@ -76,8 +83,7 @@ class SlangPsiUtil {
     }
 
     fun nextTokenIs(builder: PsiBuilder, name: String): Boolean {
-        if (builder.tokenType in SlangTokenSets.PREPROCESSORS)
-            advanceLexer(builder)
+        consumePreprocessorDirectives(builder)
         return GeneratedParserUtilBase.nextTokenIs(builder, name)
     }
 
