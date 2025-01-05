@@ -81,7 +81,7 @@ INCLUDE_PREPROCESSOR_DIRECTIVE={WHITE_SPACE}*#{WHITE_SPACE}*"include"
 
     {WHITE_SPACE}       { return WHITE_SPACE; }
     {NEW_LINE}          {
-          if (yystate() == PREPROCESSOR || yystate(INCLUDE_PREPROCESSOR)) {
+          if (yystate() == PREPROCESSOR || yystate() == INCLUDE_PREPROCESSOR) {
               yybegin(YYINITIAL);
               return INSTANCE.getPREPROCESSOR_DIRECTIVE_END();
           }

@@ -10,6 +10,7 @@ class PreprocessingParsingTest: ParsingTestCase(
 ) {
     override fun getTestDataPath(): String = "src/test/testData"
 
-    fun testBasicDefine() = doTest(true)
     fun testBasicInclude() = doTest(true)
+    fun testBasicDefine() = doTest(true)
+    fun testBasicUndef() = doTest(true)
 }

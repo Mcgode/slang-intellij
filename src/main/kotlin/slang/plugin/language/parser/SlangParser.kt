@@ -3910,7 +3910,8 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         when (directive) {
             "#include" -> parseIncludeDirective(builder, level)
-            "#define" ->  parseDefineDirective(builder, level)
+            "#define" -> parseDefineDirective(builder, level)
+            "#undef" -> parseUndefDirective(builder)
             else -> TODO("Not yet implemented")
         }
 
@@ -3977,5 +3978,23 @@ open class SlangParser: PsiParser, LightPsiParser {
         }
 
         exit_section_(builder, marker, SlangTypes.DEFINE_DIRECTIVE, true)
+    }
+
+    private fun parseUndefDirective(builder: PsiBuilder) {
+        val marker = enter_section_(builder)
+
+        builder.advanceLexer()
+
+        val result = util.nextTokenIs(builder, SlangTypes.IDENTIFIER)
+        val macroName = builder.tokenText ?: ""
+        if (!result)
+            builder.error("Expected identifier")
+        else {
+            builder.remapCurrentToken(SlangTypes.DEFINE_NAME)
+            macros.remove(macroName)
+        }
+        builder.advanceLexer()
+
+        exit_section_(builder, marker, SlangTypes.UNDEF_DIRECTIVE, true)
     }
 }
