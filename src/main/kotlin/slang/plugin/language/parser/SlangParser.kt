@@ -3908,14 +3908,10 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         val directive = builder.tokenText!!.replace(Regex("\\s"), "")
 
-        if (directive == "#define") {
-            parseDefineDirective(builder, level)
-        }
-        else if (directive == "#include") {
-            parseIncludeDirective(builder, level)
-        }
-        else {
-            TODO("Not yet implemented")
+        when (directive) {
+            "#define" ->  parseDefineDirective(builder, level)
+            "#include" -> parseIncludeDirective(builder, level)
+            else -> TODO("Not yet implemented")
         }
 
         // Advance until new line or EOF if it hasn't been reached yet.
