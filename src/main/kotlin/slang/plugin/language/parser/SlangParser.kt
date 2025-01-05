@@ -3910,7 +3910,11 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         if (directive == "#define") {
             parseDefineDirective(builder, level)
-        } else {
+        }
+        else if (directive == "#include") {
+            parseIncludeDirective(builder, level)
+        }
+        else {
             TODO("Not yet implemented")
         }
 
@@ -3962,5 +3966,20 @@ open class SlangParser: PsiParser, LightPsiParser {
         }
 
         exit_section_(builder, marker, SlangTypes.DEFINE_DIRECTIVE, true)
+    }
+
+    private fun parseIncludeDirective(builder: PsiBuilder, level: Int) {
+        val marker = enter_section_(builder)
+
+        builder.advanceLexer()
+
+        if (!util.nextTokenIs(builder, SlangTypes.STRING_LITERAL)) {
+            builder.error("Expected include string literal")
+        }
+        builder.advanceLexer()
+
+        // TODO: Parse preprocessors from included file
+
+        exit_section_(builder, marker, SlangTypes.INCLUDE_DIRECTIVE, true)
     }
 }

@@ -27,6 +27,7 @@ public class SlangLexer implements FlexLexer {
   public static final int YYINITIAL = 0;
   public static final int MULTILINE_COMMENT_STATE = 2;
   public static final int PREPROCESSOR = 4;
+  public static final int INCLUDE_PREPROCESSOR = 6;
 
   /**
    * ZZ_LEXSTATE[l] is the state in the DFA for the lexical state l
@@ -35,7 +36,7 @@ public class SlangLexer implements FlexLexer {
    * l is of the form l = 2*k, k a non negative integer
    */
   private static final int ZZ_LEXSTATE[] = {
-     0,  1,  2,  2,  0, 1
+     0,  1,  2,  2,  0,  1,  3, 4
   };
 
   /**
@@ -125,20 +126,21 @@ public class SlangLexer implements FlexLexer {
   private static final int [] ZZ_ACTION = zzUnpackAction();
 
   private static final String ZZ_ACTION_PACKED_0 =
-    "\3\0\1\1\1\2\2\3\1\4\2\1\1\5\1\6"+
+    "\5\0\1\1\1\2\2\3\1\4\2\1\1\5\1\6"+
     "\1\7\1\10\1\11\1\12\1\13\1\14\1\15\1\16"+
     "\1\17\2\20\1\21\1\22\1\23\1\24\1\25\1\26"+
     "\1\27\1\30\1\1\1\31\1\32\1\2\1\33\1\34"+
-    "\1\35\1\36\1\2\1\1\1\2\3\37\2\0\1\40"+
-    "\1\0\1\41\1\0\1\42\1\43\1\44\1\45\1\46"+
-    "\1\47\1\50\1\51\1\52\1\53\1\54\1\55\1\56"+
-    "\1\57\1\0\1\20\1\0\1\60\1\61\1\62\1\63"+
-    "\1\64\1\65\1\0\1\2\1\66\1\67\1\70\4\0"+
-    "\1\71\1\54\3\0\1\54\1\20\1\72\1\73\3\0"+
-    "\1\74\11\0\1\74\5\0";
+    "\1\35\1\36\1\2\1\1\1\2\3\37\1\23\2\0"+
+    "\1\40\1\0\1\41\1\0\1\42\1\43\1\44\1\45"+
+    "\1\46\1\47\1\50\1\51\1\52\1\53\1\54\1\55"+
+    "\1\56\1\57\1\0\1\20\1\0\1\60\1\61\1\62"+
+    "\1\63\1\64\1\65\1\0\1\2\1\66\1\67\1\70"+
+    "\4\0\1\71\1\0\1\61\1\62\1\41\1\0\1\54"+
+    "\3\0\1\54\1\20\1\72\1\73\3\0\1\74\2\0"+
+    "\1\72\7\0\1\74\6\0\1\75";
 
   private static int [] zzUnpackAction() {
-    int [] result = new int[111];
+    int [] result = new int[122];
     int offset = 0;
     offset = zzUnpackAction(ZZ_ACTION_PACKED_0, offset, result);
     return result;
@@ -163,23 +165,25 @@ public class SlangLexer implements FlexLexer {
   private static final int [] ZZ_ROWMAP = zzUnpackRowMap();
 
   private static final String ZZ_ROWMAP_PACKED_0 =
-    "\0\0\0\71\0\162\0\253\0\344\0\u011d\0\253\0\u0156"+
-    "\0\u018f\0\u01c8\0\253\0\u0201\0\u023a\0\253\0\253\0\u0273"+
-    "\0\u02ac\0\253\0\u02e5\0\u031e\0\u0357\0\u0390\0\u03c9\0\u0402"+
-    "\0\253\0\u043b\0\u0474\0\u04ad\0\253\0\u04e6\0\253\0\u051f"+
-    "\0\253\0\u0558\0\u0591\0\253\0\u05ca\0\253\0\253\0\u0603"+
-    "\0\u063c\0\u0675\0\u06ae\0\253\0\u06e7\0\u011d\0\u0720\0\253"+
-    "\0\u018f\0\253\0\u0759\0\253\0\253\0\253\0\253\0\253"+
-    "\0\253\0\253\0\253\0\253\0\253\0\u0792\0\253\0\u07cb"+
-    "\0\253\0\u0804\0\253\0\u083d\0\253\0\u0876\0\253\0\253"+
-    "\0\253\0\u08af\0\u051f\0\253\0\253\0\253\0\253\0\u08e8"+
-    "\0\u0921\0\u095a\0\u0993\0\253\0\253\0\u09cc\0\u0a05\0\u0a3e"+
-    "\0\u0a77\0\u0ab0\0\253\0\253\0\u0ae9\0\u0b22\0\u0b5b\0\u0b94"+
-    "\0\u0bcd\0\u0c06\0\u0c3f\0\u0c78\0\u0cb1\0\u0cea\0\u0d23\0\u0d5c"+
-    "\0\u0d95\0\253\0\u0dce\0\u0e07\0\u0e40\0\u0e79\0\u0eb2";
+    "\0\0\0\71\0\162\0\253\0\344\0\u011d\0\u0156\0\u018f"+
+    "\0\u011d\0\u01c8\0\u0201\0\u023a\0\u011d\0\u0273\0\u02ac\0\u011d"+
+    "\0\u011d\0\u02e5\0\u031e\0\u011d\0\u0357\0\u0390\0\u03c9\0\u0402"+
+    "\0\u043b\0\u0474\0\u011d\0\u04ad\0\u04e6\0\u051f\0\u011d\0\u0558"+
+    "\0\u011d\0\u0591\0\u011d\0\u05ca\0\u0603\0\u011d\0\u063c\0\u011d"+
+    "\0\u011d\0\u0675\0\u06ae\0\u06e7\0\u0720\0\u011d\0\u0759\0\u0792"+
+    "\0\u018f\0\u07cb\0\u011d\0\u0201\0\u011d\0\u0804\0\u011d\0\u011d"+
+    "\0\u011d\0\u011d\0\u011d\0\u011d\0\u011d\0\u011d\0\u011d\0\u011d"+
+    "\0\u083d\0\u011d\0\u0876\0\u011d\0\u08af\0\u011d\0\u08e8\0\u011d"+
+    "\0\u0921\0\u011d\0\u011d\0\u011d\0\u095a\0\u0591\0\u011d\0\u011d"+
+    "\0\u011d\0\u011d\0\u0993\0\u09cc\0\u0a05\0\u0a3e\0\u011d\0\u0a77"+
+    "\0\u0ab0\0\u0a77\0\u0a77\0\u0ae9\0\u011d\0\u0b22\0\u0b5b\0\u0b94"+
+    "\0\u0bcd\0\u0c06\0\u011d\0\u011d\0\u0c3f\0\u0c78\0\u0cb1\0\u0cea"+
+    "\0\u0d23\0\u0d5c\0\u0a77\0\u0d95\0\u0dce\0\u0e07\0\u0e40\0\u0e79"+
+    "\0\u0eb2\0\u0eeb\0\u011d\0\u0f24\0\u0f5d\0\u0f96\0\u0fcf\0\u1008"+
+    "\0\u1041\0\u011d";
 
   private static int [] zzUnpackRowMap() {
-    int [] result = new int[111];
+    int [] result = new int[122];
     int offset = 0;
     offset = zzUnpackRowMap(ZZ_ROWMAP_PACKED_0, offset, result);
     return result;
@@ -202,55 +206,69 @@ public class SlangLexer implements FlexLexer {
   private static final int [] ZZ_TRANS = zzUnpacktrans();
 
   private static final String ZZ_TRANS_PACKED_0 =
-    "\1\4\1\5\1\6\1\4\1\5\1\7\1\10\1\11"+
-    "\1\12\1\13\1\14\1\15\1\16\1\17\1\20\1\21"+
+    "\1\6\1\7\1\10\1\6\1\7\1\11\1\12\1\13"+
+    "\1\14\1\15\1\16\1\17\1\20\1\21\1\22\1\23"+
+    "\1\24\1\25\1\26\1\27\1\30\1\31\1\32\1\33"+
+    "\1\34\1\35\1\36\1\37\7\40\1\41\1\42\1\43"+
+    "\1\44\15\40\1\45\1\46\1\47\1\50\1\51\1\6"+
+    "\1\52\1\10\1\6\1\52\1\11\1\12\1\13\1\53"+
+    "\1\15\1\16\1\17\1\20\1\21\1\22\1\23\1\24"+
+    "\1\25\1\26\1\27\1\30\1\31\1\32\1\33\1\34"+
+    "\1\35\1\36\1\37\7\40\1\41\1\42\1\43\1\44"+
+    "\15\40\1\54\1\46\1\47\1\50\1\51\2\55\1\56"+
+    "\13\55\1\57\52\55\1\6\1\7\1\10\1\6\1\7"+
+    "\1\11\1\12\1\13\1\14\1\15\1\16\1\17\1\20"+
+    "\1\21\1\22\1\23\1\24\1\25\1\26\1\27\1\30"+
+    "\1\31\1\32\1\33\1\60\1\35\1\36\1\37\7\40"+
+    "\1\41\1\42\1\43\1\44\15\40\1\45\1\46\1\47"+
+    "\1\50\1\51\1\6\1\52\1\10\1\6\1\52\1\11"+
+    "\1\12\1\13\1\53\1\15\1\16\1\17\1\20\1\21"+
     "\1\22\1\23\1\24\1\25\1\26\1\27\1\30\1\31"+
-    "\1\32\1\33\1\34\1\35\7\36\1\37\1\40\1\41"+
-    "\1\42\15\36\1\43\1\44\1\45\1\46\1\47\1\4"+
-    "\1\50\1\6\1\4\1\50\1\7\1\10\1\11\1\51"+
-    "\1\13\1\14\1\15\1\16\1\17\1\20\1\21\1\22"+
-    "\1\23\1\24\1\25\1\26\1\27\1\30\1\31\1\32"+
-    "\1\33\1\34\1\35\7\36\1\37\1\40\1\41\1\42"+
-    "\15\36\1\52\1\44\1\45\1\46\1\47\2\53\1\54"+
-    "\13\53\1\55\52\53\72\0\1\5\2\0\1\5\57\0"+
-    "\1\5\5\0\1\56\2\0\1\56\3\0\1\57\53\0"+
-    "\1\56\35\0\1\60\37\0\7\61\1\62\34\61\1\63"+
-    "\24\61\33\0\1\64\66\0\1\65\52\0\1\66\15\0"+
-    "\1\67\70\0\1\70\56\0\1\71\11\0\1\72\60\0"+
-    "\1\73\7\0\1\74\1\75\62\0\2\76\61\0\1\77"+
-    "\4\0\1\100\5\0\1\101\61\0\1\76\1\0\2\27"+
-    "\7\0\1\102\3\0\1\103\1\104\7\0\1\102\10\0"+
-    "\1\103\27\0\1\76\1\0\2\27\7\0\1\102\3\0"+
-    "\1\103\10\0\1\102\10\0\1\103\33\0\1\105\72\0"+
-    "\1\106\1\107\70\0\1\110\70\0\1\111\1\112\62\0"+
-    "\2\36\6\0\7\36\4\0\16\36\5\0\1\113\1\114"+
-    "\1\0\1\113\1\114\56\0\1\113\35\0\1\115\40\0"+
-    "\1\5\2\0\1\5\17\0\2\36\6\0\7\36\4\0"+
-    "\15\36\1\43\35\0\1\116\34\0\1\117\3\0\1\50"+
-    "\2\0\1\50\3\0\1\57\53\0\1\50\5\0\1\57"+
-    "\2\0\1\57\26\0\1\64\15\0\1\120\1\121\2\0"+
-    "\1\122\3\0\1\123\2\0\1\57\5\0\1\50\2\0"+
-    "\1\50\3\0\1\57\13\0\2\36\6\0\7\36\4\0"+
-    "\15\36\1\52\4\0\2\53\1\0\13\53\1\0\52\53"+
-    "\23\0\1\124\46\0\1\57\2\0\1\57\44\0\1\120"+
-    "\1\121\2\0\1\122\3\0\1\123\2\0\1\57\4\0"+
-    "\2\61\4\0\63\61\24\0\2\76\7\0\1\102\1\125"+
-    "\1\0\1\126\11\0\1\102\1\125\2\0\1\127\12\0"+
-    "\2\100\4\0\63\100\17\0\1\130\1\0\1\130\2\0"+
-    "\2\131\67\0\2\132\6\0\3\132\10\0\5\132\46\0"+
-    "\1\133\70\0\1\134\111\0\1\135\74\0\1\136\1\0"+
-    "\1\137\63\0\1\140\4\0\1\141\72\0\1\142\44\0"+
-    "\1\125\105\0\1\125\41\0\2\131\67\0\2\131\10\0"+
-    "\1\125\1\0\1\126\12\0\1\125\2\0\1\127\36\0"+
-    "\2\132\6\0\3\132\2\0\1\103\5\0\5\132\7\0"+
-    "\1\103\60\0\1\143\72\0\1\144\64\0\1\136\70\0"+
-    "\1\145\6\0\1\146\60\0\1\147\67\0\1\150\76\0"+
-    "\1\151\66\0\1\152\67\0\1\144\67\0\1\145\75\0"+
-    "\1\153\66\0\1\154\74\0\1\155\73\0\1\156\64\0"+
-    "\1\157\63\0\1\152\67\0\1\155\66\0\1\152\21\0";
+    "\1\32\1\33\1\60\1\35\1\36\1\37\7\40\1\41"+
+    "\1\42\1\43\1\44\15\40\1\54\1\46\1\47\1\50"+
+    "\1\51\72\0\1\7\2\0\1\7\57\0\1\7\5\0"+
+    "\1\61\2\0\1\61\3\0\1\62\53\0\1\61\35\0"+
+    "\1\63\37\0\7\64\1\65\34\64\1\66\24\64\33\0"+
+    "\1\67\66\0\1\70\52\0\1\71\15\0\1\72\70\0"+
+    "\1\73\56\0\1\74\11\0\1\75\60\0\1\76\7\0"+
+    "\1\77\1\100\62\0\2\101\61\0\1\102\4\0\1\103"+
+    "\5\0\1\104\61\0\1\101\1\0\2\31\7\0\1\105"+
+    "\3\0\1\106\1\107\7\0\1\105\10\0\1\106\27\0"+
+    "\1\101\1\0\2\31\7\0\1\105\3\0\1\106\10\0"+
+    "\1\105\10\0\1\106\33\0\1\110\72\0\1\111\1\112"+
+    "\70\0\1\113\70\0\1\114\1\115\62\0\2\40\6\0"+
+    "\7\40\4\0\16\40\5\0\1\116\1\117\1\0\1\116"+
+    "\1\117\56\0\1\116\35\0\1\120\40\0\1\7\2\0"+
+    "\1\7\17\0\2\40\6\0\7\40\4\0\15\40\1\45"+
+    "\35\0\1\121\34\0\1\122\3\0\1\52\2\0\1\52"+
+    "\3\0\1\62\53\0\1\52\5\0\1\62\2\0\1\62"+
+    "\26\0\1\67\15\0\1\123\1\124\2\0\1\125\3\0"+
+    "\1\126\2\0\1\62\5\0\1\52\2\0\1\52\3\0"+
+    "\1\62\13\0\2\40\6\0\7\40\4\0\15\40\1\54"+
+    "\4\0\2\55\1\0\13\55\1\0\52\55\23\0\1\127"+
+    "\45\0\7\130\1\0\20\130\1\131\1\132\1\133\11\130"+
+    "\1\134\24\130\1\0\1\62\2\0\1\62\44\0\1\123"+
+    "\1\124\2\0\1\125\3\0\1\126\2\0\1\62\4\0"+
+    "\2\64\4\0\63\64\24\0\2\101\7\0\1\105\1\135"+
+    "\1\0\1\136\11\0\1\105\1\135\2\0\1\137\12\0"+
+    "\2\103\4\0\63\103\17\0\1\140\1\0\1\140\2\0"+
+    "\2\141\67\0\2\142\6\0\3\142\10\0\5\142\46\0"+
+    "\1\143\70\0\1\144\111\0\1\145\74\0\1\146\1\0"+
+    "\1\147\63\0\1\150\4\0\1\151\72\0\1\152\6\0"+
+    "\7\130\1\0\22\130\1\133\11\130\1\134\33\130\1\0"+
+    "\21\130\1\153\1\133\11\130\1\134\26\130\4\0\63\130"+
+    "\36\0\1\135\105\0\1\135\41\0\2\141\67\0\2\141"+
+    "\10\0\1\135\1\0\1\136\12\0\1\135\2\0\1\137"+
+    "\36\0\2\142\6\0\3\142\2\0\1\106\5\0\5\142"+
+    "\7\0\1\106\60\0\1\154\72\0\1\155\64\0\1\146"+
+    "\70\0\1\156\6\0\1\157\60\0\1\160\67\0\1\161"+
+    "\76\0\1\162\66\0\1\163\67\0\1\155\67\0\1\156"+
+    "\75\0\1\164\66\0\1\165\74\0\1\166\73\0\1\167"+
+    "\64\0\1\170\63\0\1\163\67\0\1\171\66\0\1\163"+
+    "\73\0\1\172\16\0";
 
   private static int [] zzUnpacktrans() {
-    int [] result = new int[3819];
+    int [] result = new int[4218];
     int offset = 0;
     offset = zzUnpacktrans(ZZ_TRANS_PACKED_0, offset, result);
     return result;
@@ -288,16 +306,17 @@ public class SlangLexer implements FlexLexer {
   private static final int [] ZZ_ATTRIBUTE = zzUnpackAttribute();
 
   private static final String ZZ_ATTRIBUTE_PACKED_0 =
-    "\3\0\1\11\2\1\1\11\3\1\1\11\2\1\2\11"+
+    "\5\0\1\11\2\1\1\11\3\1\1\11\2\1\2\11"+
     "\2\1\1\11\6\1\1\11\3\1\1\11\1\1\1\11"+
     "\1\1\1\11\2\1\1\11\1\1\2\11\4\1\1\11"+
-    "\1\1\2\0\1\11\1\0\1\11\1\0\12\11\1\1"+
+    "\2\1\2\0\1\11\1\0\1\11\1\0\12\11\1\1"+
     "\1\11\1\1\1\11\1\0\1\11\1\0\1\11\1\1"+
-    "\3\11\1\1\1\0\4\11\4\0\2\11\3\0\2\1"+
-    "\2\11\3\0\1\1\11\0\1\11\5\0";
+    "\3\11\1\1\1\0\4\11\4\0\1\11\1\0\3\1"+
+    "\1\0\1\11\3\0\2\1\2\11\3\0\1\1\2\0"+
+    "\1\1\7\0\1\11\6\0\1\11";
 
   private static int [] zzUnpackAttribute() {
-    int [] result = new int[111];
+    int [] result = new int[122];
     int offset = 0;
     offset = zzUnpackAttribute(ZZ_ATTRIBUTE_PACKED_0, offset, result);
     return result;
@@ -647,14 +666,14 @@ public class SlangLexer implements FlexLexer {
             { return BAD_CHARACTER;
             }
           // fall through
-          case 61: break;
+          case 62: break;
           case 2:
             { return WHITE_SPACE;
             }
           // fall through
-          case 62: break;
+          case 63: break;
           case 3:
-            { if (yystate() == PREPROCESSOR) {
+            { if (yystate() == PREPROCESSOR || yystate() == INCLUDE_PREPROCESSOR) {
               yybegin(YYINITIAL);
               return INSTANCE.getPREPROCESSOR_DIRECTIVE_END();
           }
@@ -662,292 +681,297 @@ public class SlangLexer implements FlexLexer {
               return INSTANCE.getNEW_LINE();
             }
           // fall through
-          case 63: break;
+          case 64: break;
           case 4:
             { return INSTANCE.getNOT_OP();
             }
           // fall through
-          case 64: break;
+          case 65: break;
           case 5:
             { return INSTANCE.getDOLLAR();
             }
           // fall through
-          case 65: break;
+          case 66: break;
           case 6:
             { return INSTANCE.getMOD_OP();
             }
           // fall through
-          case 66: break;
+          case 67: break;
           case 7:
             { return INSTANCE.getBIT_AND_OP();
             }
           // fall through
-          case 67: break;
+          case 68: break;
           case 8:
             { return INSTANCE.getLEFT_PAREN();
             }
           // fall through
-          case 68: break;
+          case 69: break;
           case 9:
             { return INSTANCE.getRIGHT_PAREN();
             }
           // fall through
-          case 69: break;
+          case 70: break;
           case 10:
             { return INSTANCE.getMUL_OP();
             }
           // fall through
-          case 70: break;
+          case 71: break;
           case 11:
             { return INSTANCE.getADD_OP();
             }
           // fall through
-          case 71: break;
+          case 72: break;
           case 12:
             { return INSTANCE.getCOMMA();
             }
           // fall through
-          case 72: break;
+          case 73: break;
           case 13:
             { return INSTANCE.getSUB_OP();
             }
           // fall through
-          case 73: break;
+          case 74: break;
           case 14:
             { return INSTANCE.getDOT();
             }
           // fall through
-          case 74: break;
+          case 75: break;
           case 15:
             { return INSTANCE.getDIV_OP();
             }
           // fall through
-          case 75: break;
+          case 76: break;
           case 16:
             { return INSTANCE.getINTEGER_LITERAL();
             }
           // fall through
-          case 76: break;
+          case 77: break;
           case 17:
             { return INSTANCE.getCOLON();
             }
           // fall through
-          case 77: break;
+          case 78: break;
           case 18:
             { return INSTANCE.getSEMICOLON();
             }
           // fall through
-          case 78: break;
+          case 79: break;
           case 19:
             { return INSTANCE.getLESS_OP();
             }
           // fall through
-          case 79: break;
+          case 80: break;
           case 20:
             { return INSTANCE.getASSIGN_OP();
             }
           // fall through
-          case 80: break;
+          case 81: break;
           case 21:
             { return INSTANCE.getGREATER_OP();
             }
           // fall through
-          case 81: break;
+          case 82: break;
           case 22:
             { return INSTANCE.getQUESTION_MARK();
             }
           // fall through
-          case 82: break;
+          case 83: break;
           case 23:
             { return INSTANCE.getIDENTIFIER();
             }
           // fall through
-          case 83: break;
+          case 84: break;
           case 24:
             { return INSTANCE.getLEFT_BRACKET();
             }
           // fall through
-          case 84: break;
+          case 85: break;
           case 25:
             { return INSTANCE.getRIGHT_BRACKET();
             }
           // fall through
-          case 85: break;
+          case 86: break;
           case 26:
             { return INSTANCE.getBIT_XOR_OP();
             }
           // fall through
-          case 86: break;
+          case 87: break;
           case 27:
             { return INSTANCE.getLEFT_BRACE();
             }
           // fall through
-          case 87: break;
+          case 88: break;
           case 28:
             { return INSTANCE.getBIT_OR_OP();
             }
           // fall through
-          case 88: break;
+          case 89: break;
           case 29:
             { return INSTANCE.getRIGHT_BRACE();
             }
           // fall through
-          case 89: break;
+          case 90: break;
           case 30:
             { return INSTANCE.getBIT_NOT_OP();
             }
           // fall through
-          case 90: break;
+          case 91: break;
           case 31:
             { return INSTANCE.getMULTILINE_COMMENT();
             }
           // fall through
-          case 91: break;
+          case 92: break;
           case 32:
             { return INSTANCE.getNEQ_OP();
             }
           // fall through
-          case 92: break;
+          case 93: break;
           case 33:
             { return INSTANCE.getSTRING_LITERAL();
             }
           // fall through
-          case 93: break;
+          case 94: break;
           case 34:
             { return INSTANCE.getCOMPLETION_REQUEST();
             }
           // fall through
-          case 94: break;
+          case 95: break;
           case 35:
             { return INSTANCE.getMOD_ASSIGN_OP();
             }
           // fall through
-          case 95: break;
+          case 96: break;
           case 36:
             { return INSTANCE.getAND_OP();
             }
           // fall through
-          case 96: break;
+          case 97: break;
           case 37:
             { return INSTANCE.getAND_ASSIGN_OP();
             }
           // fall through
-          case 97: break;
+          case 98: break;
           case 38:
             { return INSTANCE.getMUL_ASSIGN_OP();
             }
           // fall through
-          case 98: break;
+          case 99: break;
           case 39:
             { return INSTANCE.getINC_OP();
             }
           // fall through
-          case 99: break;
+          case 100: break;
           case 40:
             { return INSTANCE.getADD_ASSIGN_OP();
             }
           // fall through
-          case 100: break;
+          case 101: break;
           case 41:
             { return INSTANCE.getDEC_OP();
             }
           // fall through
-          case 101: break;
+          case 102: break;
           case 42:
             { return INSTANCE.getSUB_ASSIGN_OP();
             }
           // fall through
-          case 102: break;
+          case 103: break;
           case 43:
             { return INSTANCE.getRIGHT_ARROW();
             }
           // fall through
-          case 103: break;
+          case 104: break;
           case 44:
             { return INSTANCE.getFLOAT_LITERAL();
             }
           // fall through
-          case 104: break;
+          case 105: break;
           case 45:
             { yybegin(MULTILINE_COMMENT_STATE); return INSTANCE.getMULTILINE_COMMENT();
             }
           // fall through
-          case 105: break;
+          case 106: break;
           case 46:
             { return INSTANCE.getLINE_COMMENT();
             }
           // fall through
-          case 106: break;
+          case 107: break;
           case 47:
             { return INSTANCE.getDIV_ASSIGN_OP();
             }
           // fall through
-          case 107: break;
+          case 108: break;
           case 48:
             { return INSTANCE.getSCOPE();
             }
           // fall through
-          case 108: break;
+          case 109: break;
           case 49:
             { return INSTANCE.getSHL_OP();
             }
           // fall through
-          case 109: break;
+          case 110: break;
           case 50:
             { return INSTANCE.getLEQ_OP();
             }
           // fall through
-          case 110: break;
+          case 111: break;
           case 51:
             { return INSTANCE.getEQL_OP();
             }
           // fall through
-          case 111: break;
+          case 112: break;
           case 52:
             { return INSTANCE.getGEQ_OP();
             }
           // fall through
-          case 112: break;
+          case 113: break;
           case 53:
             { return INSTANCE.getSHR_OP();
             }
           // fall through
-          case 113: break;
+          case 114: break;
           case 54:
             { return INSTANCE.getXOR_ASSIGN_OP();
             }
           // fall through
-          case 114: break;
+          case 115: break;
           case 55:
             { return INSTANCE.getOR_ASSIGN_OP();
             }
           // fall through
-          case 115: break;
+          case 116: break;
           case 56:
             { return INSTANCE.getOR_OP();
             }
           // fall through
-          case 116: break;
+          case 117: break;
           case 57:
             { yybegin(YYINITIAL); return INSTANCE.getMULTILINE_COMMENT();
             }
           // fall through
-          case 117: break;
+          case 118: break;
           case 58:
             { return INSTANCE.getSHL_ASSIGN_OP();
             }
           // fall through
-          case 118: break;
+          case 119: break;
           case 59:
             { return INSTANCE.getSHR_ASSIGN_OP();
             }
           // fall through
-          case 119: break;
+          case 120: break;
           case 60:
             { yybegin(PREPROCESSOR); return INSTANCE.getPREPROCESSOR_DIRECTIVE();
             }
           // fall through
-          case 120: break;
+          case 121: break;
+          case 61:
+            { yybegin(INCLUDE_PREPROCESSOR); return INSTANCE.getPREPROCESSOR_DIRECTIVE();
+            }
+          // fall through
+          case 122: break;
           default:
             zzScanError(ZZ_NO_MATCH);
           }
