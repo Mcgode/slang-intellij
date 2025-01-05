@@ -8,9 +8,9 @@ import slang.plugin.language.parser.data.Scope
 
 import slang.plugin.psi.types.SlangTypes
 
-object SlangPsiUtil: GeneratedParserUtilBase() {
+class SlangPsiUtil {
 
-    @JvmStatic fun skipToMatchingToken(builder: PsiBuilder, tokenType: IElementType): IElementType? {
+    fun skipToMatchingToken(builder: PsiBuilder, tokenType: IElementType): IElementType? {
         while (true) {
             if (builder.eof())
                 return null
@@ -23,7 +23,7 @@ object SlangPsiUtil: GeneratedParserUtilBase() {
         }
     }
 
-    @JvmStatic fun skipBalancedToken(builder: PsiBuilder): IElementType? {
+    fun skipBalancedToken(builder: PsiBuilder): IElementType? {
         builder.advanceLexer()
         var tokenType = builder.tokenType
         when (tokenType) {
@@ -35,7 +35,7 @@ object SlangPsiUtil: GeneratedParserUtilBase() {
         return tokenType
     }
 
-    @JvmStatic fun isFirstNonWhitespaceTokenOnNewLine(builder: PsiBuilder): Boolean {
+    fun isFirstNonWhitespaceTokenOnNewLine(builder: PsiBuilder): Boolean {
         var currentOffset = -1
         var isNewLine = false
         while (true) {
@@ -54,18 +54,61 @@ object SlangPsiUtil: GeneratedParserUtilBase() {
         return isNewLine
     }
 
-    @JvmStatic fun nextTokenIs(builder: PsiBuilder, names: Iterable<String>): Boolean {
+    fun advanceLexer(builder: PsiBuilder) {
+        builder.advanceLexer()
+
+        while (builder.tokenType in SlangTokenSets.PREPROCESSORS) {
+            builder.advanceLexer()
+        }
+    }
+
+    fun nextTokenIs(builder: PsiBuilder, tokenType: IElementType): Boolean {
+        if (builder.tokenType in SlangTokenSets.PREPROCESSORS)
+            advanceLexer(builder)
+        return GeneratedParserUtilBase.nextTokenIs(builder, tokenType)
+    }
+
+    fun nextTokenIs(builder: PsiBuilder, vararg tokenTypes: IElementType): Boolean {
+        for (tokenType in tokenTypes)
+            if (nextTokenIs(builder, tokenType))
+                return true
+        return false
+    }
+
+    fun nextTokenIs(builder: PsiBuilder, name: String): Boolean {
+        if (builder.tokenType in SlangTokenSets.PREPROCESSORS)
+            advanceLexer(builder)
+        return GeneratedParserUtilBase.nextTokenIs(builder, name)
+    }
+
+    fun nextTokenIs(builder: PsiBuilder, names: Iterable<String>): Boolean {
         for (name in names)
             if (nextTokenIs(builder, name))
                 return true
         return false
     }
 
-    @JvmStatic fun findNamespaceScope(name: String, scopes: Iterable<Scope>): Scope? {
+    fun consumeToken(builder: PsiBuilder, tokenType: IElementType): Boolean {
+        if (nextTokenIs(builder, tokenType)) {
+            advanceLexer(builder)
+            return true
+        }
+        return false
+    }
+
+    fun consumeToken(builder: PsiBuilder, name: String): Boolean {
+        if (nextTokenIs(builder, name)) {
+            advanceLexer(builder)
+            return true
+        }
+        return false
+    }
+
+    fun findNamespaceScope(name: String, scopes: Iterable<Scope>): Scope? {
         return scopes.find { it.type == SlangTypes.NAMESPACE_DECLARATION && it.namespaceName == name }
     }
 
-    @JvmStatic fun peekModernStyleVarDeclaration(builder: PsiBuilder): Boolean {
+    fun peekModernStyleVarDeclaration(builder: PsiBuilder): Boolean {
         return if (!nextTokenIs(builder, SlangTypes.IDENTIFIER))
             false
         else {

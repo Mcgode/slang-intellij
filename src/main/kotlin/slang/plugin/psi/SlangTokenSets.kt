@@ -25,6 +25,12 @@ interface SlangTokenSets {
         val NUMERIC_LITERALS: TokenSet
             get() = TokenSet.create(SlangTypes.INTEGER_LITERAL, SlangTypes.FLOAT_LITERAL)
 
+        val PREPROCESSORS: TokenSet
+            get() = TokenSet.create(
+                SlangTypes.PREPROCESSOR,
+                SlangTypes.PREPROCESSOR_WHITE_SPACE,
+            )
+
     }
 
 }
