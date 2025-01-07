@@ -3,6 +3,8 @@ package slang.plugin.psi.types
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import slang.plugin.psi.SlangElementType
+import slang.plugin.psi.SlangGhostElement
+import slang.plugin.psi.SlangGhostToken
 import slang.plugin.psi.SlangTokenType
 import slang.plugin.psi.types.impl.*
 
@@ -93,6 +95,7 @@ object SlangTypes {
     val IS_TYPE_EXPRESSION = SlangElementType("IS_TYPE_EXPRESSION")
     val LABEL_STATEMENT = SlangElementType("LABEL_STATEMENT")
     val LET_DECLARATION = SlangElementType("LET_DECLARATION")
+    val MACRO_CALL = SlangElementType("MACRO_CALL")
     val MAGIC_TYPE_MODIFIER = SlangElementType("MAGIC_TYPE_MODIFIER")
     val MEMBER_EXPRESSION = SlangElementType("MEMBER_EXPRESSION")
     val MODERN_PARAMETER_DECLARATION = SlangElementType("MODERN_PARAMETER_DECLARATION")
@@ -382,6 +385,7 @@ object SlangTypes {
                     IS_TYPE_EXPRESSION -> return SlangIsTypeExpressionImpl(node)
                     LABEL_STATEMENT -> return SlangLabelStatementImpl(node)
                     LET_DECLARATION -> return SlangLetDeclarationImpl(node)
+                    MACRO_CALL -> return SlangMacroCallImpl(node)
                     MAGIC_TYPE_MODIFIER -> return SlangMagicTypeModifierImpl(node)
                     MEMBER_EXPRESSION -> return SlangMemberExpressionImpl(node)
                     MODERN_PARAMETER_DECLARATION -> return SlangModernParameterDeclarationImpl(node)
@@ -436,6 +440,8 @@ object SlangTypes {
                     VK_CONSTANT_ID_ATTRIBUTE -> return SlangVkConstantIdAttributeImpl(node)
                     WHILE_STATEMENT -> return SlangWhileStatementImpl(node)
                 }
+                if (node?.elementType is SlangGhostToken)
+                    return SlangGhostElement(node)
                 throw AssertionError("Unknown element type: ${node?.elementType}")
             }
         }

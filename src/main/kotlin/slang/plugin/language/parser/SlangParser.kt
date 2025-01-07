@@ -1,5 +1,6 @@
 package slang.plugin.language.parser
 
+import com.intellij.configurationStore.Macro
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LightPsiParser
 import com.intellij.lang.PsiBuilder
@@ -3902,6 +3903,8 @@ open class SlangParser: PsiParser, LightPsiParser {
         return result
     }
 
+    fun getMacroExpansion(macroName: String): MacroExpansion? = macros[macroName]
+
     fun parsePreprocessorDirective(builder: PsiBuilder, level: Int) {
         if (!recursion_guard_(builder, level, "parsePreprocessorDirective"))
             return
@@ -3969,7 +3972,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             && builder.tokenType != SlangTypes.PREPROCESSOR_DIRECTIVE
             && builder.tokenType != SlangTypes.PREPROCESSOR_DIRECTIVE_END)
         {
-            macros[macroName]!!.content.push(builder.tokenType!!)
+            macros[macroName]!!.content.push(TokenData(builder.tokenType!!, builder.tokenText!!))
             builder.advanceLexer()
         }
 
