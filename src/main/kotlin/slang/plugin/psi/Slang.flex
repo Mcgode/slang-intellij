@@ -31,7 +31,7 @@ import static slang.plugin.psi.types.SlangTypes.*;
 %state INCLUDE_PREPROCESSOR
 
 NEW_LINE=[\n\r]
-WHITE_SPACE=[\ \t\f\v]+
+WHITE_SPACE=[\ \t\f]+
 BACK_SLASH = \\{WHITE_SPACE}*{NEW_LINE}
 LINE_COMMENT = "//"+.*
 
