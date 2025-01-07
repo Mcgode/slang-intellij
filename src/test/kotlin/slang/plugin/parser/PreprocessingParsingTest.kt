@@ -13,4 +13,5 @@ class PreprocessingParsingTest: ParsingTestCase(
     fun testBasicInclude() = doTest(true)
     fun testBasicDefine() = doTest(true)
     fun testBasicUndef() = doTest(true)
+    fun testUpleveledDefine() = doTest(true)
 }
