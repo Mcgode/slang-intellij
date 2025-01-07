@@ -26,6 +26,9 @@
         <lang.syntaxHighlighterFactory
             language="Slang"
             implementationClass="slang.plugin.code.highlighting.SlangSyntaxHighlighterFactory" />
+        <annotator
+                language="Slang"
+                implementationClass="slang.plugin.code.highlighting.SlangSyntaxHighlighter" />
         <notificationGroup
                 displayType="BALLOON"
                 id="Slang" />
