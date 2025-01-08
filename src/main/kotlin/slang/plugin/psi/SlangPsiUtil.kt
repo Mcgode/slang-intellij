@@ -2,20 +2,14 @@ package slang.plugin.psi
 
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.parser.GeneratedParserUtilBase
-import com.intellij.platform.workspace.jps.entities.LibraryTableId.ProjectLibraryTableId
-import com.intellij.platform.workspace.jps.entities.LibraryTableId.ProjectLibraryTableId.level
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.util.alsoIfNull
-import com.jetbrains.rd.generator.nova.PredefinedType
 import slang.plugin.language.parser.SlangParser
-import slang.plugin.language.parser.data.MacroExpansion
 import slang.plugin.language.parser.data.Scope
 import slang.plugin.language.parser.data.TokenData
-
 import slang.plugin.psi.types.SlangTypes
 import slang.plugin.psi.utils.ExpandedMacro
-import kotlin.math.exp
 
 class SlangPsiUtil {
 
@@ -185,6 +179,20 @@ class SlangPsiUtil {
     private fun createGhostToken(builder: PsiBuilder, tokenData: TokenData) {
         val marker = builder.mark()
         marker.done(SlangGhostToken(tokenData.token, tokenData.string))
+    }
+
+    fun getTokenType(builder: PsiBuilder): IElementType? {
+        return if (currentExpandedMacro == null)
+            builder.tokenType
+        else
+            currentExpandedMacro?.dynamicTokens?.get(currentExpansionIndex)?.token
+    }
+
+    fun getTokenText(builder: PsiBuilder): String? {
+        return if (currentExpandedMacro == null)
+            builder.tokenText
+        else
+            currentExpandedMacro?.dynamicTokens?.get(currentExpansionIndex)?.string
     }
 
     fun advanceLexer(builder: PsiBuilder) {

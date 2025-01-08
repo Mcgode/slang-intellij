@@ -48,23 +48,22 @@ Slang File
                 SlangMacroCallImpl(SlangElementType.MACRO_CALL)
                   PsiElement(SlangElementType.DEFINE_NAME)('C')
                   SlangMacroCallImpl(SlangElementType.MACRO_CALL)
-                    SlangGhostElement(SlangElementType.DEFINE_NAME)
+                    SlangGhostElement(SlangElementType.DEFINE_NAME)('A')
                       <empty list>
                   SlangMacroCallImpl(SlangElementType.MACRO_CALL)
-                    SlangGhostElement(SlangElementType.DEFINE_NAME)
+                    SlangGhostElement(SlangElementType.DEFINE_NAME)('B')
                       <empty list>
                     SlangMacroCallImpl(SlangElementType.MACRO_CALL)
-                      SlangGhostElement(SlangElementType.DEFINE_NAME)
+                      SlangGhostElement(SlangElementType.DEFINE_NAME)('A')
                         <empty list>
                 SlangExpressionImpl(SlangElementType.EXPRESSION)
-                  SlangGhostElement(SlangTokenType.INTEGER_LITERAL)
+                  SlangGhostElement(SlangTokenType.INTEGER_LITERAL)('1')
                     <empty list>
-                SlangExpressionImpl(SlangElementType.EXPRESSION)
-                  SlangPrefixExpressionImpl(SlangElementType.PREFIX_EXPRESSION)
-                    SlangOperatorImpl(SlangElementType.OPERATOR)
-                      SlangGhostElement(SlangTokenType.+)
-                        <empty list>
-                    SlangGhostElement(SlangTokenType.INTEGER_LITERAL)
+                  SlangOperatorImpl(SlangElementType.OPERATOR)
+                    SlangGhostElement(SlangTokenType.+)('+')
+                      <empty list>
+                  SlangInfixExpressionImpl(SlangElementType.INFIX_EXPRESSION)
+                    SlangGhostElement(SlangTokenType.INTEGER_LITERAL)('1')
                       <empty list>
             PsiElement(SlangTokenType.;)(';')
           PsiWhiteSpace(' ')

@@ -226,7 +226,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         val marker = builder.mark()
         for (i in 0 until offset)
             util.advanceLexer(builder)
-        val result = builder.tokenText == name
+        val result = util.getTokenText(builder) == name
         marker.rollbackTo()
         return result
     }
@@ -378,7 +378,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         if (!util.nextTokenIs(builder, SlangTypes.IDENTIFIER))
             return false
 
-        val name = builder.tokenText!!
+        val name = util.getTokenText(builder)!!
         val result = lookUp(name) ?: return false
 
         if (result.type != type)
@@ -1408,8 +1408,8 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result = true
         while (result) {
-            val opToken = builder.tokenType
-            val opPrecedence = getOpLevel(opToken, builder.tokenText)
+            val opToken = util.getTokenType(builder)
+            val opPrecedence = getOpLevel(opToken, util.getTokenText(builder))
             if (opPrecedence < precedence)
                 break
 
@@ -1447,7 +1447,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             result = parseLeafExpression(builder, level + 1)
 
             while (result) {
-                val nextOpPrecedence = getOpLevel(builder.tokenType, builder.tokenText)
+                val nextOpPrecedence = getOpLevel(util.getTokenType(builder), util.getTokenText(builder))
 
                 if (if (getAssociativityFromLevel(nextOpPrecedence) == Associativity.Right)
                     nextOpPrecedence < opPrecedence
@@ -1540,7 +1540,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                 }
             }
             else if (util.nextTokenIs(builder, SlangTypes.DOT) || util.nextTokenIs(builder, SlangTypes.RIGHT_ARROW)) {
-                val tokenType = builder.tokenType
+                val tokenType = util.getTokenType(builder)
                 val marker = enter_section_(builder, level, GeneratedParserUtilBase._LEFT_)
                 util.advanceLexer(builder)
                 result = parseDeclName(builder, level + 1)
@@ -2365,7 +2365,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             }
 
             if (builder.currentOffset == beforeCasesOffset) {
-                builder.error("Unexpected token type ${builder.tokenType}, expected 'case', or 'default'")
+                builder.error("Unexpected token type ${util.getTokenType(builder)}, expected 'case', or 'default'")
                 result = false
                 // TODO: Handle recovery
             }
@@ -2893,7 +2893,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             type = SlangTypes.SETTER_DECLARATION
         else {
             result = false
-            builder.error("Unexpected accessor '${builder.tokenText}'")
+            builder.error("Unexpected accessor '${util.getTokenText(builder)}'")
         }
 
         if (type != null)
@@ -3256,7 +3256,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                 result = false
                 break
             }
-            namespaceName += "${builder.tokenText}::"
+            namespaceName += "${util.getTokenText(builder)}::"
             val existingScope = util.findNamespaceScope(namespaceName, this.scopes)
 
             if (existingScope == null)
@@ -3359,9 +3359,9 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result = true
         while (result && util.nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
-            if (CapabilityNames.entries.find { it.tokenText == builder.tokenText } == null) {
+            if (CapabilityNames.entries.find { it.tokenText == util.getTokenText(builder) } == null) {
                 result = false
-                builder.error("Unknown capability: ${builder.tokenText}")
+                builder.error("Unknown capability: ${util.getTokenText(builder)}")
             }
             else
                 util.advanceLexer(builder)
