@@ -2,13 +2,19 @@ package slang.plugin.psi
 
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.parser.GeneratedParserUtilBase
+import com.intellij.platform.workspace.jps.entities.LibraryTableId.ProjectLibraryTableId
+import com.intellij.platform.workspace.jps.entities.LibraryTableId.ProjectLibraryTableId.level
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
+import com.intellij.util.alsoIfNull
+import com.jetbrains.rd.generator.nova.PredefinedType
 import slang.plugin.language.parser.SlangParser
+import slang.plugin.language.parser.data.MacroExpansion
 import slang.plugin.language.parser.data.Scope
 
 import slang.plugin.psi.types.SlangTypes
 import slang.plugin.psi.utils.ExpandedMacro
+import kotlin.math.exp
 
 class SlangPsiUtil {
 
@@ -72,30 +78,117 @@ class SlangPsiUtil {
         }
     }
 
+    private fun parseMacroCallInternal(
+        builder: PsiBuilder,
+        expandedMacro: ExpandedMacro,
+        startIndex: Int,
+        level: Int)
+    : Pair<ExpandedMacro, Int>?
+    {
+        if (level >= 100) {
+            builder.error("Too many recursions")
+            return null
+        }
+
+        var currentIndex = startIndex
+
+        val getText: () -> String = {
+            if (level == 0)
+                builder.tokenText!!
+            else
+                expandedMacro.dynamicTokens[startIndex].string
+        }
+
+        val typeIs: (IElementType) -> Boolean = { token ->
+            if (level == 0) {
+                GeneratedParserUtilBase.nextTokenIs(builder, token)
+            }
+            else {
+                virtualNextTokenIs(builder, token, expandedMacro, currentIndex)
+            }
+        }
+
+        val remapToken: (IElementType) -> Unit = {
+            if (level == 0)
+                builder.remapCurrentToken(it)
+            else
+                expandedMacro.dynamicTokens[currentIndex].token = it
+        }
+
+        val advance: () -> Unit = {
+            if (level == 0)
+                builder.advanceLexer()
+            else {
+                createGhostToken(builder, expandedMacro.dynamicTokens[currentIndex].token)
+                expandedMacro.dynamicTokens.removeAt(currentIndex)
+            }
+        }
+
+        val parser = getParser(builder)
+        val macroExpansion = parser.getMacroExpansion(getText())!!
+
+        val marker = GeneratedParserUtilBase.enter_section_(builder)
+        remapToken(SlangTypes.DEFINE_NAME)
+        advance()
+
+        var validMacro = true
+        if (typeIs(SlangTypes.LEFT_PAREN))
+            TODO("Handle macro arguments")
+
+        val innerExpandedMacro = ExpandedMacro(macroExpansion, arrayListOf())
+
+        // Recursively expand macro
+        var index = 0
+        while (index < innerExpandedMacro.dynamicTokens.size) {
+            val entry = innerExpandedMacro.dynamicTokens[index]
+
+            if (entry.token == SlangTypes.IDENTIFIER) {
+                parser.getMacroExpansion(entry.string)?.let {
+                    index = parseMacroCallInternal(builder, innerExpandedMacro, index, level + 1)?.second
+                        ?: innerExpandedMacro.dynamicTokens.size
+                }?.alsoIfNull { index++ }
+            }
+            else
+                index++
+        }
+        expandedMacro.dynamicTokens.addAll(startIndex, innerExpandedMacro.dynamicTokens)
+
+        GeneratedParserUtilBase.exit_section_(builder, marker, SlangTypes.MACRO_CALL, true)
+
+        return if (validMacro)
+            Pair(expandedMacro, currentIndex)
+        else
+            null
+    }
+
+    private fun parseMacroCall(builder: PsiBuilder): ExpandedMacro?
+    {
+        if (currentExpandedMacro != null || builder.tokenType != SlangTypes.IDENTIFIER || processingPreprocessorDirective)
+            return null
+
+        return parseMacroCallInternal(builder, ExpandedMacro(), 0, 0)?.first
+    }
+
     private fun handlePreprocessing(builder: PsiBuilder) {
         consumePreprocessorDirectives(builder)
         if (currentExpandedMacro == null && builder.tokenType == SlangTypes.IDENTIFIER && !processingPreprocessorDirective) {
             getParser(builder).getMacroExpansion(builder.tokenText!!)?.let {
-                val marker = GeneratedParserUtilBase.enter_section_(builder)
-                builder.remapCurrentToken(SlangTypes.DEFINE_NAME)
-                builder.advanceLexer()
-
-                if (GeneratedParserUtilBase.nextTokenIs(builder, SlangTypes.LEFT_PAREN))
-                    TODO("Handle macro arguments")
-
-                GeneratedParserUtilBase.exit_section_(builder, marker, SlangTypes.MACRO_CALL, true)
-
-                currentExpandedMacro = ExpandedMacro(it, arrayListOf())
-                println(it.content)
-                currentExpansionIndex = 0
+                parseMacroCall(builder)?.let {
+                    currentExpandedMacro = it
+                    currentExpansionIndex = 0
+                }
             }
         }
     }
 
+    private fun createGhostToken(builder: PsiBuilder, token: IElementType) {
+        val marker = builder.mark()
+        marker.done(SlangGhostToken(token))
+    }
+
     fun advanceLexer(builder: PsiBuilder) {
         if (currentExpandedMacro != null) {
-            val marker = builder.mark()
-            marker.done(SlangGhostToken(currentExpandedMacro!!.dynamicTokens[currentExpansionIndex].token))
+            createGhostToken(builder, SlangGhostToken(currentExpandedMacro!!.dynamicTokens[currentExpansionIndex].token))
             currentExpansionIndex++
 
             if (currentExpansionIndex >= currentExpandedMacro!!.dynamicTokens.size) {
@@ -109,14 +202,25 @@ class SlangPsiUtil {
         handlePreprocessing(builder)
     }
 
+    private fun virtualNextTokenIs(
+        builder: PsiBuilder,
+        tokenType: IElementType,
+        expandedMacro: ExpandedMacro,
+        currentIndex: Int): Boolean
+    {
+        GeneratedParserUtilBase.addVariant(builder, tokenType.toString())
+        return if (expandedMacro.dynamicTokens.size > currentIndex)
+            expandedMacro.dynamicTokens[currentIndex].token == tokenType
+        else
+            false
+    }
+
     fun nextTokenIs(builder: PsiBuilder, tokenType: IElementType): Boolean {
         handlePreprocessing(builder)
-        if (currentExpandedMacro == null)
-            return GeneratedParserUtilBase.nextTokenIs(builder, tokenType)
-        else {
-            GeneratedParserUtilBase.addVariant(builder, tokenType.toString())
-            return currentExpandedMacro!!.dynamicTokens[currentExpansionIndex].token == tokenType
-        }
+        return if (currentExpandedMacro == null)
+            GeneratedParserUtilBase.nextTokenIs(builder, tokenType)
+        else
+            virtualNextTokenIs(builder, tokenType, currentExpandedMacro!!, currentExpansionIndex)
     }
 
     fun nextTokenIs(builder: PsiBuilder, vararg tokenTypes: IElementType): Boolean {
