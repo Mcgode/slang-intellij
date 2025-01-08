@@ -36,7 +36,7 @@ Slang File
             SlangMacroCallImpl(SlangElementType.MACRO_CALL)
               PsiElement(SlangElementType.DEFINE_NAME)('A')
             SlangExpressionImpl(SlangElementType.EXPRESSION)
-              SlangGhostElement(SlangTokenType.INTEGER_LITERAL)
+              SlangGhostElement(SlangTokenType.INTEGER_LITERAL)('1')
                 <empty list>
             PsiElement(SlangTokenType.;)(';')
         PsiWhiteSpace(' ')

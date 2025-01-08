@@ -11,6 +11,7 @@ import com.jetbrains.rd.generator.nova.PredefinedType
 import slang.plugin.language.parser.SlangParser
 import slang.plugin.language.parser.data.MacroExpansion
 import slang.plugin.language.parser.data.Scope
+import slang.plugin.language.parser.data.TokenData
 
 import slang.plugin.psi.types.SlangTypes
 import slang.plugin.psi.utils.ExpandedMacro
@@ -119,7 +120,7 @@ class SlangPsiUtil {
             if (level == 0)
                 builder.advanceLexer()
             else {
-                createGhostToken(builder, expandedMacro.dynamicTokens[currentIndex].token)
+                createGhostToken(builder, expandedMacro.dynamicTokens[currentIndex])
                 expandedMacro.dynamicTokens.removeAt(currentIndex)
             }
         }
@@ -181,14 +182,14 @@ class SlangPsiUtil {
         }
     }
 
-    private fun createGhostToken(builder: PsiBuilder, token: IElementType) {
+    private fun createGhostToken(builder: PsiBuilder, tokenData: TokenData) {
         val marker = builder.mark()
-        marker.done(SlangGhostToken(token))
+        marker.done(SlangGhostToken(tokenData.token, tokenData.string))
     }
 
     fun advanceLexer(builder: PsiBuilder) {
         if (currentExpandedMacro != null) {
-            createGhostToken(builder, SlangGhostToken(currentExpandedMacro!!.dynamicTokens[currentExpansionIndex].token))
+            createGhostToken(builder, currentExpandedMacro!!.dynamicTokens[currentExpansionIndex])
             currentExpansionIndex++
 
             if (currentExpansionIndex >= currentExpandedMacro!!.dynamicTokens.size) {
