@@ -10,6 +10,7 @@ import slang.plugin.language.parser.data.Scope
 import slang.plugin.language.parser.data.TokenData
 import slang.plugin.psi.types.SlangTypes
 import slang.plugin.psi.utils.ExpandedMacro
+import slang.plugin.psi.utils.RollbackableMarker
 
 class SlangPsiUtil {
 
@@ -271,6 +272,65 @@ class SlangPsiUtil {
         }
         return false
     }
+
+    fun remapCurrentToken(builder: PsiBuilder, tokenType: IElementType) {
+        if (currentExpandedMacro == null)
+            builder.remapCurrentToken(tokenType)
+        else
+            currentExpandedMacro!!.dynamicTokens[currentExpansionIndex].token = tokenType
+    }
+
+    fun mark(builder: PsiBuilder): RollbackableMarker {
+        return RollbackableMarker(builder.mark(), currentExpandedMacro, currentExpansionIndex)
+    }
+
+    fun rollbackTo(marker: RollbackableMarker) {
+        marker.underlyingMarker.rollbackTo()
+        currentExpandedMacro = marker.currentExpandedMacro
+        currentExpansionIndex = marker.currentExpandedIndex
+    }
+
+    private fun moveSteps(builder: PsiBuilder, steps: Int) {
+        for (i in 0 until steps) {
+            if (eof(builder))
+                return
+            advanceLexer(builder)
+        }
+    }
+
+    fun lookAhead(builder: PsiBuilder, steps: Int): IElementType? {
+        if (steps <= 0)
+            throw RuntimeException("Not looking ahead")
+        if (currentExpandedMacro != null && currentExpandedMacro!!.dynamicTokens.size > steps + currentExpansionIndex) {
+            return currentExpandedMacro!!.dynamicTokens[steps + currentExpansionIndex].token
+        }
+        val marker = mark(builder)
+        moveSteps(builder, steps)
+        val result = if (eof(builder))
+            null
+        else
+            getTokenType(builder)
+        rollbackTo(marker)
+        return result
+    }
+
+    fun lookAheadText(builder: PsiBuilder, steps: Int): String? {
+        if (steps <= 0)
+            throw RuntimeException("Not looking ahead")
+        if (currentExpandedMacro != null && currentExpandedMacro!!.dynamicTokens.size > steps + currentExpansionIndex) {
+            return currentExpandedMacro!!.dynamicTokens[steps + currentExpansionIndex].string
+        }
+        val marker = mark(builder)
+        moveSteps(builder, steps)
+        val result = if (eof(builder))
+            null
+        else
+            getTokenText(builder)
+        rollbackTo(marker)
+        return result
+    }
+
+    fun eof(builder: PsiBuilder): Boolean = currentExpandedMacro == null && builder.eof()
 
     fun findNamespaceScope(name: String, scopes: Iterable<Scope>): Scope? {
         return scopes.find { it.type == SlangTypes.NAMESPACE_DECLARATION && it.namespaceName == name }

@@ -219,18 +219,6 @@ open class SlangParser: PsiParser, LightPsiParser {
         }
     }
 
-    private fun nextTokenAheadIs(builder: PsiBuilder, name: String, offset: Int): Boolean {
-        if (offset <= 0)
-            return false
-
-        val marker = builder.mark()
-        for (i in 0 until offset)
-            util.advanceLexer(builder)
-        val result = util.getTokenText(builder) == name
-        marker.rollbackTo()
-        return result
-    }
-
     private fun pushScope(type: IElementType, namespaceName: String? = null) {
         val scope = Scope(type, this.scope, namespaceName)
         pushScope(scope)
@@ -388,7 +376,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             result.parseCallback!!.invoke(builder, level)
         }
         else if (result.elementSimpleCast != null) {
-            builder.remapCurrentToken(result.elementSimpleCast!!)
+            util.remapCurrentToken(builder, result.elementSimpleCast!!)
             util.advanceLexer(builder)
         }
         else {
@@ -513,7 +501,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         //
         if (typeSpec?.decl == true)
         {
-            if (builder.eof() || util.isFirstNonWhitespaceTokenOnNewLine(builder)) {
+            if (util.eof(builder) || util.isFirstNonWhitespaceTokenOnNewLine(builder)) {
                 // The token after the `}` is at the start of its
                 // own line, which means it can't be on the same line.
                 //
@@ -683,7 +671,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             {
                 util.advanceLexer(builder)
                 while (true) {
-                    if (builder.eof()) {
+                    if (util.eof(builder)) {
                         break
                     } else if (util.nextTokenIs(builder, SlangTypes.GREATER_OP)) {
                         util.advanceLexer(builder)
@@ -1235,9 +1223,9 @@ open class SlangParser: PsiParser, LightPsiParser {
             return parseHlslRegisterSemantic(builder, level)
         } else if (util.nextTokenIs(builder, "packoffset")) {
             return parseHlslPackOffsetSemantic(builder, level)
-        } else if (util.nextTokenIs(builder, "read") && builder.lookAhead(1) == SlangTypes.LEFT_PAREN) {
+        } else if (util.nextTokenIs(builder, "read") && util.lookAhead(builder, 1) == SlangTypes.LEFT_PAREN) {
             return parseRayPayloadAccessSemantic(builder, level, false)
-        } else if (util.nextTokenIs(builder, "write") && builder.lookAhead(1) == SlangTypes.LEFT_PAREN) {
+        } else if (util.nextTokenIs(builder, "write") && util.lookAhead(builder, 1) == SlangTypes.LEFT_PAREN) {
             return parseRayPayloadAccessSemantic(builder, level, true)
         } else if (util.nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
             val marker = enter_section_(builder)
@@ -1585,7 +1573,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
             // Only handles cases of `(type)`, where type is a single identifier,
             // and at this point the type is known
-            if (util.nextTokenIs(builder, SlangTypes.IDENTIFIER) && builder.lookAhead(1) == SlangTypes.RIGHT_PAREN) {
+            if (util.nextTokenIs(builder, SlangTypes.IDENTIFIER) && util.lookAhead(builder, 1) == SlangTypes.RIGHT_PAREN) {
                 exit_section_(builder, marker, null, false)
                 return false
                 // TODO: see slang/slang-parser.cpp:6823
@@ -1918,7 +1906,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         // since that was required in ancient C, and continues to be supported
         // in a bunch of its derivatives even if it is a Bad Design Choice
         //
-        if (util.nextTokenIs(builder, "void") && builder.lookAhead(1) == SlangTypes.RIGHT_PAREN) {
+        if (util.nextTokenIs(builder, "void") && util.lookAhead(builder, 1) == SlangTypes.RIGHT_PAREN) {
             util.advanceLexer(builder)
             util.advanceLexer(builder)
             return true
@@ -2057,7 +2045,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             popScope()
         }
         else if (util.nextTokenIs(builder, "if")) {
-            result = if (nextTokenAheadIs(builder, "let", 2))
+            result = if (util.lookAheadText(builder, 2) == "let")
                 result && parseIfLetStatement(builder, level + 1)
             else
                 result && parseIfStatement(builder, level + 1)
@@ -2095,7 +2083,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         else if (util.nextTokenIs(builder, "try"))
             result = result && parseExpressionStatement(builder, level + 1)
         else if (util.nextTokenIs(builder, SlangTypes.IDENTIFIER, SlangTypes.SCOPE)) {
-            result = if (util.nextTokenIs(builder, SlangTypes.IDENTIFIER) && builder.lookAhead(1) == SlangTypes.COLON)
+            result = if (util.nextTokenIs(builder, SlangTypes.IDENTIFIER) && util.lookAhead(builder, 1) == SlangTypes.COLON)
             // An identifier followed by an ":" is a label.
                 result && parseLabelStatement(builder, level + 1)
             else {
@@ -2575,7 +2563,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         //
         // We'll solve this with backtracking for now.
         //
-        val backtrackingMarker = builder.mark()
+        val backtrackingMarker = util.mark(builder)
         // TODO: Investigate 'hasSeenCompletionToken' usage
 
         // Try to parse a type (knowing that the type grammar is
@@ -2617,12 +2605,12 @@ open class SlangParser: PsiParser, LightPsiParser {
             // Reset the cursor and try to parse a declaration now.
             // Note: the declaration will consume any modifiers
             // that had been in place on the statement.
-            backtrackingMarker.rollbackTo()
+            util.rollbackTo(backtrackingMarker)
             return parseVarDeclStatement(builder, level + 1)
         }
         else {
             // Fallback: reset and parse an expression
-            backtrackingMarker.rollbackTo()
+            util.rollbackTo(backtrackingMarker)
             return parseExpressionStatement(builder, level + 1)
         }
     }
@@ -2713,7 +2701,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                 // Otherwise, if the next token is an identifier, followed by a colon, comma, '=' or
                 // '>', then it is a type parameter.
                 type = if (util.nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
-                    when (builder.lookAhead(1)) {
+                    when (util.lookAhead(builder, 1)) {
                         SlangTypes.COLON, SlangTypes.COMMA, SlangTypes.GREATER_OP, SlangTypes.ASSIGN_OP
                             -> SlangTypes.GENERIC_TYPE_PARAMETER_DECLARATION
 
@@ -2776,7 +2764,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result = util.nextTokenIs(builder, SlangTypes.IDENTIFIER)
         if (result) {
-            builder.remapCurrentToken(SlangTypes.VARIABLE_NAME)
+            util.remapCurrentToken(builder, SlangTypes.VARIABLE_NAME)
             util.advanceLexer(builder)
         }
 
@@ -2784,8 +2772,8 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         result = result && parseDeclBody(builder, level + 1)
 
-        if (result && util.nextTokenIs(builder, SlangTypes.IDENTIFIER) && builder.lookAhead(1) == SlangTypes.SEMICOLON) {
-            builder.remapCurrentToken(SlangTypes.VARIABLE_NAME)
+        if (result && util.nextTokenIs(builder, SlangTypes.IDENTIFIER) && util.lookAhead(builder, 1) == SlangTypes.SEMICOLON) {
+            util.remapCurrentToken(builder, SlangTypes.VARIABLE_NAME)
             util.advanceLexer(builder)
             util.advanceLexer(builder)
         }
@@ -2837,7 +2825,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result: Boolean
         if (util.peekModernStyleVarDeclaration(builder)) {
-            builder.remapCurrentToken(SlangTypes.VARIABLE_NAME)
+            util.remapCurrentToken(builder, SlangTypes.VARIABLE_NAME)
             util.advanceLexer(builder)
 
             result = util.consumeToken(builder, SlangTypes.COLON)
@@ -2934,7 +2922,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result = util.nextTokenIs(builder, SlangTypes.IDENTIFIER)
         if (result) {
-            builder.remapCurrentToken(SlangTypes.INTERFACE_NAME)
+            util.remapCurrentToken(builder, SlangTypes.INTERFACE_NAME)
             util.advanceLexer(builder)
         }
 
@@ -3013,7 +3001,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result = util.nextTokenIs(builder, SlangTypes.IDENTIFIER)
         if (result) {
-            builder.remapCurrentToken(SlangTypes.PARAMETER_NAME)
+            util.remapCurrentToken(builder, SlangTypes.PARAMETER_NAME)
             util.advanceLexer(builder)
         }
 
@@ -3097,7 +3085,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result = util.nextTokenIs(builder, SlangTypes.IDENTIFIER)
         if (result) {
-            builder.remapCurrentToken(SlangTypes.VARIABLE_NAME)
+            util.remapCurrentToken(builder, SlangTypes.VARIABLE_NAME)
             util.advanceLexer(builder)
         }
 
@@ -3123,7 +3111,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result = util.nextTokenIs(builder, SlangTypes.IDENTIFIER)
         if (result) {
-            builder.remapCurrentToken(SlangTypes.FUNCTION_NAME)
+            util.remapCurrentToken(builder, SlangTypes.FUNCTION_NAME)
             util.advanceLexer(builder)
         }
 
@@ -3200,7 +3188,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result = util.nextTokenIs(builder, SlangTypes.IDENTIFIER)
         if (result) {
-            builder.remapCurrentToken(SlangTypes.PARAMETER_NAME)
+            util.remapCurrentToken(builder, SlangTypes.PARAMETER_NAME)
             util.advanceLexer(builder)
         }
 
@@ -3223,7 +3211,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         var result = util.nextTokenIs(builder, SlangTypes.IDENTIFIER)
         if (result) {
-            builder.remapCurrentToken(SlangTypes.GLOBAL_GENERIC_VALUE_PARAMETER_NAME)
+            util.remapCurrentToken(builder, SlangTypes.GLOBAL_GENERIC_VALUE_PARAMETER_NAME)
             util.advanceLexer(builder)
         }
 
@@ -3264,7 +3252,7 @@ open class SlangParser: PsiParser, LightPsiParser {
             else
                 pushScope(existingScope)
 
-            builder.remapCurrentToken(SlangTypes.NAMESPACE_NAME)
+            util.remapCurrentToken(builder, SlangTypes.NAMESPACE_NAME)
             util.advanceLexer(builder)
         } while (util.consumeToken(builder, SlangTypes.DOT) || util.consumeToken(builder, SlangTypes.SCOPE))
 
@@ -3331,7 +3319,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
     private fun parseTransparentBlockDecl(builder: PsiBuilder, level: Int): Boolean {
         // TODO: test scope slang-parser.cpp:3731
-        builder.remapCurrentToken(SlangTypes.TRANSPARENT_BLOCK_DECLARATION)
+        util.remapCurrentToken(builder, SlangTypes.TRANSPARENT_BLOCK_DECLARATION)
         util.advanceLexer(builder)
         return parseDeclBody(builder, level)
     }
@@ -3398,11 +3386,11 @@ open class SlangParser: PsiParser, LightPsiParser {
                 exit_section_(builder, localSizeMarker, SlangTypes.GLSL_LAYOUT_LOCAL_SIZE_ATTRIBUTE, result)
             }
             else if (util.nextTokenIs(builder, "derivative_group_quadsNV")) {
-                builder.remapCurrentToken(SlangTypes.GLSL_LAYOUT_DERIVATIVE_GROUP_QUAD_ATTRIBUTE)
+                util.remapCurrentToken(builder, SlangTypes.GLSL_LAYOUT_DERIVATIVE_GROUP_QUAD_ATTRIBUTE)
                 util.advanceLexer(builder)
             }
             else if (util.nextTokenIs(builder, "derivative_group_linearNV")) {
-                builder.remapCurrentToken(SlangTypes.GLSL_LAYOUT_DERIVATIVE_GROUP_LINEAR_ATTRIBUTE)
+                util.remapCurrentToken(builder, SlangTypes.GLSL_LAYOUT_DERIVATIVE_GROUP_LINEAR_ATTRIBUTE)
                 util.advanceLexer(builder)
             }
             else if (util.nextTokenIs(builder, "input_attachment_index")) {
@@ -3427,15 +3415,15 @@ open class SlangParser: PsiParser, LightPsiParser {
                 exit_section_(builder, bindingMarker, SlangTypes.GLSL_BINDING_ATTRIBUTE, result)
             }
             else if (util.nextTokenIs(builder, GlslImageFormats.array)) {
-                builder.remapCurrentToken(SlangTypes.FORMAT_ATTRIBUTE)
+                util.remapCurrentToken(builder, SlangTypes.FORMAT_ATTRIBUTE)
                 util.advanceLexer(builder)
             }
             else if (util.nextTokenIs(builder, "push_constant")) {
-                builder.remapCurrentToken(SlangTypes.PUSH_CONSTANT_ATTRIBUTE)
+                util.remapCurrentToken(builder, SlangTypes.PUSH_CONSTANT_ATTRIBUTE)
                 util.advanceLexer(builder)
             }
             else if (util.nextTokenIs(builder, arrayListOf("shaderRecordNV", "shaderRecordEXT"))) {
-                builder.remapCurrentToken(SlangTypes.SHADER_RECORD_ATTRIBUTE)
+                util.remapCurrentToken(builder, SlangTypes.SHADER_RECORD_ATTRIBUTE)
                 util.advanceLexer(builder)
             }
             else if (util.nextTokenIs(builder, "constant_id")) {
@@ -3446,15 +3434,15 @@ open class SlangParser: PsiParser, LightPsiParser {
                 exit_section_(builder, idMarker, SlangTypes.VK_CONSTANT_ID_ATTRIBUTE, result)
             }
             else if (util.nextTokenIs(builder, "std140")) {
-                builder.remapCurrentToken(SlangTypes.GLSL_STD140_MODIFIER)
+                util.remapCurrentToken(builder, SlangTypes.GLSL_STD140_MODIFIER)
                 util.advanceLexer(builder)
             }
             else if (util.nextTokenIs(builder, "std430")) {
-                builder.remapCurrentToken(SlangTypes.GLSL_STD430_MODIFIER)
+                util.remapCurrentToken(builder, SlangTypes.GLSL_STD430_MODIFIER)
                 util.advanceLexer(builder)
             }
             else if (util.nextTokenIs(builder, "scalar")) {
-                builder.remapCurrentToken(SlangTypes.GLSL_SCALAR_MODIFIER)
+                util.remapCurrentToken(builder, SlangTypes.GLSL_SCALAR_MODIFIER)
                 util.advanceLexer(builder)
             }
             else if (util.nextTokenIs(builder, "offset")) {
@@ -3472,7 +3460,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                 exit_section_(builder, locationMarker, SlangTypes.GLSL_LOCATION_LAYOUT_ATTRIBUTE, result)
             }
             else if (util.nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
-                builder.remapCurrentToken(SlangTypes.GLSL_UNPARSED_ATTRIBUTE)
+                util.remapCurrentToken(builder, SlangTypes.GLSL_UNPARSED_ATTRIBUTE)
                 util.advanceLexer(builder)
             }
             else
@@ -3484,23 +3472,23 @@ open class SlangParser: PsiParser, LightPsiParser {
         }
 
         if (result && util.nextTokenIs(builder, arrayListOf("rayPayloadEXT", "rayPayloadNV"))) {
-            builder.remapCurrentToken(SlangTypes.VULKAN_RAY_PAYLOAD_ATTRIBUTE)
+            util.remapCurrentToken(builder, SlangTypes.VULKAN_RAY_PAYLOAD_ATTRIBUTE)
             util.advanceLexer(builder)
         }
         else if (result && util.nextTokenIs(builder, arrayListOf("rayPayloadInEXT", "rayPayloadInNV"))) {
-            builder.remapCurrentToken(SlangTypes.VULKAN_RAY_PAYLOAD_IN_ATTRIBUTE)
+            util.remapCurrentToken(builder, SlangTypes.VULKAN_RAY_PAYLOAD_IN_ATTRIBUTE)
             util.advanceLexer(builder)
         }
         else if (result && util.nextTokenIs(builder, "hitObjectAttributeNV")) {
-            builder.remapCurrentToken(SlangTypes.VULKAN_HIT_OBJECT_ATTRIBUTE)
+            util.remapCurrentToken(builder, SlangTypes.VULKAN_HIT_OBJECT_ATTRIBUTE)
             util.advanceLexer(builder)
         }
         else if (result && util.nextTokenIs(builder, "callableDataEXT")) {
-            builder.remapCurrentToken(SlangTypes.VULKAN_CALLABLE_PAYLOAD_ATTRIBUTE)
+            util.remapCurrentToken(builder, SlangTypes.VULKAN_CALLABLE_PAYLOAD_ATTRIBUTE)
             util.advanceLexer(builder)
         }
         else if (result && util.nextTokenIs(builder, "callableDataInEXT")) {
-            builder.remapCurrentToken(SlangTypes.VULKAN_CALLABLE_PAYLOAD_IN_ATTRIBUTE)
+            util.remapCurrentToken(builder, SlangTypes.VULKAN_CALLABLE_PAYLOAD_IN_ATTRIBUTE)
             util.advanceLexer(builder)
         }
 
@@ -3550,7 +3538,7 @@ open class SlangParser: PsiParser, LightPsiParser {
         if (util.consumeToken(builder, SlangTypes.LEFT_PAREN)) {
             result = util.consumeToken(builder, SlangTypes.IDENTIFIER)
             if (result && util.consumeToken(builder, SlangTypes.COMMA)) {
-                if (builder.lookAhead(1) == SlangTypes.LEFT_PAREN) {
+                if (util.lookAhead(builder, 1) == SlangTypes.LEFT_PAREN) {
                     result = util.consumeToken(builder, SlangTypes.IDENTIFIER)
                     if (result) util.advanceLexer(builder)
                     result = result && util.consumeToken(builder, SlangTypes.IDENTIFIER)
@@ -3756,37 +3744,37 @@ open class SlangParser: PsiParser, LightPsiParser {
     }
 
     private fun parseThisExpr(builder: PsiBuilder, @Suppress("UNUSED_PARAMETER") level: Int): Boolean {
-        builder.remapCurrentToken(SlangTypes.THIS_EXPRESSION)
+        util.remapCurrentToken(builder, SlangTypes.THIS_EXPRESSION)
         util.advanceLexer(builder)
         return true
     }
 
     private fun parseTrueExpr(builder: PsiBuilder, @Suppress("UNUSED_PARAMETER") level: Int): Boolean {
-        builder.remapCurrentToken(SlangTypes.BOOL_LITERAL)
+        util.remapCurrentToken(builder, SlangTypes.BOOL_LITERAL)
         util.advanceLexer(builder)
         return true
     }
 
     private fun parseFalseExpr(builder: PsiBuilder, @Suppress("UNUSED_PARAMETER") level: Int): Boolean {
-        builder.remapCurrentToken(SlangTypes.BOOL_LITERAL)
+        util.remapCurrentToken(builder, SlangTypes.BOOL_LITERAL)
         util.advanceLexer(builder)
         return true
     }
 
     private fun parseReturnValExpr(builder: PsiBuilder, @Suppress("UNUSED_PARAMETER") level: Int): Boolean {
-        builder.remapCurrentToken(SlangTypes.RETURN_VAL_EXPRESSION)
+        util.remapCurrentToken(builder, SlangTypes.RETURN_VAL_EXPRESSION)
         util.advanceLexer(builder)
         return true
     }
 
     private fun parseNullPtrExpr(builder: PsiBuilder, @Suppress("UNUSED_PARAMETER") level: Int): Boolean {
-        builder.remapCurrentToken(SlangTypes.NULLPTR_EXPRESSION)
+        util.remapCurrentToken(builder, SlangTypes.NULLPTR_EXPRESSION)
         util.advanceLexer(builder)
         return true
     }
 
     private fun parseNoneExpr(builder: PsiBuilder, @Suppress("UNUSED_PARAMETER") level: Int): Boolean {
-        builder.remapCurrentToken(SlangTypes.NONE_EXPRESSION)
+        util.remapCurrentToken(builder, SlangTypes.NONE_EXPRESSION)
         util.advanceLexer(builder)
         return true
     }
