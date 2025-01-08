@@ -142,7 +142,8 @@ class SlangPsiUtil {
                 parser.getMacroExpansion(entry.string)?.let {
                     index = parseMacroCallInternal(builder, innerExpandedMacro, index, level + 1)?.second
                         ?: innerExpandedMacro.dynamicTokens.size
-                }?.alsoIfNull { index++ }
+                }
+                    .alsoIfNull { index++ }
             }
             else
                 index++

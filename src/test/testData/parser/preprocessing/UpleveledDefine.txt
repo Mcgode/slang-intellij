@@ -48,14 +48,14 @@ Slang File
             SlangVariableDeclImpl(SlangElementType.VARIABLE_DECL)
               SlangInitDeclaratorImpl(SlangElementType.INIT_DECLARATOR)
                 SlangNameDeclaratorImpl(SlangElementType.NAME_DECLARATOR)
-                  SlangGhostElement(SlangTokenType.IDENTIFIER)
+                  SlangGhostElement(SlangTokenType.IDENTIFIER)('m_position')
                     <empty list>
-                SlangGhostElement(SlangTokenType.:)
+                SlangGhostElement(SlangTokenType.:)(':')
                   <empty list>
                 SlangHlslSimpleSemanticImpl(SlangElementType.HLSL_SIMPLE_SEMANTIC)
-                  SlangGhostElement(SlangTokenType.IDENTIFIER)
+                  SlangGhostElement(SlangTokenType.IDENTIFIER)('POSITION0')
                     <empty list>
-            SlangGhostElement(SlangTokenType.;)
+            SlangGhostElement(SlangTokenType.;)(';')
               <empty list>
           SlangDeclarationImpl(SlangElementType.DECLARATION)
             PsiElement(SlangTokenType.[)('[')
