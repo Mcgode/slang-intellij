@@ -253,6 +253,7 @@ object SlangTypes {
     val RIGHT_ARROW = SlangTokenType("->")
     val QUESTION_MARK = SlangTokenType("?")
     val DOLLAR = SlangTokenType("$")
+    val ELLIPSIS = SlangTokenType("...")
 
     val ADD_OP = SlangTokenType("+")
     val SUB_OP = SlangTokenType("-")

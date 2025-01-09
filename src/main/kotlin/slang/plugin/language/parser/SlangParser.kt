@@ -1,6 +1,5 @@
 package slang.plugin.language.parser
 
-import com.intellij.configurationStore.Macro
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LightPsiParser
 import com.intellij.lang.PsiBuilder
@@ -16,6 +15,7 @@ import org.intellij.markdown.lexer.push
 import slang.plugin.language.parser.data.*
 import slang.plugin.psi.SlangElementType
 import slang.plugin.psi.SlangIFileElementType
+import slang.plugin.psi.SlangMacroArgumentToken
 import slang.plugin.psi.types.SlangTypes
 import slang.plugin.psi.SlangPsiUtil
 
@@ -3941,7 +3941,7 @@ open class SlangParser: PsiParser, LightPsiParser {
 
         builder.advanceLexer()
 
-        val result = util.nextTokenIs(builder, SlangTypes.IDENTIFIER)
+        var result = util.nextTokenIs(builder, SlangTypes.IDENTIFIER)
         val macroName = builder.tokenText ?: ""
         if (!result)
             builder.error("Expected identifier")
@@ -3949,10 +3949,67 @@ open class SlangParser: PsiParser, LightPsiParser {
             builder.remapCurrentToken(SlangTypes.DEFINE_NAME)
             macros[macroName] = MacroExpansion()
         }
+
+        // We do a raw lookup to make sure that the define name is directly followede (or not) by a parenthesis, without
+        // any sort of whitespace in-between.
+        val followedByLeftParenthesis = builder.rawLookup(1) == SlangTypes.LEFT_PAREN
+
         builder.advanceLexer()
 
-        if (result && util.consumeToken(builder, SlangTypes.LEFT_PAREN)) {
-            TODO("Not yet implemented")
+        if (result && followedByLeftParenthesis) {
+            val macroExpansion = macros[macroName]!!
+            macroExpansion.type = MacroExpansion.Type.FunctionLike
+
+            builder.advanceLexer()
+
+            // A macro parameter should follow one of three shapes:
+            //
+            //      NAME
+            //      NAME...
+            //      ...
+            //
+            // If we don't see an ellipsis ahead, we know we ought
+            // to find one of the two cases that starts with an
+            // identifier.
+            //
+            while (result && !GeneratedParserUtilBase.consumeToken(builder, SlangTypes.RIGHT_PAREN)) {
+                if (GeneratedParserUtilBase.nextTokenIs(builder, SlangTypes.IDENTIFIER)) {
+                    val identifier = builder.tokenText!!
+
+                    if (macroExpansion.arguments.any { it.identifier == identifier }) {
+                        result = false
+                        builder.error("Duplicated parameter identifier")
+                    }
+
+                    builder.advanceLexer()
+
+                    val isVariadic = GeneratedParserUtilBase.nextTokenIs(builder, SlangTypes.ELLIPSIS)
+                    macroExpansion.arguments.push(MacroArgument(identifier, isVariadic))
+
+                    if (isVariadic) {
+                        if (builder.lookAhead(1) != SlangTypes.RIGHT_PAREN) {
+                            result = false
+                            builder.error("A variadic argument must be the last argument")
+                        }
+                        builder.advanceLexer()
+                    }
+                }
+                else if (GeneratedParserUtilBase.nextTokenIs(builder, SlangTypes.ELLIPSIS)) {
+                    macroExpansion.arguments.push(MacroArgument("__VAR_ARGS__", true))
+
+                    if (builder.lookAhead(1) != SlangTypes.RIGHT_PAREN) {
+                        result = false
+                        builder.error("A variadic argument must be the last argument")
+                    }
+                    builder.advanceLexer()
+                }
+                else
+                    result = false
+
+                if (result && GeneratedParserUtilBase.consumeToken(builder, SlangTypes.RIGHT_PAREN))
+                    break
+                result = result && GeneratedParserUtilBase.consumeToken(builder, SlangTypes.COMMA)
+            }
         }
 
         while (result
@@ -3960,13 +4017,24 @@ open class SlangParser: PsiParser, LightPsiParser {
             && builder.tokenType != SlangTypes.PREPROCESSOR_DIRECTIVE
             && builder.tokenType != SlangTypes.PREPROCESSOR_DIRECTIVE_END)
         {
-            macros[macroName]!!.content.push(TokenData(builder.tokenType!!, builder.tokenText!!))
+            val macroExpansion = macros[macroName]!!
+
+            if (builder.tokenType == SlangTypes.IDENTIFIER) {
+                val argIndex = macroExpansion.arguments.indexOfFirst { it.identifier == builder.tokenText }
+                if (argIndex != -1)
+                    builder.remapCurrentToken(SlangMacroArgumentToken(argIndex))
+            }
+
+            macroExpansion.content.push(TokenData(builder.tokenType!!, builder.tokenText!!))
             builder.advanceLexer()
         }
 
         if (result && macros[macroName]!!.content.isEmpty()) {
             builder.error("Expected macro content")
         }
+
+        if (!result && macros.containsKey(macroName))
+            macros.remove(macroName)
 
         exit_section_(builder, marker, SlangTypes.DEFINE_DIRECTIVE, true)
     }

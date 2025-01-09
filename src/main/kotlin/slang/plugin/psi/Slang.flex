@@ -108,6 +108,7 @@ INCLUDE_PREPROCESSOR_DIRECTIVE={WHITE_SPACE}*#{WHITE_SPACE}*"include"
     "->"                { return INSTANCE.getRIGHT_ARROW(); }
     "?"                 { return INSTANCE.getQUESTION_MARK(); }
     "$"                 { return INSTANCE.getDOLLAR(); }
+    "..."               { return INSTANCE.getELLIPSIS(); }
 
     "+"                 { return INSTANCE.getADD_OP(); }
     "-"                 { return INSTANCE.getSUB_OP(); }
