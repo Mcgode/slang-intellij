@@ -153,11 +153,11 @@ class SlangPsiUtil {
                 var argumentIndex = 0
                 arguments.push(arrayListOf())
 
-                var marker: Marker? = null
+                var argumentMarker: Marker? = null
 
                 while (validMacro && !(typeIs(SlangTypes.RIGHT_PAREN) && parenthesisScopeLevel == 0)) {
-                    if (marker == null)
-                        marker = GeneratedParserUtilBase.enter_section_(builder)
+                    if (argumentMarker == null)
+                        argumentMarker = GeneratedParserUtilBase.enter_section_(builder)
 
                     var argumentToken = true
                     if (typeIs(SlangTypes.LEFT_PAREN))
@@ -168,7 +168,8 @@ class SlangPsiUtil {
                         argumentToken = false
                         arguments.push(arrayListOf())
                         argumentIndex++
-                        GeneratedParserUtilBase.exit_section_(builder, marker!!, SlangTypes.MACRO_ARGUMENT, true)
+                        GeneratedParserUtilBase.exit_section_(builder, argumentMarker!!, SlangTypes.MACRO_ARGUMENT, true)
+                        argumentMarker = null
                     }
 
                     if (argumentToken)
@@ -178,8 +179,8 @@ class SlangPsiUtil {
 
                     validMacro = !eof()
                 }
-                if (marker != null)
-                    GeneratedParserUtilBase.exit_section_(builder, marker, SlangTypes.MACRO_ARGUMENT, true)
+                if (argumentMarker != null)
+                    GeneratedParserUtilBase.exit_section_(builder, argumentMarker, SlangTypes.MACRO_ARGUMENT, true)
             }
             if (validMacro)
                 advance()

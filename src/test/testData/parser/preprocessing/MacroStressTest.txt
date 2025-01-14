@@ -1,0 +1,252 @@
+Slang File
+  SlangDeclarationImpl(SlangElementType.DECLARATION)
+    SlangDefineDirectiveImpl(SlangElementType.DEFINE_DIRECTIVE)
+      PsiElement(SlangElementType.PREPROCESSOR_DIRECTIVE)('#define')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangElementType.DEFINE_NAME)('DECLARE_STRUCT')
+      PsiElement(SlangTokenType.()('(')
+      PsiElement(SlangElementType.MACRO_PARAMETER_NAME)('name')
+      PsiElement(SlangTokenType.,)(',')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangElementType.MACRO_PARAMETER_NAME)('declarations')
+      PsiElement(SlangTokenType....)('...')
+      PsiElement(SlangTokenType.))(')')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangTokenType.IDENTIFIER)('struct')
+      PsiWhiteSpace(' ')
+      PsiElement(MacroArg0)('name')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangTokenType.{)('{')
+      PsiWhiteSpace('     ')
+      PsiWhiteSpace('\\n')
+      PsiWhiteSpace('    ')
+      PsiElement(MacroArg1)('declarations')
+      PsiWhiteSpace('                                                ')
+      PsiWhiteSpace('\\n')
+      PsiElement(SlangTokenType.})('}')
+      PsiElement(SlangTokenType.;)(';')
+    PsiWhiteSpace('\n')
+    SlangDefineDirectiveImpl(SlangElementType.DEFINE_DIRECTIVE)
+      PsiElement(SlangElementType.PREPROCESSOR_DIRECTIVE)('\n#define')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangElementType.DEFINE_NAME)('DECLARE_VARIABLE')
+      PsiElement(SlangTokenType.()('(')
+      PsiElement(SlangElementType.MACRO_PARAMETER_NAME)('type')
+      PsiElement(SlangTokenType.,)(',')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangElementType.MACRO_PARAMETER_NAME)('name')
+      PsiElement(SlangTokenType.,)(',')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangElementType.MACRO_PARAMETER_NAME)('value')
+      PsiElement(SlangTokenType.))(')')
+      PsiWhiteSpace(' ')
+      PsiWhiteSpace('\\n')
+      PsiElement(MacroArg0)('type')
+      PsiWhiteSpace(' ')
+      PsiElement(MacroArg1)('name')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangTokenType.=)('=')
+      PsiWhiteSpace(' ')
+      PsiElement(MacroArg2)('value')
+      PsiElement(SlangTokenType.;)(';')
+    PsiWhiteSpace('\n')
+    SlangDefineDirectiveImpl(SlangElementType.DEFINE_DIRECTIVE)
+      PsiElement(SlangElementType.PREPROCESSOR_DIRECTIVE)('\n#define')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangElementType.DEFINE_NAME)('BASE_VARIABLES')
+      PsiWhiteSpace('          ')
+      PsiWhiteSpace('\\n')
+      PsiElement(SlangTokenType.IDENTIFIER)('DECLARE_VARIABLE')
+      PsiElement(SlangTokenType.()('(')
+      PsiElement(SlangTokenType.IDENTIFIER)('int')
+      PsiElement(SlangTokenType.,)(',')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangTokenType.IDENTIFIER)('a')
+      PsiElement(SlangTokenType.,)(',')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangTokenType.INTEGER_LITERAL)('0')
+      PsiElement(SlangTokenType.))(')')
+      PsiWhiteSpace('     ')
+      PsiWhiteSpace('\\n')
+      PsiElement(SlangTokenType.IDENTIFIER)('DECLARE_VARIABLE')
+      PsiElement(SlangTokenType.()('(')
+      PsiElement(SlangTokenType.IDENTIFIER)('float')
+      PsiElement(SlangTokenType.,)(',')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangTokenType.IDENTIFIER)('b')
+      PsiElement(SlangTokenType.,)(',')
+      PsiWhiteSpace(' ')
+      PsiElement(SlangTokenType.FLOAT_LITERAL)('0.5f')
+      PsiElement(SlangTokenType.))(')')
+    PsiWhiteSpace('\n')
+    PsiWhiteSpace('\n')
+    SlangMacroCallImpl(SlangElementType.MACRO_CALL)
+      PsiElement(SlangElementType.DEFINE_NAME)('DECLARE_STRUCT')
+      PsiElement(SlangTokenType.()('(')
+      SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+        PsiElement(SlangTokenType.IDENTIFIER)('Foo')
+      PsiElement(SlangTokenType.,)(',')
+      PsiWhiteSpace(' ')
+      SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+        PsiElement(SlangTokenType.IDENTIFIER)('BASE_VARIABLES')
+      PsiElement(SlangTokenType.))(')')
+      PsiWhiteSpace('\n')
+      SlangMacroCallImpl(SlangElementType.MACRO_CALL)
+        SlangGhostElement(SlangElementType.DEFINE_NAME)('BASE_VARIABLES')
+          <empty list>
+        SlangMacroCallImpl(SlangElementType.MACRO_CALL)
+          SlangGhostElement(SlangElementType.DEFINE_NAME)('DECLARE_VARIABLE')
+            <empty list>
+          SlangGhostElement(SlangTokenType.()('(')
+            <empty list>
+          SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+            SlangGhostElement(SlangTokenType.IDENTIFIER)('int')
+              <empty list>
+          SlangGhostElement(SlangTokenType.,)(',')
+            <empty list>
+          SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+            SlangGhostElement(SlangTokenType.IDENTIFIER)('a')
+              <empty list>
+          SlangGhostElement(SlangTokenType.,)(',')
+            <empty list>
+          SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+            SlangGhostElement(SlangTokenType.INTEGER_LITERAL)('0')
+              <empty list>
+          SlangGhostElement(SlangTokenType.))(')')
+            <empty list>
+        SlangMacroCallImpl(SlangElementType.MACRO_CALL)
+          SlangGhostElement(SlangElementType.DEFINE_NAME)('DECLARE_VARIABLE')
+            <empty list>
+          SlangGhostElement(SlangTokenType.()('(')
+            <empty list>
+          SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+            SlangGhostElement(SlangTokenType.IDENTIFIER)('float')
+              <empty list>
+          SlangGhostElement(SlangTokenType.,)(',')
+            <empty list>
+          SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+            SlangGhostElement(SlangTokenType.IDENTIFIER)('b')
+              <empty list>
+          SlangGhostElement(SlangTokenType.,)(',')
+            <empty list>
+          SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+            SlangGhostElement(SlangTokenType.FLOAT_LITERAL)('0.5f')
+              <empty list>
+          SlangGhostElement(SlangTokenType.))(')')
+            <empty list>
+    SlangTypeSpecImpl(SlangElementType.TYPE_SPEC)
+      SlangStructDeclarationImpl(SlangElementType.STRUCT_DECLARATION)
+        SlangGhostElement(SlangTokenType.IDENTIFIER)('struct')
+          <empty list>
+        SlangStructNameImpl(SlangElementType.STRUCT_NAME)
+          SlangGhostElement(SlangTokenType.IDENTIFIER)('Foo')
+            <empty list>
+        SlangBodyDeclImpl(SlangElementType.BODY_DECL)
+          SlangGhostElement(SlangTokenType.{)('{')
+            <empty list>
+          SlangDeclarationImpl(SlangElementType.DECLARATION)
+            SlangTypeSpecImpl(SlangElementType.TYPE_SPEC)
+              SlangGhostElement(SlangTokenType.IDENTIFIER)('int')
+                <empty list>
+            SlangVariableDeclImpl(SlangElementType.VARIABLE_DECL)
+              SlangInitDeclaratorImpl(SlangElementType.INIT_DECLARATOR)
+                SlangNameDeclaratorImpl(SlangElementType.NAME_DECLARATOR)
+                  SlangGhostElement(SlangTokenType.IDENTIFIER)('a')
+                    <empty list>
+                SlangGhostElement(SlangTokenType.=)('=')
+                  <empty list>
+                SlangExpressionImpl(SlangElementType.EXPRESSION)
+                  SlangGhostElement(SlangTokenType.INTEGER_LITERAL)('0')
+                    <empty list>
+            SlangGhostElement(SlangTokenType.;)(';')
+              <empty list>
+          SlangDeclarationImpl(SlangElementType.DECLARATION)
+            SlangTypeSpecImpl(SlangElementType.TYPE_SPEC)
+              SlangGhostElement(SlangTokenType.IDENTIFIER)('float')
+                <empty list>
+            SlangVariableDeclImpl(SlangElementType.VARIABLE_DECL)
+              SlangInitDeclaratorImpl(SlangElementType.INIT_DECLARATOR)
+                SlangNameDeclaratorImpl(SlangElementType.NAME_DECLARATOR)
+                  SlangGhostElement(SlangTokenType.IDENTIFIER)('b')
+                    <empty list>
+                SlangGhostElement(SlangTokenType.=)('=')
+                  <empty list>
+                SlangExpressionImpl(SlangElementType.EXPRESSION)
+                  SlangGhostElement(SlangTokenType.FLOAT_LITERAL)('0.5f')
+                    <empty list>
+            SlangGhostElement(SlangTokenType.;)(';')
+              <empty list>
+          SlangGhostElement(SlangTokenType.})('}')
+            <empty list>
+    SlangGhostElement(SlangTokenType.;)(';')
+      <empty list>
+    SlangMacroCallImpl(SlangElementType.MACRO_CALL)
+      PsiElement(SlangElementType.DEFINE_NAME)('DECLARE_STRUCT')
+      PsiElement(SlangTokenType.()('(')
+      SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+        PsiElement(SlangTokenType.IDENTIFIER)('Bar')
+      PsiElement(SlangTokenType.,)(',')
+      PsiWhiteSpace(' ')
+      SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+        PsiElement(SlangTokenType.IDENTIFIER)('DECLARE_VARIABLE')
+        PsiElement(SlangTokenType.()('(')
+        PsiElement(SlangTokenType.IDENTIFIER)('uint')
+        PsiElement(SlangTokenType.,)(',')
+        PsiWhiteSpace(' ')
+        PsiElement(SlangTokenType.IDENTIFIER)('x')
+        PsiElement(SlangTokenType.,)(',')
+        PsiWhiteSpace(' ')
+        PsiElement(SlangTokenType.INTEGER_LITERAL)('0')
+        PsiElement(SlangTokenType.))(')')
+      PsiElement(SlangTokenType.))(')')
+      SlangMacroCallImpl(SlangElementType.MACRO_CALL)
+        SlangGhostElement(SlangElementType.DEFINE_NAME)('DECLARE_VARIABLE')
+          <empty list>
+        SlangGhostElement(SlangTokenType.()('(')
+          <empty list>
+        SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+          SlangGhostElement(SlangTokenType.IDENTIFIER)('uint')
+            <empty list>
+        SlangGhostElement(SlangTokenType.,)(',')
+          <empty list>
+        SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+          SlangGhostElement(SlangTokenType.IDENTIFIER)('x')
+            <empty list>
+        SlangGhostElement(SlangTokenType.,)(',')
+          <empty list>
+        SlangMacroArgumentImpl(SlangElementType.MACRO_ARGUMENT)
+          SlangGhostElement(SlangTokenType.INTEGER_LITERAL)('0')
+            <empty list>
+        SlangGhostElement(SlangTokenType.))(')')
+          <empty list>
+  SlangDeclarationImpl(SlangElementType.DECLARATION)
+    SlangTypeSpecImpl(SlangElementType.TYPE_SPEC)
+      SlangStructDeclarationImpl(SlangElementType.STRUCT_DECLARATION)
+        SlangGhostElement(SlangTokenType.IDENTIFIER)('struct')
+          <empty list>
+        SlangStructNameImpl(SlangElementType.STRUCT_NAME)
+          SlangGhostElement(SlangTokenType.IDENTIFIER)('Bar')
+            <empty list>
+        SlangBodyDeclImpl(SlangElementType.BODY_DECL)
+          SlangGhostElement(SlangTokenType.{)('{')
+            <empty list>
+          SlangDeclarationImpl(SlangElementType.DECLARATION)
+            SlangTypeSpecImpl(SlangElementType.TYPE_SPEC)
+              SlangGhostElement(SlangTokenType.IDENTIFIER)('uint')
+                <empty list>
+            SlangVariableDeclImpl(SlangElementType.VARIABLE_DECL)
+              SlangInitDeclaratorImpl(SlangElementType.INIT_DECLARATOR)
+                SlangNameDeclaratorImpl(SlangElementType.NAME_DECLARATOR)
+                  SlangGhostElement(SlangTokenType.IDENTIFIER)('x')
+                    <empty list>
+                SlangGhostElement(SlangTokenType.=)('=')
+                  <empty list>
+                SlangExpressionImpl(SlangElementType.EXPRESSION)
+                  SlangGhostElement(SlangTokenType.INTEGER_LITERAL)('0')
+                    <empty list>
+            SlangGhostElement(SlangTokenType.;)(';')
+              <empty list>
+          SlangGhostElement(SlangTokenType.})('}')
+            <empty list>
+    SlangGhostElement(SlangTokenType.;)(';')
+      <empty list>

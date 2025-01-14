@@ -16,4 +16,5 @@ class PreprocessingParsingTest: ParsingTestCase(
     fun testUpleveledDefine() = doTest(true)
     fun testRecursiveExpand() = doTest(true)
     fun testBasicFunctionLikeMacro() = doTest(true)
+    fun testMacroStressTest() = doTest(true)
 }
