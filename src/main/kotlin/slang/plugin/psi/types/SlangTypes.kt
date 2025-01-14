@@ -95,6 +95,7 @@ object SlangTypes {
     val IS_TYPE_EXPRESSION = SlangElementType("IS_TYPE_EXPRESSION")
     val LABEL_STATEMENT = SlangElementType("LABEL_STATEMENT")
     val LET_DECLARATION = SlangElementType("LET_DECLARATION")
+    val MACRO_ARGUMENT = SlangElementType("MACRO_ARGUMENT")
     val MACRO_CALL = SlangElementType("MACRO_CALL")
     val MAGIC_TYPE_MODIFIER = SlangElementType("MAGIC_TYPE_MODIFIER")
     val MEMBER_EXPRESSION = SlangElementType("MEMBER_EXPRESSION")
@@ -224,6 +225,7 @@ object SlangTypes {
     val PREPROCESSOR_DIRECTIVE = SlangElementType("PREPROCESSOR_DIRECTIVE")
     val PREPROCESSOR_DIRECTIVE_END = SlangElementType("PREPROCESSOR_DIRECTIVE_END")
     val DEFINE_NAME = SlangElementType("DEFINE_NAME")
+    val MACRO_PARAMETER_NAME = SlangElementType("MACRO_PARAMETER_NAME")
 
     val FORMAT_ATTRIBUTE = SlangElementType("FORMAT_ATTRIBUTE")
     val GLSL_LAYOUT_DERIVATIVE_GROUP_LINEAR_ATTRIBUTE = SlangElementType("GLSL_LAYOUT_DERIVATIVE_GROUP_LINEAR_ATTRIBUTE")
@@ -386,6 +388,7 @@ object SlangTypes {
                     IS_TYPE_EXPRESSION -> return SlangIsTypeExpressionImpl(node)
                     LABEL_STATEMENT -> return SlangLabelStatementImpl(node)
                     LET_DECLARATION -> return SlangLetDeclarationImpl(node)
+                    MACRO_ARGUMENT -> return SlangMacroArgumentImpl(node)
                     MACRO_CALL -> return SlangMacroCallImpl(node)
                     MAGIC_TYPE_MODIFIER -> return SlangMagicTypeModifierImpl(node)
                     MEMBER_EXPRESSION -> return SlangMemberExpressionImpl(node)

@@ -1,3 +1,3 @@
 #define FOO(a) a
 
-int Bar() { return FOO/*(1)*/; }
+int Bar() { return FOO(1); }

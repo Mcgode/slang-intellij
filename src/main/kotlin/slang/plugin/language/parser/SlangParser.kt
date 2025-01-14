@@ -3981,6 +3981,7 @@ open class SlangParser: PsiParser, LightPsiParser {
                         builder.error("Duplicated parameter identifier")
                     }
 
+                    builder.remapCurrentToken(SlangTypes.MACRO_PARAMETER_NAME)
                     builder.advanceLexer()
 
                     val isVariadic = GeneratedParserUtilBase.nextTokenIs(builder, SlangTypes.ELLIPSIS)

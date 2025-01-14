@@ -1,11 +1,14 @@
 package slang.plugin.psi
 
 import com.intellij.lang.PsiBuilder
+import com.intellij.lang.PsiBuilder.Marker
 import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.util.alsoIfNull
+import org.intellij.markdown.lexer.push
 import slang.plugin.language.parser.SlangParser
+import slang.plugin.language.parser.data.MacroExpansion
 import slang.plugin.language.parser.data.Scope
 import slang.plugin.language.parser.data.TokenData
 import slang.plugin.psi.types.SlangTypes
@@ -86,7 +89,12 @@ class SlangPsiUtil {
             return null
         }
 
-        var currentIndex = startIndex
+        val getType: () -> IElementType = {
+            if (level == 0)
+                builder.tokenType!!
+            else
+                expandedMacro.dynamicTokens[startIndex].token
+        }
 
         val getText: () -> String = {
             if (level == 0)
@@ -100,7 +108,7 @@ class SlangPsiUtil {
                 GeneratedParserUtilBase.nextTokenIs(builder, token)
             }
             else {
-                virtualNextTokenIs(builder, token, expandedMacro, currentIndex)
+                virtualNextTokenIs(builder, token, expandedMacro, startIndex)
             }
         }
 
@@ -108,16 +116,23 @@ class SlangPsiUtil {
             if (level == 0)
                 builder.remapCurrentToken(it)
             else
-                expandedMacro.dynamicTokens[currentIndex].token = it
+                expandedMacro.dynamicTokens[startIndex].token = it
         }
 
         val advance: () -> Unit = {
             if (level == 0)
                 builder.advanceLexer()
             else {
-                createGhostToken(builder, expandedMacro.dynamicTokens[currentIndex])
-                expandedMacro.dynamicTokens.removeAt(currentIndex)
+                createGhostToken(builder, expandedMacro.dynamicTokens[startIndex])
+                expandedMacro.dynamicTokens.removeAt(startIndex)
             }
+        }
+
+        val eof: () -> Boolean = {
+            if (level == 0)
+                builder.eof()
+            else
+                expandedMacro.dynamicTokens.size == startIndex
         }
 
         val parser = getParser(builder)
@@ -128,51 +143,101 @@ class SlangPsiUtil {
         advance()
 
         var validMacro = true
-        if (typeIs(SlangTypes.LEFT_PAREN))
-            TODO("Handle macro arguments")
+        val arguments: ArrayList<ArrayList<TokenData>> = arrayListOf()
+        if (macroExpansion.type == MacroExpansion.Type.FunctionLike) {
+            if (!typeIs(SlangTypes.LEFT_PAREN))
+                throw RuntimeException("The function should never have been called in the first place")
+            advance()
+            if (!typeIs(SlangTypes.RIGHT_PAREN)) {
+                var parenthesisScopeLevel = 0
+                var argumentIndex = 0
+                arguments.push(arrayListOf())
 
-        val innerExpandedMacro = ExpandedMacro(macroExpansion, arrayListOf())
+                var marker: Marker? = null
 
-        // Recursively expand macro
-        var index = 0
-        while (index < innerExpandedMacro.dynamicTokens.size) {
-            val entry = innerExpandedMacro.dynamicTokens[index]
+                while (validMacro && !(typeIs(SlangTypes.RIGHT_PAREN) && parenthesisScopeLevel == 0)) {
+                    if (marker == null)
+                        marker = GeneratedParserUtilBase.enter_section_(builder)
 
-            if (entry.token == SlangTypes.IDENTIFIER) {
-                parser.getMacroExpansion(entry.string)?.let {
-                    index = parseMacroCallInternal(builder, innerExpandedMacro, index, level + 1)?.second
-                        ?: innerExpandedMacro.dynamicTokens.size
+                    var argumentToken = true
+                    if (typeIs(SlangTypes.LEFT_PAREN))
+                        parenthesisScopeLevel++
+                    else if (typeIs(SlangTypes.RIGHT_PAREN))
+                        parenthesisScopeLevel--
+                    else if (parenthesisScopeLevel == 0 && typeIs(SlangTypes.COMMA)) {
+                        argumentToken = false
+                        arguments.push(arrayListOf())
+                        argumentIndex++
+                        GeneratedParserUtilBase.exit_section_(builder, marker!!, SlangTypes.MACRO_ARGUMENT, true)
+                    }
+
+                    if (argumentToken)
+                        arguments[argumentIndex].push(TokenData(getType(), getText()))
+
+                    advance()
+
+                    validMacro = !eof()
                 }
-                    .alsoIfNull { index++ }
+                if (marker != null)
+                    GeneratedParserUtilBase.exit_section_(builder, marker, SlangTypes.MACRO_ARGUMENT, true)
             }
-            else
-                index++
+            if (validMacro)
+                advance()
+
+            val validNumberOfArguments = macroExpansion.arguments.size == arguments.size
+                    || (macroExpansion.arguments.size > 0
+                    && macroExpansion.arguments.last().isVariadic
+                    && arguments.size + 1 >= macroExpansion.arguments.size)
+            validMacro = validMacro && validNumberOfArguments
+            if (!validNumberOfArguments)
+                builder.error("Invalid number of arguments in macro call")
         }
-        expandedMacro.dynamicTokens.addAll(startIndex, innerExpandedMacro.dynamicTokens)
+
+        if (validMacro) {
+            val innerExpandedMacro = ExpandedMacro(macroExpansion, arguments)
+
+            // Recursively expand macro
+            var index = 0
+            while (index < innerExpandedMacro.dynamicTokens.size) {
+                val entry = innerExpandedMacro.dynamicTokens[index]
+
+                if (entry.token == SlangTypes.IDENTIFIER) {
+                    parser.getMacroExpansion(entry.string)?.let {
+                        index = parseMacroCallInternal(builder, innerExpandedMacro, index, level + 1)?.second
+                            ?: innerExpandedMacro.dynamicTokens.size
+                    }
+                        .alsoIfNull { index++ }
+                } else
+                    index++
+            }
+            expandedMacro.dynamicTokens.addAll(startIndex, innerExpandedMacro.dynamicTokens)
+        }
 
         GeneratedParserUtilBase.exit_section_(builder, marker, SlangTypes.MACRO_CALL, true)
 
         return if (validMacro)
-            Pair(expandedMacro, currentIndex)
+            Pair(expandedMacro, startIndex)
         else
             null
     }
 
     private fun parseMacroCall(builder: PsiBuilder): ExpandedMacro?
-    {
-        if (currentExpandedMacro != null || builder.tokenType != SlangTypes.IDENTIFIER || processingPreprocessorDirective)
-            return null
-
-        return parseMacroCallInternal(builder, ExpandedMacro(), 0, 0)?.first
-    }
+        = parseMacroCallInternal(builder, ExpandedMacro(), 0, 0)?.first
 
     private fun handlePreprocessing(builder: PsiBuilder) {
         consumePreprocessorDirectives(builder)
         if (currentExpandedMacro == null && builder.tokenType == SlangTypes.IDENTIFIER && !processingPreprocessorDirective) {
-            getParser(builder).getMacroExpansion(builder.tokenText!!)?.let {
-                parseMacroCall(builder)?.let {
-                    currentExpandedMacro = it
-                    currentExpansionIndex = 0
+            getParser(builder).getMacroExpansion(builder.tokenText!!)?.let { macroExpansion ->
+
+                // If the macro is function-like, we need it to be followed by a left parenthesis, otherwise, we don't
+                // parse it as a macro call.
+                if (macroExpansion.type != MacroExpansion.Type.FunctionLike
+                    || builder.lookAhead(1) == SlangTypes.LEFT_PAREN)
+                {
+                    parseMacroCall(builder)?.let {
+                        currentExpandedMacro = it
+                        currentExpansionIndex = 0
+                    }
                 }
             }
         }
