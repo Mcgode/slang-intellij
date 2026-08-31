@@ -2,42 +2,55 @@
 <idea-plugin>
     <id>slang.plugin</id>
     <name>Slang Language Support</name>
-    <vendor>Max Godefroy</vendor>
+    <vendor email="maxgodefroy@gmail.com" url="https://github.com/Mcgode/slang-intellij">Max Godefroy</vendor>
 
     <depends>com.intellij.modules.platform</depends>
 
-    <!--lsp4ij is an optional dependency, for improved slang support using LSP-->
-    <depends optional="true" config-file="lsp4ij.xml">com.redhat.devtools.lsp4ij</depends>
+    <!-- LSP client API. Optional so the plugin still loads on IDEs/builds without LSP support
+         (IntelliJ IDEA open-source builds, Android Studio as of 2026.2); LSP features are simply
+         inactive there. -->
+    <depends optional="true" config-file="slang-lsp.xml">com.intellij.modules.lsp</depends>
 
-    <depends optional="true" config-file="ultimate.xml">com.intellij.modules.ultimate</depends>
-
-    <resource-bundle>messages.MyBundle</resource-bundle>
+    <resource-bundle>messages.SlangBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
         <fileType
-            name="Slang file"
+            name="Slang"
+            language="Slang"
             implementationClass="slang.plugin.language.SlangFileType"
             fieldName="INSTANCE"
-            language="Slang"
-            extensions="slang"/>
+            extensions="slang;slangh" />
+
         <lang.parserDefinition
             language="Slang"
-            implementationClass="slang.plugin.language.SlangParserDefinition" />
+            implementationClass="slang.plugin.lang.SlangParserDefinition" />
+
         <lang.syntaxHighlighterFactory
             language="Slang"
-            implementationClass="slang.plugin.code.highlighting.SlangSyntaxHighlighterFactory" />
-        <annotator
-                language="Slang"
-                implementationClass="slang.plugin.code.highlighting.SlangSyntaxHighlighter" />
-        <notificationGroup
-                displayType="BALLOON"
-                id="Slang" />
-        <colorSettingsPage
-                implementation="slang.plugin.code.highlighting.SlangColorSettingsPage" />
-        <projectConfigurable
+            implementationClass="slang.plugin.highlight.SlangSyntaxHighlighterFactory" />
+
+        <colorSettingsPage implementation="slang.plugin.highlight.SlangColorSettingsPage" />
+
+        <lang.commenter
+            language="Slang"
+            implementationClass="slang.plugin.editor.SlangCommenter" />
+
+        <lang.braceMatcher
+            language="Slang"
+            implementationClass="slang.plugin.editor.SlangBraceMatcher" />
+
+        <lang.foldingBuilder
+            language="Slang"
+            implementationClass="slang.plugin.editor.SlangFoldingBuilder" />
+
+        <notificationGroup id="Slang" displayType="BALLOON" />
+
+        <applicationConfigurable
             parentId="language"
+            id="slang.plugin.settings.SlangSettingsConfigurable"
             instance="slang.plugin.settings.SlangSettingsConfigurable"
-            id="slang.plugin.settings.SlangSettingConfigurable"
             displayName="Slang" />
+
+        <applicationService serviceImplementation="slang.plugin.settings.SlangSettings" />
     </extensions>
 </idea-plugin>

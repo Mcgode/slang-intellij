@@ -4,61 +4,22 @@
 
 ## [Unreleased]
 
-- Native Intellij LSP API support (for Ultimate-tier IDEs only)
-- Language settings page: <kbd>Settings/Preferences</kbd> > <kbd>Languages & Frameworks</kbd> > <kbd>Slang</kbd>
-  - LSP toggle
-  - Choose preferred LSP method
-- Added LSP configuration file (`slang-config.json`) support for LSP4IJ 
+### Changed
+
+- Complete rewrite around the official Slang language server (`slangd`). The hand-written parser and
+  the LSP4IJ integration are replaced by the JetBrains LSP client API (`LspIntegrationProvider`).
+- Minimum IDE version is now 2026.2.
+
+### Added
+
+- Local syntax highlighting, brace matching, comment toggling and code folding (lexer-based, no
+  language server required).
+- LSP integration: automatic `slangd` discovery from settings or `PATH`.
+- Settings page under **Languages & Frameworks | Slang**.
 
 ## [0.1.0] - 2024-12-23
 
-### Added
-
-- LSP support using [LSP4IJ](https://github.com/redhat-developer/lsp4ij)
-  - Optional dependency. To use this feature, make sure to install the plugin.
-- Code color settings page
-
-### Changes
-
-- Parsing for a lot more element types (almost done with non-preprocessors), including (but not limited to):
-  - Statements
-  - Expressions
-  - Functions
-  - Classes
-  - Namespaces
-  - And many more!
-- Basic scope tracking in parser
-- More elements now have specific code highlighting
-
-## [0.0.2] - 2024-12-09
-
-### Added
-
-- Code signing capability
-- Publishing token setup
-
-### Changes
-
-- Parsing for more element type: 
-  - Declaration
-  - Inheritance declaration
-  - Attribute parsing
-  - Postfix expression
-- Test files now use .slang file extension
-- Cleaned up README
-- Removed Slang.bnf and associated generated classes
-
-## [0.0.1] - 2024-12-08
-
-First unstable iteration of the plugin
-
-### Added
-
-- Initial scaffold created from [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template)
-- Work in progress slang file parsing
-- Work in progress slang code highlighting
+See the `dev` branch history for the pre-rewrite (hand-written parser) changelog.
 
 [Unreleased]: https://github.com/Mcgode/slang-intellij/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/Mcgode/slang-intellij/compare/v0.0.2...v0.1.0
-[0.0.2]: https://github.com/Mcgode/slang-intellij/compare/v0.0.1...v0.0.2
-[0.0.1]: https://github.com/Mcgode/slang-intellij/commits/v0.0.1
+[0.1.0]: https://github.com/Mcgode/slang-intellij/commits/v0.1.0
