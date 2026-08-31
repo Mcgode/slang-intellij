@@ -91,3 +91,16 @@ tasks {
         gradleVersion = providers.gradleProperty("gradleVersion").get()
     }
 }
+
+// `./gradlew runIdeForTests` — sandbox IDE with the bundled testProject/ opened.
+val testProjectPath: String = layout.projectDirectory.dir("testProject").asFile.absolutePath
+
+intellijPlatformTesting {
+    runIde {
+        register("runIdeForTests") {
+            task {
+                args(testProjectPath)
+            }
+        }
+    }
+}
