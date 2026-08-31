@@ -59,6 +59,15 @@ class SlangColorSettingsPage : ColorSettingsPage {
             AttributesDescriptor("Braces and operators//Dot", SlangColors.DOT),
             AttributesDescriptor("Braces and operators//Operator sign", SlangColors.OPERATOR),
             AttributesDescriptor("Bad character", SlangColors.BAD_CHARACTER),
+
+            AttributesDescriptor("Language server//Type", SlangColors.TYPE),
+            AttributesDescriptor("Language server//Function", SlangColors.FUNCTION),
+            AttributesDescriptor("Language server//Parameter", SlangColors.PARAMETER),
+            AttributesDescriptor("Language server//Property", SlangColors.PROPERTY),
+            AttributesDescriptor("Language server//Variable", SlangColors.VARIABLE),
+            AttributesDescriptor("Language server//Namespace", SlangColors.NAMESPACE),
+            AttributesDescriptor("Language server//Enum member", SlangColors.ENUM_MEMBER),
+            AttributesDescriptor("Language server//Macro", SlangColors.MACRO),
         )
     }
 }

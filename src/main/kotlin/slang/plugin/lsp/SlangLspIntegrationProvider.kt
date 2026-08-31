@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.lsp.api.LspIntegrationProvider
 import com.intellij.platform.lsp.api.ProjectWideLspClientDescriptor
+import com.intellij.platform.lsp.api.customization.LspCustomization
 import org.eclipse.lsp4j.ConfigurationItem
 import slang.plugin.SlangBundle
 import slang.plugin.language.SlangFileType
@@ -53,4 +54,8 @@ private class SlangLspClientDescriptor(
 
     override fun getWorkspaceConfiguration(item: ConfigurationItem): Any? =
         SlangLspConfig.configurationFor(item.section)
+
+    override val lspCustomization: LspCustomization = object : LspCustomization() {
+        override val semanticTokensCustomizer = SlangLspSemanticTokens()
+    }
 }
