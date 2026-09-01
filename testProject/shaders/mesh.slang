@@ -1,5 +1,5 @@
-#include "../common/brdf.slangh"
-import lighting;
+#include "common/brdf.slangh"
+import common.lighting;
 
 struct VSInput
 {
