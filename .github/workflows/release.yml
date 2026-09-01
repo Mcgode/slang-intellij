@@ -1,0 +1,91 @@
+# Publish the plugin to the JetBrains Marketplace when a GitHub release is published.
+#
+# Requires two repository secrets:
+#   SLANG_LANGUAGE_SUPPORT_PRIVATE_KEY   contents of certificate/private.pem (the signing key)
+#   SLANG_LANGUAGE_SUPPORT_PUBLISH_TOKEN JetBrains Marketplace token
+# certificate/chain.crt is committed, so no CERTIFICATE_CHAIN secret is needed, and the key has
+# no passphrase. See https://plugins.jetbrains.com/docs/intellij/plugin-signing.html
+
+name: Release
+on:
+  release:
+    types: [ prereleased, released ]
+
+jobs:
+
+  release:
+    name: Publish Plugin
+    runs-on: ubuntu-latest
+    environment: "CI secrets"
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Maximize Build Space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          large-packages: false
+
+      - name: Fetch Sources
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: true
+
+      - name: Patch Changelog
+        if: ${{ github.event.release.body != '' }}
+        env:
+          CHANGELOG: ${{ github.event.release.body }}
+        run: |
+          RELEASE_NOTE="./build/tmp/release_note.txt"
+          mkdir -p "$(dirname "$RELEASE_NOTE")"
+          echo "$CHANGELOG" > $RELEASE_NOTE
+          ./gradlew patchChangelog --release-note-file=$RELEASE_NOTE
+
+      - name: Publish Plugin
+        env:
+          SLANG_LANGUAGE_SUPPORT_PRIVATE_KEY: ${{ secrets.SLANG_LANGUAGE_SUPPORT_PRIVATE_KEY }}
+          SLANG_LANGUAGE_SUPPORT_PUBLISH_TOKEN: ${{ secrets.SLANG_LANGUAGE_SUPPORT_PUBLISH_TOKEN }}
+        run: ./gradlew publishPlugin
+
+      - name: Upload Release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.event.release.tag_name }} ./build/distributions/*
+
+      - name: Create Pull Request
+        if: ${{ github.event.release.body != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          BRANCH="changelog-update-$VERSION"
+          LABEL="release changelog"
+
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+
+          git checkout -b $BRANCH
+          git commit -am "Changelog update - $VERSION"
+          git push --set-upstream origin $BRANCH
+
+          gh label create "$LABEL" \
+            --description "Pull requests with release changelog update" \
+            --force || true
+
+          gh pr create \
+            --title "Changelog update - \`$VERSION\`" \
+            --body "Patched \`CHANGELOG.md\` for \`$VERSION\`." \
+            --label "$LABEL" \
+            --head $BRANCH
