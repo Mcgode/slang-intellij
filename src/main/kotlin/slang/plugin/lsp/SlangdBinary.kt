@@ -28,12 +28,6 @@ object SlangdBinary {
 
         PathEnvironmentVariableUtil.findInPath(exeName)?.let { return it.toPath() }
 
-        if (settings.autoDownload) {
-            downloadedBinary()?.let { return it }
-        }
-        return null
+        return SlangdDownload.installedBinary()
     }
-
-    /** TODO: fetch a matching slangd from https://github.com/shader-slang/slang/releases into the plugin cache. */
-    private fun downloadedBinary(): Path? = null
 }

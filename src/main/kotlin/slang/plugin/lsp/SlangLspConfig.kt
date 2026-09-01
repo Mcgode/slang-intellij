@@ -14,24 +14,24 @@ import slang.plugin.settings.SlangSettings
  */
 object SlangLspConfig {
 
-    private fun all(): Map<String, Any> {
-        val s = SlangSettings.getInstance().state
-        return mapOf(
-            "slang.predefinedMacros" to s.predefinedMacros.toList(),
-            "slang.additionalSearchPaths" to s.additionalSearchPaths.toList(),
-            "slang.searchInAllWorkspaceDirectories" to s.searchInAllWorkspaceDirectories,
-            "slang.inlayHints.deducedTypes" to s.inlayHintsDeducedTypes,
-            "slang.inlayHints.parameterNames" to s.inlayHintsParameterNames,
-        )
-    }
+    private fun currentState() = SlangSettings.getInstance().state
+
+    internal fun all(state: SlangSettings.SlangState = currentState()): Map<String, Any> = mapOf(
+        "slang.predefinedMacros" to state.predefinedMacros.toList(),
+        "slang.additionalSearchPaths" to state.additionalSearchPaths.toList(),
+        "slang.searchInAllWorkspaceDirectories" to state.searchInAllWorkspaceDirectories,
+        "slang.inlayHints.deducedTypes" to state.inlayHintsDeducedTypes,
+        "slang.inlayHints.parameterNames" to state.inlayHintsParameterNames,
+    )
 
     fun initializationOptions(): Any = all()
 
     /** Value for a single `workspace/configuration` section, or null if we don't manage that key. */
-    fun configurationFor(section: String?): Any? {
+    fun configurationFor(section: String?, state: SlangSettings.SlangState = currentState()): Any? {
         if (section == null) return null
-        all()[section]?.let { return it }
+        val entries = all(state)
+        entries[section]?.let { return it }
         // slangd also asks for nested keys with the leading "slang." stripped in some versions.
-        return all()["slang.$section"]
+        return entries["slang.$section"]
     }
 }

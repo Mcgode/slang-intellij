@@ -7,3 +7,4 @@ build
 
 # Should save private signing key in ./certificate, but should not be uploaded to the VCS
 certificate/private.pem
+.DS_Store

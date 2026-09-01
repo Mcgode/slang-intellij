@@ -1,8 +1,10 @@
 package slang.plugin.lsp
 
 import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.lsp.api.LspIntegrationProvider
@@ -11,6 +13,8 @@ import com.intellij.platform.lsp.api.customization.LspCustomization
 import org.eclipse.lsp4j.ConfigurationItem
 import slang.plugin.SlangBundle
 import slang.plugin.language.SlangFileType
+import slang.plugin.settings.SlangSettings
+import slang.plugin.settings.SlangSettingsConfigurable
 import java.util.concurrent.atomic.AtomicBoolean
 
 class SlangLspIntegrationProvider : LspIntegrationProvider {
@@ -22,20 +26,36 @@ class SlangLspIntegrationProvider : LspIntegrationProvider {
 
         val binary = SlangdBinary.resolve()
         if (binary == null) {
-            if (missingNotified.compareAndSet(false, true)) {
-                NotificationGroupManager.getInstance()
-                    .getNotificationGroup("Slang")
-                    .createNotification(
-                        SlangBundle.message("notification.slangd.notFound.title"),
-                        SlangBundle.message("notification.slangd.notFound.content"),
-                        NotificationType.WARNING,
-                    )
-                    .notify(project)
-            }
+            onSlangdMissing(project)
             return
         }
 
         clientStarter.ensureClientStarted(SlangLspClientDescriptor(project, binary.toString()))
+    }
+
+    private fun onSlangdMissing(project: Project) {
+        if (SlangdDownload.isDownloading) return
+
+        if (SlangSettings.getInstance().state.autoDownload) {
+            SlangdDownload.startDownload(project)
+            return
+        }
+
+        if (!missingNotified.compareAndSet(false, true)) return
+        NotificationGroupManager.getInstance()
+            .getNotificationGroup("Slang")
+            .createNotification(
+                SlangBundle.message("notification.slangd.notFound.title"),
+                SlangBundle.message("notification.slangd.notFound.content"),
+                NotificationType.WARNING,
+            )
+            .addAction(NotificationAction.createSimple(SlangBundle.message("notification.slangd.action.download")) {
+                SlangdDownload.startDownload(project)
+            })
+            .addAction(NotificationAction.createSimple(SlangBundle.message("notification.slangd.action.configure")) {
+                ShowSettingsUtil.getInstance().showSettingsDialog(project, SlangSettingsConfigurable::class.java)
+            })
+            .notify(project)
     }
 }
 
