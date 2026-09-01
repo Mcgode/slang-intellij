@@ -3,7 +3,6 @@ package slang.plugin.lsp
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.platform.lsp.api.customization.LspSemanticTokensSupport
 import com.intellij.psi.PsiFile
-import com.jetbrains.rd.util.string.printToString
 import slang.plugin.highlight.SlangColors
 
 /**
@@ -19,10 +18,8 @@ class SlangLspSemanticTokens : LspSemanticTokensSupport() {
         return true
     }
 
-    override fun getTextAttributesKey(tokenType: String, modifiers: List<String>): TextAttributesKey? {
-        print(tokenType)
-        print(modifiers.printToString())
-        return when (tokenType) {
+    override fun getTextAttributesKey(tokenType: String, modifiers: List<String>): TextAttributesKey? =
+        when (tokenType) {
             "type" -> SlangColors.TYPE
             "function" -> SlangColors.FUNCTION
             "parameter" -> SlangColors.PARAMETER
@@ -34,6 +31,5 @@ class SlangLspSemanticTokens : LspSemanticTokensSupport() {
             "keyword" -> SlangColors.KEYWORD
             "string" -> SlangColors.STRING
             else -> null
-        }
     }
 }

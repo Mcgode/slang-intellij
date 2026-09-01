@@ -34,7 +34,33 @@ object SlangdDownload {
 
     private val exeName: String get() = if (SystemInfo.isWindows) "slangd.exe" else "slangd"
 
-    private fun versionDir(): Path = PathManager.getSystemDir().resolve("slang-lsp").resolve(VERSION)
+    private fun installRoot(): Path = PathManager.getSystemDir().resolve("slang-lsp")
+    private fun versionDir(): Path = installRoot().resolve(VERSION)
+
+    /** The plugin-managed slangd's version, or null if it is not installed. Always [VERSION] when present. */
+    fun installedVersion(): String? = if (installedBinary() != null) VERSION else null
+
+    /** Downloaded version directories other than the current [VERSION] (from an earlier plugin release). */
+    fun staleVersions(): List<String> {
+        val root = installRoot()
+        if (!Files.isDirectory(root)) return emptyList()
+        Files.list(root).use { s ->
+            return s.filter { Files.isDirectory(it) && it.fileName.toString() != VERSION }
+                .map { it.fileName.toString() }
+                .sorted()
+                .toList()
+        }
+    }
+
+    private fun cleanupStaleVersions() {
+        val root = installRoot()
+        if (!Files.isDirectory(root)) return
+        Files.list(root).use { s ->
+            s.filter { Files.isDirectory(it) && it.fileName.toString() != VERSION }.forEach { dir ->
+                runCatching { dir.toFile().deleteRecursively() }
+            }
+        }
+    }
 
     /** Release assets are named `slang-<version>-<os>-<arch>.zip`. */
     private fun platformSlug(): String? {
@@ -67,17 +93,22 @@ object SlangdDownload {
         }
     }
 
-    fun startDownload(project: Project) {
+    fun startDownload(project: Project, onFinished: () -> Unit = {}) {
         if (installedBinary() != null) {
             restartClient(project)
+            onFinished()
             return
         }
-        if (!inProgress.compareAndSet(false, true)) return
+        if (!inProgress.compareAndSet(false, true)) {
+            onFinished()
+            return
+        }
 
         val slug = platformSlug()
         if (slug == null) {
             inProgress.set(false)
             notify(project, SlangBundle.message("notification.slangd.noPrebuilt"), NotificationType.WARNING)
+            onFinished()
             return
         }
 
@@ -109,6 +140,7 @@ object SlangdDownload {
             override fun onSuccess() {
                 inProgress.set(false)
                 if (installedBinary() != null) {
+                    cleanupStaleVersions()
                     notify(
                         project,
                         SlangBundle.message("notification.slangd.installed", VERSION),
@@ -118,6 +150,7 @@ object SlangdDownload {
                 } else {
                     notify(project, SlangBundle.message("notification.slangd.missingInArchive"), NotificationType.ERROR)
                 }
+                onFinished()
             }
 
             override fun onThrowable(error: Throwable) {
@@ -128,13 +161,19 @@ object SlangdDownload {
                     SlangBundle.message("notification.slangd.downloadFailed", error.message ?: error.javaClass.simpleName),
                     NotificationType.ERROR,
                 )
+                onFinished()
             }
         }.queue()
     }
 
     private fun restartClient(project: Project) {
-        LspClientManager.getInstance(project).startClientsIfNeeded(SlangLspIntegrationProvider::class.java)
+        val manager = LspClientManager.getInstance(project)
+        manager.stopClients(SlangLspIntegrationProvider::class.java)
+        manager.startClientsIfNeeded(SlangLspIntegrationProvider::class.java)
     }
+
+    /** Public restart hook for the settings UI (e.g. after switching source). */
+    fun restart(project: Project) = restartClient(project)
 
     private fun notify(project: Project, content: String, type: NotificationType) {
         NotificationGroupManager.getInstance()

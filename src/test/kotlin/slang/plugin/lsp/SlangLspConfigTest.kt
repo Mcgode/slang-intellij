@@ -4,16 +4,21 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import slang.plugin.settings.SlangSettings
 
 class SlangLspConfigTest {
 
-    private fun state() = SlangSettings.SlangState()
+    private fun inputs(
+        searchPaths: List<String> = emptyList(),
+        macros: List<String> = emptyList(),
+        searchInWorkspace: Boolean = true,
+        deducedTypes: Boolean = true,
+        parameterNames: Boolean = true,
+    ) = SlangLspConfig.Inputs(searchPaths, macros, searchInWorkspace, deducedTypes, parameterNames)
 
     @Test
-    fun `the managed slang keys are all present`() {
+    fun `all the managed slang keys are present`() {
         assertTrue(
-            SlangLspConfig.all(state()).keys.containsAll(
+            SlangLspConfig.all(inputs()).keys.containsAll(
                 listOf(
                     "slang.predefinedMacros",
                     "slang.additionalSearchPaths",
@@ -26,23 +31,31 @@ class SlangLspConfigTest {
     }
 
     @Test
-    fun `configurationFor reflects the settings state`() {
-        val s = state()
-        s.predefinedMacros.add("SHADOWS=1")
-        assertEquals(listOf("SHADOWS=1"), SlangLspConfig.configurationFor("slang.predefinedMacros", s))
+    fun `the config blob reflects the inputs`() {
+        val map = SlangLspConfig.all(
+            inputs(searchPaths = listOf("../LibA"), macros = listOf("SHADOWS=1"), searchInWorkspace = false),
+        )
+        assertEquals(listOf("../LibA"), map["slang.additionalSearchPaths"])
+        assertEquals(listOf("SHADOWS=1"), map["slang.predefinedMacros"])
+        assertEquals(false, map["slang.searchInAllWorkspaceDirectories"])
+    }
 
-        s.inlayHintsParameterNames = false
-        assertEquals(false, SlangLspConfig.configurationFor("slang.inlayHints.parameterNames", s))
+    @Test
+    fun `configurationFor resolves a known section`() {
+        val map = SlangLspConfig.all(inputs(macros = listOf("A")))
+        assertEquals(listOf("A"), SlangLspConfig.configurationFor("slang.predefinedMacros", map))
     }
 
     @Test
     fun `configurationFor accepts the bare key without the slang prefix`() {
-        assertEquals(true, SlangLspConfig.configurationFor("searchInAllWorkspaceDirectories", state()))
+        val map = SlangLspConfig.all(inputs(searchInWorkspace = true))
+        assertEquals(true, SlangLspConfig.configurationFor("searchInAllWorkspaceDirectories", map))
     }
 
     @Test
     fun `configurationFor returns null for keys we do not manage`() {
-        assertNull(SlangLspConfig.configurationFor("editor.fontSize", state()))
-        assertNull(SlangLspConfig.configurationFor(null, state()))
+        val map = SlangLspConfig.all(inputs())
+        assertNull(SlangLspConfig.configurationFor("editor.fontSize", map))
+        assertNull(SlangLspConfig.configurationFor(null, map))
     }
 }

@@ -45,12 +45,13 @@
 
         <notificationGroup id="Slang" displayType="BALLOON" />
 
-        <applicationConfigurable
+        <projectConfigurable
             parentId="language"
             id="slang.plugin.settings.SlangSettingsConfigurable"
             instance="slang.plugin.settings.SlangSettingsConfigurable"
             displayName="Slang" />
 
         <applicationService serviceImplementation="slang.plugin.settings.SlangSettings" />
+        <projectService serviceImplementation="slang.plugin.settings.SlangProjectSettings" />
     </extensions>
 </idea-plugin>
