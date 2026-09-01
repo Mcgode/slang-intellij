@@ -1,27 +1,77 @@
 # Slang Language Support for JetBrains IDEs
 
-![Build](https://github.com/Mcgode/slang-intellij/workflows/Build/badge.svg)
+[![Build](https://github.com/Mcgode/slang-intellij/actions/workflows/build.yml/badge.svg)](https://github.com/Mcgode/slang-intellij/actions/workflows/build.yml)
 [![Version](https://img.shields.io/jetbrains/plugin/v/26040-slang-language-support.svg)](https://plugins.jetbrains.com/plugin/26040-slang-language-support)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/26040-slang-language-support.svg)](https://plugins.jetbrains.com/plugin/26040-slang-language-support)
 
 <!-- Plugin description -->
 Editor support for the [Slang](https://shader-slang.com/) shading language.
 
-Version 0.2 is a ground-up rewrite around the official Slang language server (`slangd`):
+Features integration of [`slangd`](https://github.com/shader-slang/slang), the official Slang language server, over LSP:
 
-- Syntax highlighting, brace matching, comment toggling and code folding, provided locally by the plugin.
-- Code completion, diagnostics, hover documentation, go-to-definition, signature help, semantic
-  highlighting, formatting and inlay hints, provided by `slangd` over the Language Server Protocol.
+- Code completion, error and warning diagnostics, hover documentation
+- Go to definition, signature help, semantic highlighting, formatting, inlay hints
 
-The plugin locates `slangd` from its settings, then from your `PATH`. LSP features require a JetBrains
-IDE with the bundled LSP client (IntelliJ IDEA, CLion, Rider and other commercial IDEs, 2026.2+).
+The plugin also provides some added features beyond language-server integration:
+
+- Offline syntax highlighting, with a dedicated color settings page
+- Brace matching, comment toggling, and code folding (`{ }` blocks, block comments, `#if` / `#endif`)
+
+
+The plugin can download and manage a matching `slangd` for you, or use one from your `PATH` or a
+path you configure. Everything is set up under **Settings | Languages & Frameworks | Slang** —
+including per-project include search paths and predefined macros that are forwarded to `slangd`.
+
+Language-server features need a JetBrains IDE that bundles the LSP client (IntelliJ IDEA, CLion,
+Rider and other commercial IDEs, 2026.2 or newer). The local features work anywhere the plugin
+loads.
+
+**Disclaimer:** the 0.2 rewrite was largely "vibe coded" with an AI assistant, though reviewed and
+steered by practiced hands. It compiles, passes its unit tests and the JetBrains Plugin Verifier,
+but it has had far less hands-on use than its age suggests — expect rough edges, and please report
+bugs.
 <!-- Plugin description end -->
+
+## Installation
+
+- **Marketplace:** <kbd>Settings/Preferences</kbd> → <kbd>Plugins</kbd> → <kbd>Marketplace</kbd> →
+  search for "Slang Language Support" → <kbd>Install</kbd>.
+- **From disk:** download a release from the
+  [Marketplace versions page](https://plugins.jetbrains.com/plugin/26040-slang-language-support/versions)
+  or the [GitHub releases](https://github.com/Mcgode/slang-intellij/releases), then
+  <kbd>Settings/Preferences</kbd> → <kbd>Plugins</kbd> → <kbd>⚙️</kbd> → <kbd>Install plugin from disk…</kbd>.
+
+## The Slang language server
+
+Language-server features require `slangd`. In **Settings | Languages & Frameworks | Slang** you choose:
+
+- **Plugin-managed** (default) — the plugin downloads a pinned `slangd` from the Slang GitHub
+  releases into the IDE cache (the large LLVM component is skipped, ~75 MB on disk). It offers to
+  do this on first use, or automatically if you enable it.
+- **System** — a `slangd` from a path you set, or found on your `PATH` (e.g. the one shipped with
+  the Vulkan SDK under `$VULKAN_SDK/bin`).
+
+The settings page shows the resolved path and version of each, and warns if the system `slangd` is
+older than the version the plugin was built against.
 
 ## Development
 
-`./gradlew runIde` launches a sandbox IDE with the plugin installed. `./gradlew buildPlugin` produces
-the distributable zip under `build/distributions`.
+| Task | |
+|------|--|
+| `./gradlew runIde` | sandbox IDE with the plugin installed |
+| `./gradlew runIdeForTests` | same, with `testProject/` opened |
+| `./gradlew test` | unit tests |
+| `./gradlew verifyPlugin` | IntelliJ Plugin Verifier |
+| `./gradlew buildPlugin` | distributable zip under `build/distributions` |
 
-The pre-2.0 hand-written parser lives on the `dev` branch.
+The pre-2.0 hand-written parser and its test corpus live on the `dev` branch.
+
+## A note on how this was built
+
+The 0.2 rewrite was largely "vibe coded" with an AI assistant, though reviewed and steered by
+practiced hands. Every change compiles, the unit tests pass, and the plugin clears the JetBrains
+Plugin Verifier — but much less of it has been exercised by hand than a plugin this age normally
+would be. If something misbehaves, please open an issue.
 
 ---
 Plugin based on the [IntelliJ Platform Plugin Template][template].
