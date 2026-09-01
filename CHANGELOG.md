@@ -32,10 +32,11 @@ JetBrains LSP client API.
 - Minimum IDE version is now 2026.2. Language-server features require a commercial IntelliJ-based
   IDE (IntelliJ IDEA, CLion, Rider, …); the local features work wherever the plugin loads.
 
-### Fixed
+### Known issues
 
-- `slangd` sometimes answers `textDocument/hover` with an empty (`null` contents) result, which
-  crashed the platform's LSP hover handling. Such responses are now normalised to "no hover".
+- When hovering certain keywords, an IDE error will occur. This is a known issue of `slangd`, which
+  returns an invalid LSP response. A fix is in progress and should be available in the next `slangd`
+  release.
 
 ## [0.1.0] - 2024-12-23
 

@@ -2,7 +2,5 @@
     <extensions defaultExtensionNs="com.intellij">
         <platform.lsp.integrationProvider
             implementation="slang.plugin.lsp.SlangLspIntegrationProvider" />
-
-        <projectService serviceImplementation="slang.plugin.lsp.SlangLspServerCustomization" />
     </extensions>
 </idea-plugin>

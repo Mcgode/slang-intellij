@@ -71,7 +71,6 @@ intellijPlatform {
 
         ideaVersion {
             sinceBuild = providers.gradleProperty("pluginSinceBuild")
-            untilBuild = providers.gradleProperty("pluginUntilBuild")
         }
     }
 
@@ -97,16 +96,18 @@ intellijPlatform {
             recommended()
         }
 
-        // The lsp4j hover-response workaround (SlangLspServerCustomization) has to go through
-        // Lsp4jServerWrapper / LspClientManager.addLsp4jServerWrapper, which are @ApiStatus.Internal
-        // and take the deprecated LspServer type — there is no public equivalent. Keep those two
-        // categories reported but non-fatal; still fail on everything that actually breaks users.
+        // The plugin now only touches public, stable platform API, so fail on any regression
+        // toward internal / deprecated / non-extendable API as well as outright breakage.
         failureLevel = listOf(
             FailureLevel.COMPATIBILITY_PROBLEMS,
             FailureLevel.INVALID_PLUGIN,
             FailureLevel.MISSING_DEPENDENCIES,
             FailureLevel.PLUGIN_STRUCTURE_WARNINGS,
             FailureLevel.SCHEDULED_FOR_REMOVAL_API_USAGES,
+            FailureLevel.DEPRECATED_API_USAGES,
+            FailureLevel.INTERNAL_API_USAGES,
+            FailureLevel.NON_EXTENDABLE_API_USAGES,
+            FailureLevel.OVERRIDE_ONLY_API_USAGES,
         )
     }
 }
