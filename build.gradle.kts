@@ -74,6 +74,23 @@ intellijPlatform {
         }
     }
 
+    // Marketplace plugin signing. `certificate/chain.crt` is committed; `certificate/private.pem` is
+    // gitignored (present locally). CI restores the key from the SLANG_LANGUAGE_SUPPORT_PRIVATE_KEY secret into that path
+    // before signing. The key is not passphrase-protected, so `password` is left unset.
+    signing {
+        certificateChainFile = layout.projectDirectory.file("certificate/chain.crt")
+        privateKey = providers.environmentVariable("SLANG_LANGUAGE_SUPPORT_PRIVATE_KEY")
+            .orElse(providers.fileContents(layout.projectDirectory.file("certificate/private.pem")).asText)
+    }
+
+    publishing {
+        token = providers.environmentVariable("SLANG_LANGUAGE_SUPPORT_PUBLISH_TOKEN")
+        // A pre-release version like 0.2.0-alpha.1 publishes to the "alpha" channel; 0.2.0 to "default".
+        channels = providers.gradleProperty("pluginVersion").map {
+            listOf(it.substringAfter('-', "").substringBefore('.').ifEmpty { "default" })
+        }
+    }
+
     pluginVerification {
         ides {
             recommended()
@@ -101,6 +118,10 @@ changelog {
 tasks {
     wrapper {
         gradleVersion = providers.gradleProperty("gradleVersion").get()
+    }
+
+    publishPlugin {
+        dependsOn(patchChangelog)
     }
 }
 
