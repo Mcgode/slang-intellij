@@ -8,7 +8,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.lsp.api.LspClientManager
 import com.intellij.platform.lsp.api.LspIntegrationProvider
 import com.intellij.platform.lsp.api.ProjectWideLspClientDescriptor
 import com.intellij.platform.lsp.api.customization.LspCustomization
@@ -60,7 +59,7 @@ class SlangLspIntegrationProvider : LspIntegrationProvider {
                     if (SlangdDownload.installedBinary() == null) {
                         SlangdDownload.startDownload(project)
                     } else {
-                        SlangdDownload.restart(project)
+                        SlangLspRestart.restart(project)
                     }
                 })
                 .notify(project)

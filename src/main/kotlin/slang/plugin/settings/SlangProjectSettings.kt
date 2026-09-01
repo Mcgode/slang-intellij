@@ -19,10 +19,10 @@ class SlangProjectSettings :
         var searchInAllWorkspaceDirectories by property(true)
 
         /** Extra `-I` directories, in addition to the ones slangd discovers. */
-        val additionalSearchPaths by list<String>()
+        var additionalSearchPaths by list<String>()
 
         /** Predefined preprocessor macros, each `NAME` or `NAME=VALUE`. */
-        val predefinedMacros by list<String>()
+        var predefinedMacros by list<String>()
     }
 
     companion object {

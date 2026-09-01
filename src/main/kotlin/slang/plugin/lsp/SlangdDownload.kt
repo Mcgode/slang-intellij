@@ -8,7 +8,6 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.platform.lsp.api.LspClientManager
 import com.intellij.util.io.Decompressor
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.system.CpuArch
@@ -95,7 +94,7 @@ object SlangdDownload {
 
     fun startDownload(project: Project, onFinished: () -> Unit = {}) {
         if (installedBinary() != null) {
-            restartClient(project)
+            SlangLspRestart.restart(project)
             onFinished()
             return
         }
@@ -146,7 +145,7 @@ object SlangdDownload {
                         SlangBundle.message("notification.slangd.installed", VERSION),
                         NotificationType.INFORMATION,
                     )
-                    restartClient(project)
+                    SlangLspRestart.restart(project)
                 } else {
                     notify(project, SlangBundle.message("notification.slangd.missingInArchive"), NotificationType.ERROR)
                 }
@@ -165,15 +164,6 @@ object SlangdDownload {
             }
         }.queue()
     }
-
-    private fun restartClient(project: Project) {
-        val manager = LspClientManager.getInstance(project)
-        manager.stopClients(SlangLspIntegrationProvider::class.java)
-        manager.startClientsIfNeeded(SlangLspIntegrationProvider::class.java)
-    }
-
-    /** Public restart hook for the settings UI (e.g. after switching source). */
-    fun restart(project: Project) = restartClient(project)
 
     private fun notify(project: Project, content: String, type: NotificationType) {
         NotificationGroupManager.getInstance()

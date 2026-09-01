@@ -49,6 +49,13 @@ object SlangLspConfig {
 
     fun initializationOptions(project: Project): Any = all(inputsFor(project))
 
+    /**
+     * Everything that slangd only reads at start-up (via [initializationOptions] /
+     * `workspace/configuration`). The settings UI compares this before and after an Apply to decide
+     * whether the language server needs restarting.
+     */
+    fun restartRelevantConfig(project: Project): Map<String, Any> = all(inputsFor(project))
+
     /** Value for a single `workspace/configuration` section, or null if we don't manage that key. */
     fun configurationFor(section: String?, project: Project): Any? =
         configurationFor(section, all(inputsFor(project)))

@@ -15,6 +15,8 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.rows
 import com.intellij.util.concurrency.annotations.RequiresEdt
 import slang.plugin.SlangBundle
+import slang.plugin.lsp.SlangLspConfig
+import slang.plugin.lsp.SlangLspRestart
 import slang.plugin.lsp.SlangdBinary
 import slang.plugin.lsp.SlangdDownload
 import slang.plugin.lsp.SlangdVersion
@@ -30,8 +32,26 @@ class SlangSettingsConfigurable(private val project: Project) :
     private val pluginInfo = JBLabel()
     private lateinit var downloadButton: JButton
 
+    /**
+     * The subset of settings that slangd only picks up when it (re)starts: the resolved binary
+     * (source + path) and everything forwarded as `initializationOptions`. Compared across an Apply
+     * so the language server is restarted only when one of these actually changed.
+     */
+    private data class LspRestartKey(
+        val source: SlangdSource,
+        val path: String,
+        val config: Map<String, Any>,
+    )
+
+    private fun lspRestartKey() = LspRestartKey(
+        source = app.slangdSource,
+        path = app.slangdPath ?: "",
+        config = SlangLspConfig.restartRelevantConfig(project),
+    )
+
     override fun createPanel(): DialogPanel {
         val appState = app
+        var lspKey = lspRestartKey()
         val dialog = panel {
             group(SlangBundle.message("settings.slangd.group")) {
                 buttonsGroup(SlangBundle.message("settings.slangd.source")) {
@@ -114,6 +134,20 @@ class SlangSettingsConfigurable(private val project: Project) :
                     checkBox(SlangBundle.message("settings.inlayHints.parameterNames"))
                         .bindSelected({ app.inlayHintsParameterNames }, { app.inlayHintsParameterNames = it })
                 }
+            }
+
+            // onApply/onReset run after the field bindings have written their backing state, so
+            // lspRestartKey() here reflects the just-applied settings.
+            onReset { lspKey = lspRestartKey() }
+            onApply {
+                val current = lspRestartKey()
+                if (current != lspKey) {
+                    lspKey = current
+                    // Restart slangd so the new binary / initializationOptions take effect now,
+                    // rather than only after an IDE restart.
+                    SlangLspRestart.restart(project)
+                }
+                refresh()
             }
         }
         refresh()
