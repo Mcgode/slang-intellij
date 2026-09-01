@@ -4,5 +4,5 @@ import com.intellij.openapi.util.IconLoader
 
 object SlangIcons {
     @JvmField
-    val FILE = IconLoader.getIcon("/icons/slang-icon.png", SlangIcons::class.java)
+    val FILE = IconLoader.getIcon("/icons/slang-icon.svg", SlangIcons::class.java)
 }
