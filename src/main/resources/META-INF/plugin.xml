@@ -39,6 +39,10 @@
             language="Slang"
             implementationClass="slang.plugin.editor.SlangBraceMatcher" />
 
+        <lang.quoteHandler
+            language="Slang"
+            implementationClass="slang.plugin.editor.SlangQuoteHandler" />
+
         <lang.foldingBuilder
             language="Slang"
             implementationClass="slang.plugin.editor.SlangFoldingBuilder" />
