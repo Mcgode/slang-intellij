@@ -1,1 +1,0 @@
-struct Foo: Bar0, Bar1 {};

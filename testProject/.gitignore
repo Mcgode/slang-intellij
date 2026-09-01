@@ -1,0 +1,5 @@
+# Ignore the IDE project files that carry local state, but keep the Slang settings
+# (source/path, include paths, macros) so the test project's slangd config is standardized.
+!/.idea/
+/.idea/*
+!/.idea/slang.xml

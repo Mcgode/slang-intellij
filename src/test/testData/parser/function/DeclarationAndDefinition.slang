@@ -1,4 +1,0 @@
-uint Foo();
-
-uint Foo()
-{}

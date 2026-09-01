@@ -1,47 +1,39 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel
 
 plugins {
-    id("java") // Java support
-    alias(libs.plugins.kotlin) // Kotlin support
-    alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
-    alias(libs.plugins.changelog) // Gradle Changelog Plugin
-    alias(libs.plugins.qodana) // Gradle Qodana Plugin
-    alias(libs.plugins.kover) // Gradle Kover Plugin
+    id("org.jetbrains.kotlin.jvm")
+    id("org.jetbrains.intellij.platform")
+    id("org.jetbrains.changelog")
 }
 
 group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
 
-// Set the JVM language level used to build the project.
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
+    compilerOptions {
+        // IntelliJ IDEA 2026.2 bundles Kotlin libraries with a newer metadata version than the
+        // Kotlin Gradle plugin we build with; the plugin only touches stable platform API.
+        freeCompilerArgs.addAll("-Xskip-metadata-version-check", "-Xskip-prerelease-check")
+    }
 }
 
-// Configure project's dependencies
 repositories {
     mavenCentral()
-
-    // IntelliJ Platform Gradle Plugin Repositories Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
     intellijPlatform {
         defaultRepositories()
     }
 }
 
-// Dependencies are managed with Gradle version catalog - read more: https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog
 dependencies {
     testImplementation(libs.junit)
 
-    // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
-        create(providers.gradleProperty("platformType"), providers.gradleProperty("platformVersion"))
-
-        // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
-        bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
-
-        // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file for plugin from JetBrains Marketplace.
-        plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
+        // Unified IntelliJ IDEA distribution (bundles the LSP client API).
+        intellijIdea(providers.gradleProperty("platformVersion"))
 
         pluginVerifier()
         zipSigner()
@@ -49,16 +41,14 @@ dependencies {
     }
 }
 
-// Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
     pluginConfiguration {
+        name = providers.gradleProperty("pluginName")
         version = providers.gradleProperty("pluginVersion")
 
-        // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
         description = providers.fileContents(layout.projectDirectory.file("README.md")).asText.map {
             val start = "<!-- Plugin description -->"
             val end = "<!-- Plugin description end -->"
-
             with(it.lines()) {
                 if (!containsAll(listOf(start, end))) {
                     throw GradleException("Plugin description section not found in README.md:\n$start ... $end")
@@ -67,8 +57,7 @@ intellijPlatform {
             }
         }
 
-        val changelog = project.changelog // local variable for configuration cache compatibility
-        // Get the latest available change notes from the changelog file
+        val changelog = project.changelog
         changeNotes = providers.gradleProperty("pluginVersion").map { pluginVersion ->
             with(changelog) {
                 renderItem(
@@ -86,42 +75,45 @@ intellijPlatform {
         }
     }
 
+    // Marketplace plugin signing. `certificate/chain.crt` is committed; `certificate/private.pem` is
+    // gitignored (present locally). CI restores the key from the SLANG_LANGUAGE_SUPPORT_PRIVATE_KEY secret into that path
+    // before signing. The key is not passphrase-protected, so `password` is left unset.
     signing {
-        certificateChainFile.set(file("certificate/chain.crt"))
-        privateKeyFile.set(file("certificate/private.pem"))
-        password = providers.environmentVariable("SLANG_LANGUAGE_SUPPORT_SIGNING_PASSWORD")
+        certificateChainFile = layout.projectDirectory.file("certificate/chain.crt")
+        privateKey = providers.environmentVariable("SLANG_LANGUAGE_SUPPORT_PRIVATE_KEY")
+            .orElse(providers.fileContents(layout.projectDirectory.file("certificate/private.pem")).asText)
     }
 
     publishing {
-        token = providers.environmentVariable("SLANG_LANGUAGE_SUPPORT_PUBLISHING_TOKEN")
-        // The pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
-        // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
-        // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
-        channels = providers.gradleProperty("pluginVersion").map { listOf(it.substringAfter('-', "").substringBefore('.').ifEmpty { "default" }) }
+        token = providers.environmentVariable("SLANG_LANGUAGE_SUPPORT_PUBLISH_TOKEN")
+        // A pre-release version like 0.2.0-alpha.1 publishes to the "alpha" channel; 0.2.0 to "default".
+        channels = providers.gradleProperty("pluginVersion").map {
+            listOf(it.substringAfter('-', "").substringBefore('.').ifEmpty { "default" })
+        }
     }
 
     pluginVerification {
         ides {
             recommended()
         }
+
+        // The lsp4j hover-response workaround (SlangLspServerCustomization) has to go through
+        // Lsp4jServerWrapper / LspClientManager.addLsp4jServerWrapper, which are @ApiStatus.Internal
+        // and take the deprecated LspServer type — there is no public equivalent. Keep those two
+        // categories reported but non-fatal; still fail on everything that actually breaks users.
+        failureLevel = listOf(
+            FailureLevel.COMPATIBILITY_PROBLEMS,
+            FailureLevel.INVALID_PLUGIN,
+            FailureLevel.MISSING_DEPENDENCIES,
+            FailureLevel.PLUGIN_STRUCTURE_WARNINGS,
+            FailureLevel.SCHEDULED_FOR_REMOVAL_API_USAGES,
+        )
     }
 }
 
-// Configure Gradle Changelog Plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
     groups.empty()
     repositoryUrl = providers.gradleProperty("pluginRepositoryUrl")
-}
-
-// Configure Gradle Kover Plugin - read more: https://github.com/Kotlin/kotlinx-kover#configuration
-kover {
-    reports {
-        total {
-            xml {
-                onCheck = true
-            }
-        }
-    }
 }
 
 tasks {
@@ -131,35 +123,18 @@ tasks {
 
     publishPlugin {
         dependsOn(patchChangelog)
-        channels.set(arrayListOf("Beta"))
     }
 }
+
+// `./gradlew runIdeForTests` — sandbox IDE with the bundled testProject/ opened.
+val testProjectPath: String = layout.projectDirectory.dir("testProject").asFile.absolutePath
 
 intellijPlatformTesting {
     runIde {
-        register("runIdeForUiTests") {
+        register("runIdeForTests") {
             task {
-                jvmArgumentProviders += CommandLineArgumentProvider {
-                    listOf(
-                        "-Drobot-server.port=8082",
-                        "-Dide.mac.message.dialogs.as.sheets=false",
-                        "-Djb.privacy.policy.text=<!--999.999-->",
-                        "-Djb.consents.confirmation.enabled=false",
-                    )
-                }
+                args(testProjectPath)
             }
-
-            plugins {
-                robotServerPlugin()
-            }
-        }
-    }
-}
-
-sourceSets {
-    main {
-        java {
-            srcDir("src/main/gen")
         }
     }
 }
