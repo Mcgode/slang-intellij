@@ -1,6 +1,7 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
@@ -73,12 +74,23 @@ intellijPlatform {
         }
     }
 
-    // TODO: re-enable plugin verification before publishing. Currently the verifier fails while
-    //  extracting bundled cmake modules from the downloaded verification IDEs (infrastructure issue,
-    //  not a compatibility problem in this plugin).
-    // pluginVerification {
-    //     ides { recommended() }
-    // }
+    pluginVerification {
+        ides {
+            recommended()
+        }
+
+        // The lsp4j hover-response workaround (SlangLspServerCustomization) has to go through
+        // Lsp4jServerWrapper / LspClientManager.addLsp4jServerWrapper, which are @ApiStatus.Internal
+        // and take the deprecated LspServer type — there is no public equivalent. Keep those two
+        // categories reported but non-fatal; still fail on everything that actually breaks users.
+        failureLevel = listOf(
+            FailureLevel.COMPATIBILITY_PROBLEMS,
+            FailureLevel.INVALID_PLUGIN,
+            FailureLevel.MISSING_DEPENDENCIES,
+            FailureLevel.PLUGIN_STRUCTURE_WARNINGS,
+            FailureLevel.SCHEDULED_FOR_REMOVAL_API_USAGES,
+        )
+    }
 }
 
 changelog {
