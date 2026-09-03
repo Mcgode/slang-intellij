@@ -8,7 +8,7 @@ import org.jetbrains.annotations.PropertyKey
 @NonNls
 private const val BUNDLE = "messages.SlangBundle"
 
-object SlangBundle : DynamicBundle(BUNDLE) {
+object SlangBundle : DynamicBundle(SlangBundle::class.java, BUNDLE) {
 
     @Nls
     fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =

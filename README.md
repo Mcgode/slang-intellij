@@ -15,7 +15,11 @@ Features integration of [`slangd`](https://github.com/shader-slang/slang), the o
 The plugin also provides some added features beyond language-server integration:
 
 - Offline syntax highlighting, with a dedicated color settings page
-- Brace matching, comment toggling, and code folding (`{ }` blocks, block comments, `#if` / `#endif`)
+- Occurrence highlighting (with symbol resolution when `slangd` is enabled)
+- Auto-indentation
+- Brace and quote matching
+- Comment toggling
+- Code folding (`{ }` blocks, block comments, `#if` / `#endif`)
 
 
 The plugin can download and manage a matching `slangd` for you, or use one from your `PATH` or a
@@ -25,11 +29,6 @@ including per-project include search paths and predefined macros that are forwar
 Language-server features need a JetBrains IDE that bundles the LSP client (IntelliJ IDEA, CLion,
 Rider and other commercial IDEs, 2026.2 or newer). The local features work anywhere the plugin
 loads.
-
-**Disclaimer:** the 0.2 rewrite was largely "vibe coded" with an AI assistant, though reviewed and
-steered by practiced hands. It compiles, passes its unit tests and the JetBrains Plugin Verifier,
-but it has had far less hands-on use than its age suggests — expect rough edges, and please report
-bugs.
 <!-- Plugin description end -->
 
 ## Installation

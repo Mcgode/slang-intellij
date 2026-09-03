@@ -33,7 +33,6 @@ class SlangLspIntegrationProvider : LspIntegrationProvider {
             return
         }
 
-        project.getService(SlangLspServerCustomization::class.java).ensureInstalled()
         clientStarter.ensureClientStarted(SlangLspClientDescriptor(project, binary.toString()))
         maybeWarnOutdated(project, binary)
     }

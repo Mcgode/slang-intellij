@@ -39,9 +39,18 @@
             language="Slang"
             implementationClass="slang.plugin.editor.SlangBraceMatcher" />
 
+        <lang.quoteHandler
+            language="Slang"
+            implementationClass="slang.plugin.editor.SlangQuoteHandler" />
+
         <lang.foldingBuilder
             language="Slang"
             implementationClass="slang.plugin.editor.SlangFoldingBuilder" />
+
+        <lineIndentProvider implementation="slang.plugin.editor.SlangLineIndentProvider" />
+
+        <highlightUsagesHandlerFactory
+            implementation="slang.plugin.editor.SlangOccurrencesHighlightingFactory" />
 
         <notificationGroup id="Slang" displayType="BALLOON" />
 

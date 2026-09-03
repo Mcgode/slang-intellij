@@ -11,8 +11,11 @@ JetBrains LSP client API.
 ### Added
 
 - Local editor support that works without a language server: syntax highlighting (with a color
-  settings page), brace matching, comment toggling, and code folding for `{ }` blocks, block
-  comments and `#if` / `#endif` regions.
+  settings page), brace matching, comment toggling, `"` auto-closing, Enter-key indentation, and
+  code folding for `{ }` blocks, block comments and `#if` / `#endif` regions.
+- Highlight other occurrences of the identifier under the caret. When `slangd` is available the
+  occurrences are grouped by the declaration it resolves (a local `foo` no longer lights up an
+  unrelated field `foo`); otherwise it falls back to matching the name.
 - `slangd` integration over LSP: completion, diagnostics, hover, go to definition, signature help,
   semantic highlighting, formatting and inlay hints.
 - `slangd` management: choose between a **plugin-managed** `slangd` (downloaded from the Slang
@@ -32,10 +35,13 @@ JetBrains LSP client API.
 - Minimum IDE version is now 2026.2. Language-server features require a commercial IntelliJ-based
   IDE (IntelliJ IDEA, CLion, Rider, …); the local features work wherever the plugin loads.
 
-### Fixed
+### Known issues
 
-- `slangd` sometimes answers `textDocument/hover` with an empty (`null` contents) result, which
-  crashed the platform's LSP hover handling. Such responses are now normalised to "no hover".
+- With `slangd` 2026.16.1 and earlier, some language-server requests (hovering certain keywords,
+  and occurrence highlighting when the caret is on a declaration) produce an IDE error: `slangd`
+  serialises an empty result as `{}` instead of `null`, which the LSP client cannot parse. Fixed
+  upstream in `slangd`; the plugin picks it up with the next release. Occurrence highlighting falls
+  back to matching the identifier name after the first such error.
 
 ## [0.1.0] - 2024-12-23
 
