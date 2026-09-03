@@ -34,9 +34,6 @@ object SlangTokenTypes {
 
     @JvmField val COMMENTS = TokenSet.create(LINE_COMMENT, BLOCK_COMMENT)
     @JvmField val STRINGS = TokenSet.create(STRING)
-    @JvmField val BRACES = TokenSet.create(LBRACE, RBRACE)
-    @JvmField val PARENS = TokenSet.create(LPAREN, RPAREN)
-    @JvmField val BRACKETS = TokenSet.create(LBRACKET, RBRACKET)
 
     /** Control-flow and declaration keywords. Type-name keywords are in [BUILTIN_TYPES]. */
     @JvmField

@@ -13,7 +13,4 @@ object SlangBundle : DynamicBundle(SlangBundle::class.java, BUNDLE) {
     @Nls
     fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
         getMessage(key, *params)
-
-    fun lazyMessage(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): () -> String =
-        { getMessage(key, *params) }
 }

@@ -17,6 +17,8 @@ plugins {
 }
 
 dependencyResolutionManagement {
+    // Central repository declaration; DependencyResolutionManagement carries @Incubating.
+    //noinspection UnstableApiUsage
     repositories {
         mavenCentral()
 
