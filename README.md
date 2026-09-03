@@ -60,7 +60,9 @@ older than the version the plugin was built against.
 | `./gradlew runIde` | sandbox IDE with the plugin installed |
 | `./gradlew runIdeForTests` | same, with `testProject/` opened |
 | `./gradlew test` | unit tests |
+| `./gradlew koverHtmlReport` | coverage report under `build/reports/kover/html` |
 | `./gradlew verifyPlugin` | IntelliJ Plugin Verifier |
+| `./gradlew qodanaScan` | Qodana static analysis (needs Docker) |
 | `./gradlew buildPlugin` | distributable zip under `build/distributions` |
 
 The pre-2.0 hand-written parser and its test corpus live on the `dev` branch.

@@ -16,7 +16,6 @@ jobs:
   release:
     name: Publish Plugin
     runs-on: ubuntu-latest
-    environment: "CI secrets"
     permissions:
       contents: write
       pull-requests: write

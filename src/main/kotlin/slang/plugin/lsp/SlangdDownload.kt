@@ -36,9 +36,6 @@ object SlangdDownload {
     private fun installRoot(): Path = PathManager.getSystemDir().resolve("slang-lsp")
     private fun versionDir(): Path = installRoot().resolve(VERSION)
 
-    /** The plugin-managed slangd's version, or null if it is not installed. Always [VERSION] when present. */
-    fun installedVersion(): String? = if (installedBinary() != null) VERSION else null
-
     /** Downloaded version directories other than the current [VERSION] (from an earlier plugin release). */
     fun staleVersions(): List<String> {
         val root = installRoot()

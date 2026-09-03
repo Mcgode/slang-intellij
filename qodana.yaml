@@ -1,0 +1,22 @@
+####################################################################################################################
+# WARNING: Do not store sensitive information in this file, as its contents will be included in the Qodana report. #
+####################################################################################################################
+
+version: "1.0"
+
+# Community linter: free, no license or Qodana Cloud token required.
+linter: jetbrains/qodana-jvm-community:2026.2
+
+profile:
+  name: qodana.recommended
+
+projectJDK: "21"
+
+# Generated / vendored trees that should not be inspected.
+exclude:
+  - name: All
+    paths:
+      - .qodana
+      - build
+      - gradle/wrapper
+      - testProject

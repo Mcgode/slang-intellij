@@ -180,9 +180,9 @@ class SlangLexer : LexerBase() {
         while (i < endOffset && isIdentifierPart(buffer[i])) i++
         tokenEnd = i
         val text = buffer.subSequence(tokenStart, i).toString()
-        return when {
-            text in T.KEYWORDS -> T.KEYWORD
-            text in T.BUILTIN_TYPES -> T.BUILTIN_TYPE
+        return when (text) {
+            in T.KEYWORDS -> T.KEYWORD
+            in T.BUILTIN_TYPES -> T.BUILTIN_TYPE
             else -> T.IDENTIFIER
         }
     }
