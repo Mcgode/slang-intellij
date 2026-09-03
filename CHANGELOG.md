@@ -4,48 +4,21 @@
 
 ## [Unreleased]
 
-This version is a ground-up rewrite. The hand-written parser and the optional LSP4IJ dependency are
-gone; the plugin is now a thin layer over the official Slang language server (`slangd`) using the
-JetBrains LSP client API.
+## [0.2.0-beta.1] - 2026-09-03
 
-### Added
+Additions:
 
-- Local editor support that works without a language server: syntax highlighting (with a color
-  settings page), brace matching, comment toggling, `"` auto-closing, Enter-key indentation, and
-  code folding for `{ }` blocks, block comments and `#if` / `#endif` regions.
-- Highlight other occurrences of the identifier under the caret. When `slangd` is available the
-  occurrences are grouped by the declaration it resolves (a local `foo` no longer lights up an
-  unrelated field `foo`); otherwise it falls back to matching the name.
-- `slangd` integration over LSP: completion, diagnostics, hover, go to definition, signature help,
-  semantic highlighting, formatting and inlay hints.
-- `slangd` management: choose between a **plugin-managed** `slangd` (downloaded from the Slang
-  GitHub releases, minus the LLVM component) and a **system** `slangd` from a configured path or
-  `PATH`. The settings page shows each one's resolved path and version, and offers to download or
-  update the managed copy.
-- Notification when the system `slangd` is older than the version the plugin was built against,
-  with a one-click switch to the managed copy.
-- Settings under **Languages & Frameworks | Slang**: `slangd` source and path, automatic download,
-  inlay-hint toggles, and per-project include search paths, predefined macros and
-  "search all project directories", forwarded to `slangd`.
-- Semantic tokens reported by `slangd` are mapped onto the plugin's own color keys, so the color
-  settings page controls language-server highlighting too.
-
-### Changed
-
-- Minimum IDE version is now 2026.2. Language-server features require a commercial IntelliJ-based
-  IDE (IntelliJ IDEA, CLion, Rider, …); the local features work wherever the plugin loads.
-
-### Known issues
-
-- With `slangd` 2026.16.1 and earlier, some language-server requests (hovering certain keywords,
-  and occurrence highlighting when the caret is on a declaration) produce an IDE error: `slangd`
-  serialises an empty result as `{}` instead of `null`, which the LSP client cannot parse. Fixed
-  upstream in `slangd`; the plugin picks it up with the next release. Occurrence highlighting falls
-  back to matching the identifier name after the first such error.
+- Quote maching
+- Auto indent
+- Occurrence highlight (with option reference resolution using `slangd`)
+- Removed LSP server wrapper. Issue was upstream, in slangd. Issue was reported and fixed. The next slangd release will have no issue.
+- Updated Gradle & Gradle plugins to their latest versions.
+- Fix deprecated API usages
 
 ## [0.1.0] - 2024-12-23
 
 Last release built on the hand-written parser. See the `dev` branch history for its changelog.
 
-[Unreleased]: https://github.com/Mcgode/slang-intellij/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Mcgode/slang-intellij/compare/v0.2.0-beta.1...HEAD
+[0.2.0-beta.1]: https://github.com/Mcgode/slang-intellij/compare/v0.1.0...v0.2.0-beta.1
 [0.1.0]: https://github.com/Mcgode/slang-intellij/commits/v0.1.0
