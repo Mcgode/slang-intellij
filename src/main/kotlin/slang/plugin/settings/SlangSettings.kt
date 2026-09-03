@@ -28,6 +28,12 @@ class SlangSettings : SimplePersistentStateComponent<SlangSettings.SlangState>(S
         var inlayHintsDeducedTypes by property(true)
         var inlayHintsParameterNames by property(true)
 
+        /**
+         * Associate GLSL file extensions (.glsl, .vert, .frag, …) with the GLSL file type and let
+         * slangd analyze them. Off by default — it overlaps with the standalone GLSL plugin.
+         */
+        var glslSupport by property(false)
+
         @get:Transient
         var slangdSource: SlangdSource
             get() = runCatching { SlangdSource.valueOf(slangdSourceName ?: "") }.getOrDefault(SlangdSource.PLUGIN)

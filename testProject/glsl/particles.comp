@@ -1,0 +1,40 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+struct Particle {
+    vec3 position;
+    float life;
+    vec3 velocity;
+    float _pad;
+};
+
+layout(std430, set = 0, binding = 0) buffer Particles {
+    Particle particles[];
+};
+
+layout(push_constant) uniform Params {
+    vec3 gravity;
+    float deltaTime;
+    uint particleCount;
+} params;
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= params.particleCount) {
+        return;
+    }
+
+    Particle p = particles[index];
+    p.velocity += params.gravity * params.deltaTime;
+    p.position += p.velocity * params.deltaTime;
+    p.life -= params.deltaTime;
+
+    if (p.life <= 0.0) {
+        p.position = vec3(0.0);
+        p.velocity = vec3(0.0);
+        p.life = 5.0;
+    }
+
+    particles[index] = p;
+}

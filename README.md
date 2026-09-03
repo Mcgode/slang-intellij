@@ -26,6 +26,12 @@ The plugin can download and manage a matching `slangd` for you, or use one from 
 path you configure. Everything is set up under **Settings | Languages & Frameworks | Slang** —
 including per-project include search paths and predefined macros that are forwarded to `slangd`.
 
+Optional **GLSL** support can be turned on there too. `slangd` has no dedicated GLSL mode, but the
+Slang compiler parses a file as GLSL when it starts with a `#version` directive, so GLSL shaders
+get the same language-server features. When enabled, the plugin claims GLSL extensions
+(`.glsl`, `.vert`, `.frag`, `.comp`, …) that no other plugin already owns; leave it off if you use
+a dedicated GLSL plugin.
+
 Language-server features need a JetBrains IDE that bundles the LSP client (IntelliJ IDEA, CLion,
 Rider and other commercial IDEs, 2026.2 or newer). The local features work anywhere the plugin
 loads.

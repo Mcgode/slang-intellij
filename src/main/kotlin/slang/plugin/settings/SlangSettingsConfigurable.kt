@@ -15,6 +15,7 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.rows
 import com.intellij.util.concurrency.annotations.RequiresEdt
 import slang.plugin.SlangBundle
+import slang.plugin.language.GlslFileAssociations
 import slang.plugin.lsp.SlangLspConfig
 import slang.plugin.lsp.SlangLspRestart
 import slang.plugin.lsp.SlangdBinary
@@ -136,9 +137,21 @@ class SlangSettingsConfigurable(private val project: Project) :
                 }
             }
 
+            group(SlangBundle.message("settings.fileTypes.group")) {
+                row {
+                    checkBox(SlangBundle.message("settings.fileTypes.glsl"))
+                        .bindSelected({ app.glslSupport }, { app.glslSupport = it })
+                        .comment(SlangBundle.message("settings.fileTypes.glsl.comment"))
+                }
+            }
+
             // onApply/onReset run after the field bindings have written their backing state, so
             // lspRestartKey() here reflects the just-applied settings.
-            onReset { lspKey = lspRestartKey() }
+            var glslWas = app.glslSupport
+            onReset {
+                lspKey = lspRestartKey()
+                glslWas = app.glslSupport
+            }
             onApply {
                 val current = lspRestartKey()
                 if (current != lspKey) {
@@ -146,6 +159,10 @@ class SlangSettingsConfigurable(private val project: Project) :
                     // Restart slangd so the new binary / initializationOptions take effect now,
                     // rather than only after an IDE restart.
                     SlangLspRestart.restart(project)
+                }
+                if (app.glslSupport != glslWas) {
+                    glslWas = app.glslSupport
+                    GlslFileAssociations.sync()
                 }
                 refresh()
             }

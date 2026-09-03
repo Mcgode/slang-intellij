@@ -19,14 +19,29 @@
             language="Slang"
             implementationClass="slang.plugin.language.SlangFileType"
             fieldName="INSTANCE"
-            extensions="slang;slangh" />
+            extensions="slang" />
+
+        <!-- GLSL, handled through slangd (see GlslLanguage). Extensions are associated at runtime
+             from the settings, not declared here, to avoid clashing with the standalone GLSL
+             plugin and with Rider's built-in support. -->
+        <fileType
+            name="GLSL"
+            language="GLSL"
+            implementationClass="slang.plugin.language.GlslFileType"
+            fieldName="INSTANCE" />
 
         <lang.parserDefinition
             language="Slang"
             implementationClass="slang.plugin.lang.SlangParserDefinition" />
+        <lang.parserDefinition
+            language="GLSL"
+            implementationClass="slang.plugin.lang.GlslParserDefinition" />
 
         <lang.syntaxHighlighterFactory
             language="Slang"
+            implementationClass="slang.plugin.highlight.SlangSyntaxHighlighterFactory" />
+        <lang.syntaxHighlighterFactory
+            language="GLSL"
             implementationClass="slang.plugin.highlight.SlangSyntaxHighlighterFactory" />
 
         <colorSettingsPage implementation="slang.plugin.highlight.SlangColorSettingsPage" />
@@ -34,20 +49,34 @@
         <lang.commenter
             language="Slang"
             implementationClass="slang.plugin.editor.SlangCommenter" />
+        <lang.commenter
+            language="GLSL"
+            implementationClass="slang.plugin.editor.SlangCommenter" />
 
         <lang.braceMatcher
             language="Slang"
+            implementationClass="slang.plugin.editor.SlangBraceMatcher" />
+        <lang.braceMatcher
+            language="GLSL"
             implementationClass="slang.plugin.editor.SlangBraceMatcher" />
 
         <lang.quoteHandler
             language="Slang"
             implementationClass="slang.plugin.editor.SlangQuoteHandler" />
+        <lang.quoteHandler
+            language="GLSL"
+            implementationClass="slang.plugin.editor.SlangQuoteHandler" />
 
         <lang.foldingBuilder
             language="Slang"
             implementationClass="slang.plugin.editor.SlangFoldingBuilder" />
+        <lang.foldingBuilder
+            language="GLSL"
+            implementationClass="slang.plugin.editor.SlangFoldingBuilder" />
 
         <lineIndentProvider implementation="slang.plugin.editor.SlangLineIndentProvider" />
+
+        <postStartupActivity implementation="slang.plugin.language.GlslFileTypeStartup" />
 
         <highlightUsagesHandlerFactory
             implementation="slang.plugin.editor.SlangOccurrencesHighlightingFactory" />
