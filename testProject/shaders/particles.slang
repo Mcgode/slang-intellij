@@ -12,6 +12,7 @@ struct SimParams
     float3 gravity;
     float  deltaTime;
     uint   particleCount;
+    uint   p;
 }
 
 ConstantBuffer<SimParams>    gParams;

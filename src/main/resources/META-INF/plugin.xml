@@ -49,6 +49,9 @@
 
         <lineIndentProvider implementation="slang.plugin.editor.SlangLineIndentProvider" />
 
+        <highlightUsagesHandlerFactory
+            implementation="slang.plugin.editor.SlangOccurrencesHighlightingFactory" />
+
         <notificationGroup id="Slang" displayType="BALLOON" />
 
         <projectConfigurable
