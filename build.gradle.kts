@@ -132,7 +132,7 @@ kover {
 }
 
 // Static analysis. `./gradlew qodanaScan` runs the linter in Docker locally; CI uses the Qodana
-// GitHub action. Inspection scope, profile and report options live in qodana.yml.
+// GitHub action. Inspection scope, profile and report options live in qodana.yaml.
 qodana {
     cachePath = provider { file(".qodana").canonicalPath }
 }

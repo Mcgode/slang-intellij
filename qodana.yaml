@@ -3,8 +3,21 @@
 ####################################################################################################################
 
 version: "1.0"
-linter: qodana-jvm
+
+linter: jetbrains/qodana-jvm:2026.2
+
 profile:
   name: qodana.recommended
 include:
   - name: CheckDependencyLicenses
+
+projectJDK: "21"
+
+# Generated / vendored trees that should not be inspected.
+exclude:
+  - name: All
+    paths:
+      - .qodana
+      - build
+      - gradle/wrapper
+      - testProject

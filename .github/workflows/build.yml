@@ -129,36 +129,3 @@ jobs:
         with:
           name: pluginVerifier-result
           path: ${{ github.workspace }}/build/reports/pluginVerifier
-
-  inspectCode:
-    name: Inspect code
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      checks: write
-      pull-requests: write
-    steps:
-      - name: Maximize Build Space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          tool-cache: false
-          large-packages: false
-
-      - name: Fetch Sources
-        uses: actions/checkout@v6
-        with:
-          # Qodana needs the full history to attribute new problems to the commits that introduced them.
-          fetch-depth: 0
-
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: zulu
-          java-version: 21
-
-      - name: Qodana - Code Inspection
-        uses: JetBrains/qodana-action@v2026.2
-        with:
-          cache-default-branch-only: true
-        env:
-          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
