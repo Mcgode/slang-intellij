@@ -15,7 +15,7 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.rows
 import com.intellij.util.concurrency.annotations.RequiresEdt
 import slang.plugin.SlangBundle
-import slang.plugin.language.GlslFileAssociations
+import slang.plugin.language.ShaderFileAssociations
 import slang.plugin.lsp.SlangLspConfig
 import slang.plugin.lsp.SlangLspRestart
 import slang.plugin.lsp.SlangdBinary
@@ -143,14 +143,19 @@ class SlangSettingsConfigurable(private val project: Project) :
                         .bindSelected({ app.glslSupport }, { app.glslSupport = it })
                         .comment(SlangBundle.message("settings.fileTypes.glsl.comment"))
                 }
+                row {
+                    checkBox(SlangBundle.message("settings.fileTypes.hlsl"))
+                        .bindSelected({ app.hlslSupport }, { app.hlslSupport = it })
+                        .comment(SlangBundle.message("settings.fileTypes.hlsl.comment"))
+                }
             }
 
             // onApply/onReset run after the field bindings have written their backing state, so
             // lspRestartKey() here reflects the just-applied settings.
-            var glslWas = app.glslSupport
+            var shaderTypesWere = app.glslSupport to app.hlslSupport
             onReset {
                 lspKey = lspRestartKey()
-                glslWas = app.glslSupport
+                shaderTypesWere = app.glslSupport to app.hlslSupport
             }
             onApply {
                 val current = lspRestartKey()
@@ -160,9 +165,10 @@ class SlangSettingsConfigurable(private val project: Project) :
                     // rather than only after an IDE restart.
                     SlangLspRestart.restart(project)
                 }
-                if (app.glslSupport != glslWas) {
-                    glslWas = app.glslSupport
-                    GlslFileAssociations.sync()
+                val shaderTypesNow = app.glslSupport to app.hlslSupport
+                if (shaderTypesNow != shaderTypesWere) {
+                    shaderTypesWere = shaderTypesNow
+                    ShaderFileAssociations.sync()
                 }
                 refresh()
             }

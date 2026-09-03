@@ -53,6 +53,10 @@ object SlangTokenTypes {
         "layout", "attribute", "varying", "precision", "highp", "mediump", "lowp",
         "flat", "smooth", "noperspective", "invariant", "subroutine", "patch",
         "readonly", "writeonly", "coherent", "volatile", "restrict", "shared", "buffer",
+        // HLSL / FX / Unreal
+        "technique", "technique10", "technique11", "pass", "compile", "globallycoherent",
+        "snorm", "unorm", "line", "lineadj", "triangle", "triangleadj", "point",
+        "vertexfragment", "pixelfragment",
     )
 
     /** Built-in scalar / container type keywords, highlighted as types. */
@@ -88,5 +92,14 @@ object SlangTokenTypes {
         "isampler2D", "isampler3D", "usampler2D", "usampler3D",
         "image1D", "image2D", "image3D", "imageCube", "image2DArray",
         "atomic_uint",
+        // HLSL: minimum-precision scalars, extra resource types, ray tracing
+        "min16float", "min10float", "min16int", "min12int", "min16uint", "dword",
+        "float1x1", "float2x1", "float3x1", "float4x1", "float1x2", "float1x3", "float1x4",
+        "float2x3", "float2x4", "float3x2",
+        "Texture2DMS", "Texture2DMSArray", "RWTexture1DArray", "RWTexture2DArray",
+        "RasterizerOrderedTexture2D", "RasterizerOrderedBuffer", "RasterizerOrderedStructuredBuffer",
+        "RaytracingAccelerationStructure", "RayDesc", "RayQuery",
+        "BuiltInTriangleIntersectionAttributes", "TriangleStream", "LineStream", "PointStream",
+        "InputPatch", "OutputPatch",
     )
 }

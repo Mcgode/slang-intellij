@@ -57,6 +57,21 @@ class SlangLexerTest {
     }
 
     @Test
+    fun `hlsl minimum-precision type and resource type are classified`() {
+        assertEquals(
+            listOf(
+                T.BUILTIN_TYPE to "RWStructuredBuffer",
+                T.OPERATOR to "<",
+                T.BUILTIN_TYPE to "min16float",
+                T.OPERATOR to ">",
+                T.IDENTIFIER to "buf",
+                T.SEMICOLON to ";",
+            ),
+            significant("RWStructuredBuffer<min16float> buf;"),
+        )
+    }
+
+    @Test
     fun `line comment consumes to end of line`() {
         assertEquals(
             listOf(T.LINE_COMMENT to "// hello", T.KEYWORD to "let"),

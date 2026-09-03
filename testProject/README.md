@@ -45,6 +45,20 @@ works with the toggle off — a `.slang` file is treated as GLSL when it opens w
 | `glsl/pbr.frag` | `#include "brdf.glsl"` via `GL_GOOGLE_include_directive` — cross-file completion / go-to-definition into the header |
 | `glsl/broken.frag` | **intentionally broken** — undeclared identifier + type mismatch |
 
+### HLSL (`hlsl/`)
+
+Needs **Settings | Languages & Frameworks | Slang → Handle HLSL files** turned on. Slang parses
+HLSL as a superset, so these need no in-file marker.
+
+| File | Exercises |
+|------|-----------|
+| `hlsl/mesh.hlsl` | `cbuffer` + `register`, `Texture2D` / `SamplerState`, HLSL semantics, `mul`, `(float3x3)` cast, two entry points in one file |
+| `hlsl/common.hlsli` | `.hlsli` header — `#ifndef` guard folding, `struct`, `static const`, helper function; full support standalone |
+| `hlsl/lit.hlsl` | `#include "common.hlsli"`, `StructuredBuffer<Light>`, `for` loop — cross-file completion / go-to-definition into the header |
+| `hlsl/reduce.hlsl` | compute shader, `[numthreads]`, `groupshared`, `GroupMemoryBarrierWithGroupSync`, `SV_DispatchThreadID` / `SV_GroupIndex` |
+| `hlsl/Desaturate.usf` | Unreal `.usf` extension → HLSL file type; note the *warning* on the bare `float` global (Slang flags it as an implicit shader parameter) |
+| `hlsl/broken.hlsl` | **intentionally broken** — misspelled sampler + type mismatch |
+
 Local (no server) features to verify: syntax highlighting, brace matching, comment toggle
 (<kbd>Cmd/Ctrl</kbd>+<kbd>/</kbd>), folding of `{ }` blocks / block comments / `#if…#endif`.
 

@@ -29,10 +29,12 @@ JetBrains LSP client API.
   "search all project directories", forwarded to `slangd`.
 - Semantic tokens reported by `slangd` are mapped onto the plugin's own color keys, so the color
   settings page controls language-server highlighting too.
-- Optional **GLSL** support (off by default, a toggle under **Languages & Frameworks | Slang**).
-  When on, GLSL stage extensions (`.vert`, `.frag`, `.comp`, `.glsl`, …) that no other plugin claims
-  are handled by `slangd`, which parses them as GLSL by extension (or a leading `#version`).
-  Turning it off releases exactly the extensions it took.
+- **HLSL** support, on by default (a toggle under **Languages & Frameworks | Slang**): `.hlsl`,
+  `.hlsli`, `.fx`, and HLSL-adjacent files like Unreal's `.usf` / `.ush` are handled by `slangd`,
+  which parses HLSL as a superset. Optional **GLSL** support (off by default) does the same for
+  `.vert` / `.frag` / `.comp` / `.glsl`, or a `.slang` file with a leading `#version`. Each only
+  claims an extension no other plugin owns (so it is a no-op in Rider or with the GLSL plugin), and
+  turning a toggle off releases exactly what it took.
 
 ### Changed
 
