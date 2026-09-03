@@ -7,6 +7,8 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.intellij.platform")
     id("org.jetbrains.changelog")
+    id("org.jetbrains.kotlinx.kover")
+    id("org.jetbrains.qodana")
 }
 
 group = providers.gradleProperty("pluginGroup").get()
@@ -115,6 +117,24 @@ intellijPlatform {
 changelog {
     groups.empty()
     repositoryUrl = providers.gradleProperty("pluginRepositoryUrl")
+}
+
+// Code coverage. `./gradlew koverHtmlReport` / `koverXmlReport`; the XML report is also produced as
+// part of `check` for CI to pick up (build/reports/kover/report.xml).
+kover {
+    reports {
+        total {
+            xml {
+                onCheck = true
+            }
+        }
+    }
+}
+
+// Static analysis. `./gradlew qodanaScan` runs the linter in Docker locally; CI uses the Qodana
+// GitHub action. Inspection scope, profile and report options live in qodana.yml.
+qodana {
+    cachePath = provider { file(".qodana").canonicalPath }
 }
 
 tasks {
