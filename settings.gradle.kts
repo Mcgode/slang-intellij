@@ -1,5 +1,3 @@
-import org.jetbrains.intellij.platform.gradle.extensions.intellijPlatform
-
 rootProject.name = "slang-intellij"
 
 pluginManagement {
@@ -16,14 +14,6 @@ plugins {
     id("org.jetbrains.intellij.platform.settings") version "2.18.1"
 }
 
-dependencyResolutionManagement {
-    // Central repository declaration; DependencyResolutionManagement carries @Incubating.
-    //noinspection UnstableApiUsage
-    repositories {
-        mavenCentral()
-
-        intellijPlatform {
-            defaultRepositories()
-        }
-    }
-}
+// Repositories are declared at the project level in build.gradle.kts. No
+// dependencyResolutionManagement block here — it uses @Incubating API and, with the default
+// PREFER_PROJECT mode, would be ignored anyway.
