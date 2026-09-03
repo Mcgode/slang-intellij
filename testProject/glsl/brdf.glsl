@@ -1,8 +1,8 @@
 // Shared BRDF helpers, #included by the lighting shaders.
-// No #version here: a header takes GLSL parsing from the translation unit that includes it. Opened
-// on its own it is parsed as Slang, so expect squiggles until it is pulled into a #version file.
-#ifndef BRDF_GLSLH
-#define BRDF_GLSLH
+// A .glsl file with no #version: the extension alone puts slangd in GLSL mode, so this has full
+// language-server support on its own, and #include drops it into the including shader unchanged.
+#ifndef BRDF_GLSL
+#define BRDF_GLSL
 
 const float PI = 3.14159265359;
 

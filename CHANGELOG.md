@@ -30,8 +30,8 @@ JetBrains LSP client API.
 - Semantic tokens reported by `slangd` are mapped onto the plugin's own color keys, so the color
   settings page controls language-server highlighting too.
 - Optional **GLSL** support (off by default, a toggle under **Languages & Frameworks | Slang**).
-  When on, GLSL extensions (`.glsl`, `.vert`, `.frag`, `.comp`, …) that no other plugin claims are
-  handled by `slangd`, which parses them as GLSL when the file starts with a `#version` directive.
+  When on, GLSL stage extensions (`.vert`, `.frag`, `.comp`, `.glsl`, …) that no other plugin claims
+  are handled by `slangd`, which parses them as GLSL by extension (or a leading `#version`).
   Turning it off releases exactly the extensions it took.
 
 ### Changed

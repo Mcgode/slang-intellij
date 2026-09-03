@@ -29,9 +29,9 @@ opened as the project.
 
 ### GLSL (`glsl/`)
 
-`depthonly.slang` works out of the box: slangd parses it as GLSL because of its leading `#version`
-line. The `.vert` / `.frag` / `.comp` files need **Settings | Languages & Frameworks | Slang →
-Handle GLSL files** turned on first; then they get the same language-server support.
+The `.vert` / `.frag` / `.comp` / `.glsl` files need **Settings | Languages & Frameworks | Slang →
+Handle GLSL files** turned on first; then they get full language-server support. `depthonly.slang`
+works with the toggle off — a `.slang` file is treated as GLSL when it opens with a `#version` line.
 
 | File | Exercises |
 |------|-----------|
@@ -41,8 +41,8 @@ Handle GLSL files** turned on first; then they get the same language-server supp
 | `glsl/lighting.frag` | `struct`, UBO array, helper function, `for` loop, `sampler2D` / `texture()` — folding + occurrence highlighting |
 | `glsl/post.frag` | `layout(constant_id)` spec constant, `const`, multiple functions, `switch` |
 | `glsl/particles.comp` | compute stage, `layout(local_size_x)`, `std430 buffer` SSBO, `gl_GlobalInvocationID` |
-| `glsl/brdf.glslh` | GLSL **header** — `#ifndef` include guard folding, helper functions; opened alone it has no `#version` so expect squiggles |
-| `glsl/pbr.frag` | `#include "brdf.glslh"` via `GL_GOOGLE_include_directive` — cross-file completion / go-to-definition into the header |
+| `glsl/brdf.glsl` | shared helpers in a `.glsl` file (no `#version`) — `#ifndef` guard folding, full support standalone |
+| `glsl/pbr.frag` | `#include "brdf.glsl"` via `GL_GOOGLE_include_directive` — cross-file completion / go-to-definition into the header |
 | `glsl/broken.frag` | **intentionally broken** — undeclared identifier + type mismatch |
 
 Local (no server) features to verify: syntax highlighting, brace matching, comment toggle

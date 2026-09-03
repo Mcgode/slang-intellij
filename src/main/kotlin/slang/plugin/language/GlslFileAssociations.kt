@@ -17,9 +17,13 @@ import slang.plugin.settings.SlangSettings
  */
 object GlslFileAssociations {
 
-    /** Khronos / glslang stage extensions, plus the generic ones. */
+    /**
+     * The extensions Slang's front-end maps to `SourceLanguage::GLSL` (verified against slangc /
+     * slangd 2026.16.1). Non-standard ones like `.glslh` / `.glsli` are *not* recognised — slangd
+     * parses them as Slang — so shared GLSL code belongs in a `.glsl` file.
+     */
     val EXTENSIONS: List<String> = listOf(
-        "glsl", "glslh", "glsli",
+        "glsl",
         "vert", "frag", "geom", "comp", "tesc", "tese",
         "mesh", "task",
         "rgen", "rint", "rahit", "rchit", "rmiss", "rcall",
