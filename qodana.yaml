@@ -4,12 +4,11 @@
 
 version: "1.0"
 
-linter: jetbrains/qodana-jvm:2026.2
+# Community linter: free, no license or Qodana Cloud token required.
+linter: jetbrains/qodana-jvm-community:2026.2
 
 profile:
   name: qodana.recommended
-include:
-  - name: CheckDependencyLicenses
 
 projectJDK: "21"
 
