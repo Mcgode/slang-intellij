@@ -10,7 +10,10 @@ import com.intellij.lang.Language
  * go-to-definition all work. Treating it as a Slang dialect reuses the lexer, highlighter and
  * editor support unchanged while still giving these files their own "HLSL" file type.
  */
-object HlslLanguage : Language(SlangLanguage, "HLSL") {
+// ID is "SlangHLSL", not "HLSL": a bare "HLSL" collides with the HLSL language bundled in Rider and
+// CLion Nova (ReSharper C++), which makes the platform report this plugin as conflicting with the
+// IDE at startup. The user-facing name stays "HLSL" via getDisplayName() / the file type description.
+object HlslLanguage : Language(SlangLanguage, "SlangHLSL") {
     private fun readResolve(): Any = HlslLanguage
     override fun getDisplayName(): String = "HLSL"
 }
