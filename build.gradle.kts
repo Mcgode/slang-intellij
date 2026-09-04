@@ -1,5 +1,6 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel
 
@@ -157,6 +158,19 @@ val testProjectPath: String = layout.projectDirectory.dir("testProject").asFile.
 intellijPlatformTesting {
     runIde {
         register("runIdeForTests") {
+            task {
+                args(testProjectPath)
+            }
+        }
+
+        // `./gradlew runClionForTests` — same plugin, run in a CLion sandbox instead of IDEA, to
+        // reproduce/experiment with CLion Nova bugs (e.g. CPP-51642: textDocument/definition never
+        // sent on Cmd+B / Ctrl+Click). Downloads CLion on first run. The plugin is still *compiled*
+        // against the IntelliJ IDEA dependency above; only the runtime IDE changes. Build numbers
+        // must line up — CLion 262.x matches platformVersion 2026.2.
+        register("runClionForTests") {
+            type = IntelliJPlatformType.CLion
+            version = providers.gradleProperty("clionVersion")
             task {
                 args(testProjectPath)
             }
