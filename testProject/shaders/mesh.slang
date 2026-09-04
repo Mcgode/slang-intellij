@@ -1,4 +1,4 @@
-#include "common/brdf.slang"
+#include "common/brdf.slangh"
 import common.lighting;
 
 struct VSInput

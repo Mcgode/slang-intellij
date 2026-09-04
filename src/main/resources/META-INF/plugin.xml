@@ -19,7 +19,7 @@
             language="Slang"
             implementationClass="slang.plugin.language.SlangFileType"
             fieldName="INSTANCE"
-            extensions="slang" />
+            extensions="slang;slangh" />
 
         <!-- GLSL and HLSL, handled through slangd (see GlslLanguage / HlslLanguage). Extensions are
              associated at runtime from the settings, not declared here, to avoid clashing with the

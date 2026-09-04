@@ -20,7 +20,7 @@ opened as the project.
 
 | File | Exercises |
 |------|-----------|
-| `common/brdf.slang` | `.slangh` extension mapping, `#define` / `#ifndef` folding, object + function-like macros |
+| `common/brdf.slangh` | `.slangh` extension mapping, `#define` / `#ifndef` folding, object + function-like macros |
 | `common/lighting.slang` | module declaration, `interface`, generics (`<T : ILightModel>`), `public` |
 | `shaders/mesh.slang` | `#include`, `import`, `cbuffer`/`ConstantBuffer`, HLSL semantics, `[shader(...)]`, texture sampling, cross-file completion into `lighting` |
 | `shaders/particles.slang` | compute shader, `[numthreads]`, `RWStructuredBuffer`, `SV_DispatchThreadID` |
