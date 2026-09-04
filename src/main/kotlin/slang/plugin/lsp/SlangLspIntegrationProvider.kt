@@ -13,7 +13,7 @@ import com.intellij.platform.lsp.api.ProjectWideLspClientDescriptor
 import com.intellij.platform.lsp.api.customization.LspCustomization
 import org.eclipse.lsp4j.ConfigurationItem
 import slang.plugin.SlangBundle
-import slang.plugin.language.SlangFileType
+import slang.plugin.language.SlangFileTypes
 import slang.plugin.settings.SlangSettings
 import slang.plugin.settings.SlangSettingsConfigurable
 import slang.plugin.settings.SlangdSource
@@ -25,7 +25,7 @@ class SlangLspIntegrationProvider : LspIntegrationProvider {
     private val versionChecked = AtomicBoolean(false)
 
     override fun fileOpened(project: Project, file: VirtualFile, clientStarter: LspIntegrationProvider.LspClientStarter) {
-        if (file.fileType != SlangFileType.INSTANCE) return
+        if (!SlangFileTypes.isHandled(file)) return
 
         val binary = SlangdBinary.resolve()
         if (binary == null) {
@@ -98,7 +98,7 @@ private class SlangLspClientDescriptor(
     private val slangdPath: String,
 ) : ProjectWideLspClientDescriptor(slangProject, "Slang") {
 
-    override fun isSupportedFile(file: VirtualFile): Boolean = file.fileType == SlangFileType.INSTANCE
+    override fun isSupportedFile(file: VirtualFile): Boolean = SlangFileTypes.isHandled(file)
 
     override fun getLanguageId(file: VirtualFile): String = "slang"
 

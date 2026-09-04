@@ -38,6 +38,40 @@ class SlangLexerTest {
     }
 
     @Test
+    fun `glsl types and qualifiers are classified`() {
+        assertEquals(
+            listOf(
+                T.KEYWORD to "layout",
+                T.LPAREN to "(",
+                T.IDENTIFIER to "location",
+                T.OPERATOR to "=",
+                T.NUMBER to "0",
+                T.RPAREN to ")",
+                T.KEYWORD to "in",
+                T.BUILTIN_TYPE to "vec3",
+                T.IDENTIFIER to "pos",
+                T.SEMICOLON to ";",
+            ),
+            significant("layout(location = 0) in vec3 pos;"),
+        )
+    }
+
+    @Test
+    fun `hlsl minimum-precision type and resource type are classified`() {
+        assertEquals(
+            listOf(
+                T.BUILTIN_TYPE to "RWStructuredBuffer",
+                T.OPERATOR to "<",
+                T.BUILTIN_TYPE to "min16float",
+                T.OPERATOR to ">",
+                T.IDENTIFIER to "buf",
+                T.SEMICOLON to ";",
+            ),
+            significant("RWStructuredBuffer<min16float> buf;"),
+        )
+    }
+
+    @Test
     fun `line comment consumes to end of line`() {
         assertEquals(
             listOf(T.LINE_COMMENT to "// hello", T.KEYWORD to "let"),

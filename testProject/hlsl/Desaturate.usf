@@ -1,0 +1,17 @@
+// Unreal-style post-process pass (.usf). Real Unreal shaders #include "/Engine/Public/Platform.ush"
+// and rely on the engine's global shader environment; this trimmed version just shows that .usf
+// files get the HLSL file type and slangd support.
+
+Texture2D    SceneColor;
+SamplerState SceneColorSampler;
+
+float DesaturationAmount;
+
+void MainPS(
+    in  float2 UV       : TEXCOORD0,
+    out float4 OutColor : SV_Target)
+{
+    float3 color = SceneColor.Sample(SceneColorSampler, UV).rgb;
+    float  luma  = dot(color, float3(0.2126, 0.7152, 0.0722));
+    OutColor = float4(lerp(color, luma.xxx, DesaturationAmount), 1.0);
+}

@@ -15,6 +15,7 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.rows
 import com.intellij.util.concurrency.annotations.RequiresEdt
 import slang.plugin.SlangBundle
+import slang.plugin.language.ShaderFileAssociations
 import slang.plugin.lsp.SlangLspConfig
 import slang.plugin.lsp.SlangLspRestart
 import slang.plugin.lsp.SlangdBinary
@@ -136,9 +137,26 @@ class SlangSettingsConfigurable(private val project: Project) :
                 }
             }
 
+            group(SlangBundle.message("settings.fileTypes.group")) {
+                row {
+                    checkBox(SlangBundle.message("settings.fileTypes.glsl"))
+                        .bindSelected({ app.glslSupport }, { app.glslSupport = it })
+                        .comment(SlangBundle.message("settings.fileTypes.glsl.comment"))
+                }
+                row {
+                    checkBox(SlangBundle.message("settings.fileTypes.hlsl"))
+                        .bindSelected({ app.hlslSupport }, { app.hlslSupport = it })
+                        .comment(SlangBundle.message("settings.fileTypes.hlsl.comment"))
+                }
+            }
+
             // onApply/onReset run after the field bindings have written their backing state, so
             // lspRestartKey() here reflects the just-applied settings.
-            onReset { lspKey = lspRestartKey() }
+            var shaderTypesWere = app.glslSupport to app.hlslSupport
+            onReset {
+                lspKey = lspRestartKey()
+                shaderTypesWere = app.glslSupport to app.hlslSupport
+            }
             onApply {
                 val current = lspRestartKey()
                 if (current != lspKey) {
@@ -146,6 +164,11 @@ class SlangSettingsConfigurable(private val project: Project) :
                     // Restart slangd so the new binary / initializationOptions take effect now,
                     // rather than only after an IDE restart.
                     SlangLspRestart.restart(project)
+                }
+                val shaderTypesNow = app.glslSupport to app.hlslSupport
+                if (shaderTypesNow != shaderTypesWere) {
+                    shaderTypesWere = shaderTypesNow
+                    ShaderFileAssociations.sync()
                 }
                 refresh()
             }

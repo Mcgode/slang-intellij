@@ -11,7 +11,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.Consumer
-import slang.plugin.language.SlangFileType
+import slang.plugin.language.SlangLanguage
 import slang.plugin.lsp.SlangReferenceResolver
 
 /**
@@ -25,7 +25,7 @@ import slang.plugin.lsp.SlangReferenceResolver
 class SlangOccurrencesHighlightingFactory : HighlightUsagesHandlerFactory, DumbAware {
 
     override fun createHighlightUsagesHandler(editor: Editor, psiFile: PsiFile): HighlightUsagesHandlerBase<PsiElement>? {
-        if (psiFile.fileType != SlangFileType.INSTANCE || editor.isOneLineMode) return null
+        if (!psiFile.language.isKindOf(SlangLanguage) || editor.isOneLineMode) return null
         if (SlangOccurrences.identifierAt(editor.document.immutableCharSequence, editor.caretModel.offset) == null) return null
         return Handler(editor, psiFile)
     }

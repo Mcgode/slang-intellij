@@ -11,6 +11,9 @@
          inactive there. -->
     <depends optional="true" config-file="slang-lsp.xml">com.intellij.modules.lsp</depends>
 
+    <!-- Bundled everywhere in practice, but optional so a stripped IDE without it still loads. -->
+    <depends optional="true" config-file="slang-spellchecker.xml">com.intellij.modules.spellchecker</depends>
+
     <resource-bundle>messages.SlangBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -21,12 +24,38 @@
             fieldName="INSTANCE"
             extensions="slang;slangh" />
 
+        <!-- GLSL and HLSL, handled through slangd (see GlslLanguage / HlslLanguage). Extensions are
+             associated at runtime from the settings, not declared here, to avoid clashing with the
+             standalone GLSL plugin and with Rider's built-in HLSL support. -->
+        <fileType
+            name="GLSL"
+            language="GLSL"
+            implementationClass="slang.plugin.language.GlslFileType"
+            fieldName="INSTANCE" />
+        <fileType
+            name="HLSL"
+            language="HLSL"
+            implementationClass="slang.plugin.language.HlslFileType"
+            fieldName="INSTANCE" />
+
         <lang.parserDefinition
             language="Slang"
             implementationClass="slang.plugin.lang.SlangParserDefinition" />
+        <lang.parserDefinition
+            language="GLSL"
+            implementationClass="slang.plugin.lang.GlslParserDefinition" />
+        <lang.parserDefinition
+            language="HLSL"
+            implementationClass="slang.plugin.lang.HlslParserDefinition" />
 
         <lang.syntaxHighlighterFactory
             language="Slang"
+            implementationClass="slang.plugin.highlight.SlangSyntaxHighlighterFactory" />
+        <lang.syntaxHighlighterFactory
+            language="GLSL"
+            implementationClass="slang.plugin.highlight.SlangSyntaxHighlighterFactory" />
+        <lang.syntaxHighlighterFactory
+            language="HLSL"
             implementationClass="slang.plugin.highlight.SlangSyntaxHighlighterFactory" />
 
         <colorSettingsPage implementation="slang.plugin.highlight.SlangColorSettingsPage" />
@@ -34,20 +63,48 @@
         <lang.commenter
             language="Slang"
             implementationClass="slang.plugin.editor.SlangCommenter" />
+        <lang.commenter
+            language="GLSL"
+            implementationClass="slang.plugin.editor.SlangCommenter" />
+        <lang.commenter
+            language="HLSL"
+            implementationClass="slang.plugin.editor.SlangCommenter" />
 
         <lang.braceMatcher
             language="Slang"
+            implementationClass="slang.plugin.editor.SlangBraceMatcher" />
+        <lang.braceMatcher
+            language="GLSL"
+            implementationClass="slang.plugin.editor.SlangBraceMatcher" />
+        <lang.braceMatcher
+            language="HLSL"
             implementationClass="slang.plugin.editor.SlangBraceMatcher" />
 
         <lang.quoteHandler
             language="Slang"
             implementationClass="slang.plugin.editor.SlangQuoteHandler" />
+        <lang.quoteHandler
+            language="GLSL"
+            implementationClass="slang.plugin.editor.SlangQuoteHandler" />
+        <lang.quoteHandler
+            language="HLSL"
+            implementationClass="slang.plugin.editor.SlangQuoteHandler" />
 
         <lang.foldingBuilder
             language="Slang"
             implementationClass="slang.plugin.editor.SlangFoldingBuilder" />
+        <lang.foldingBuilder
+            language="GLSL"
+            implementationClass="slang.plugin.editor.SlangFoldingBuilder" />
+        <lang.foldingBuilder
+            language="HLSL"
+            implementationClass="slang.plugin.editor.SlangFoldingBuilder" />
 
         <lineIndentProvider implementation="slang.plugin.editor.SlangLineIndentProvider" />
+
+        <indexPatternBuilder implementation="slang.plugin.editor.SlangIndexPatternBuilder" />
+
+        <postStartupActivity implementation="slang.plugin.language.ShaderFileTypeStartup" />
 
         <highlightUsagesHandlerFactory
             implementation="slang.plugin.editor.SlangOccurrencesHighlightingFactory" />

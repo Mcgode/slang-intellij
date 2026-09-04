@@ -28,6 +28,19 @@ class SlangSettings : SimplePersistentStateComponent<SlangSettings.SlangState>(S
         var inlayHintsDeducedTypes by property(true)
         var inlayHintsParameterNames by property(true)
 
+        /**
+         * Associate GLSL file extensions (.glsl, .vert, .frag, …) with the GLSL file type and let
+         * slangd analyze them. Off by default — it overlaps with the standalone GLSL plugin.
+         */
+        var glslSupport by property(false)
+
+        /**
+         * Associate HLSL and HLSL-adjacent extensions (.hlsl, .hlsli, .fx, Unreal's .usf / .ush, …)
+         * with the HLSL file type. On by default: Slang parses HLSL as a superset, and the
+         * association only takes an extension no other plugin (e.g. Rider's built-in support) owns.
+         */
+        var hlslSupport by property(true)
+
         @get:Transient
         var slangdSource: SlangdSource
             get() = runCatching { SlangdSource.valueOf(slangdSourceName ?: "") }.getOrDefault(SlangdSource.PLUGIN)

@@ -1,0 +1,13 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <spellchecker.support
+            language="Slang"
+            implementationClass="slang.plugin.editor.SlangSpellcheckingStrategy" />
+        <spellchecker.support
+            language="GLSL"
+            implementationClass="slang.plugin.editor.SlangSpellcheckingStrategy" />
+        <spellchecker.support
+            language="HLSL"
+            implementationClass="slang.plugin.editor.SlangSpellcheckingStrategy" />
+    </extensions>
+</idea-plugin>

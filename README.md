@@ -26,6 +26,13 @@ The plugin can download and manage a matching `slangd` for you, or use one from 
 path you configure. Everything is set up under **Settings | Languages & Frameworks | Slang** —
 including per-project include search paths and predefined macros that are forwarded to `slangd`.
 
+Slang's front-end is a near-superset of HLSL, so **HLSL** files — including HLSL-adjacent ones like
+Unreal's `.usf` / `.ush` — get the same language-server features; this is **on by default**.
+Optional **GLSL** support (`.vert` / `.frag` / `.comp` / `.glsl`, or a `.slang` file with a leading
+`#version`) can be turned on in the same settings. In both cases the plugin only claims an
+extension where no other plugin already owns it — so it is a no-op in Rider (built-in HLSL) or
+alongside a dedicated GLSL plugin.
+
 Language-server features need a JetBrains IDE that bundles the LSP client (IntelliJ IDEA, CLion,
 Rider and other commercial IDEs, 2026.2 or newer). The local features work anywhere the plugin
 loads.

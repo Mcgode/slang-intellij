@@ -19,7 +19,7 @@ import slang.plugin.lexer.SlangTokenTypes
  * There is no real grammar here by design (see the LSP-first architecture). It exists so the editor
  * has a PSI file, which brace matching, the commenter, word selection and folding build on.
  */
-class SlangParserDefinition : ParserDefinition {
+open class SlangParserDefinition : ParserDefinition {
 
     override fun createLexer(project: Project?): Lexer = SlangLexer()
 

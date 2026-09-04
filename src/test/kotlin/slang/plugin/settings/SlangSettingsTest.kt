@@ -16,6 +16,13 @@ class SlangSettingsTest {
     }
 
     @Test
+    fun `shader file-type defaults - HLSL on, GLSL off`() {
+        val state = SlangSettings.SlangState()
+        assertEquals(true, state.hlslSupport)
+        assertEquals(false, state.glslSupport)
+    }
+
+    @Test
     fun `an unrecognised persisted value falls back to PLUGIN`() {
         val state = SlangSettings.SlangState()
 

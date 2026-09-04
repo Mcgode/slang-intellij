@@ -49,6 +49,14 @@ object SlangTokenTypes {
         "no_diff", "fwd_diff", "bwd_diff", "dyn", "each", "expand",
         "row_major", "column_major", "precise", "nointerpolation", "linear", "centroid", "sample",
         "shader", "numthreads", "register", "packoffset",
+        // GLSL (recognised so a `#version`-mode file reads sensibly offline; harmless in Slang)
+        "layout", "attribute", "varying", "precision", "highp", "mediump", "lowp",
+        "flat", "smooth", "noperspective", "invariant", "subroutine", "patch",
+        "readonly", "writeonly", "coherent", "volatile", "restrict", "shared", "buffer",
+        // HLSL / FX / Unreal
+        "technique", "technique10", "technique11", "pass", "compile", "globallycoherent",
+        "snorm", "unorm", "line", "lineadj", "triangle", "triangleadj", "point",
+        "vertexfragment", "pixelfragment",
     )
 
     /** Built-in scalar / container type keywords, highlighted as types. */
@@ -73,5 +81,25 @@ object SlangTokenTypes {
         "StructuredBuffer", "RWStructuredBuffer", "AppendStructuredBuffer", "ConsumeStructuredBuffer",
         "ConstantBuffer", "ParameterBlock", "cbuffer", "tbuffer",
         "Array", "Optional", "Ptr", "NativeRef", "Atomic", "DiffPair",
+        // GLSL scalar / vector / matrix / opaque types
+        "vec2", "vec3", "vec4", "ivec2", "ivec3", "ivec4", "uvec2", "uvec3", "uvec4",
+        "bvec2", "bvec3", "bvec4", "dvec2", "dvec3", "dvec4",
+        "mat2", "mat3", "mat4",
+        "mat2x2", "mat2x3", "mat2x4", "mat3x2", "mat3x3", "mat3x4", "mat4x2", "mat4x3", "mat4x4",
+        "dmat2", "dmat3", "dmat4",
+        "sampler1D", "sampler2D", "sampler3D", "samplerCube",
+        "sampler2DArray", "samplerCubeArray", "sampler2DShadow", "samplerCubeShadow", "sampler2DMS",
+        "isampler2D", "isampler3D", "usampler2D", "usampler3D",
+        "image1D", "image2D", "image3D", "imageCube", "image2DArray",
+        "atomic_uint",
+        // HLSL: minimum-precision scalars, extra resource types, ray tracing
+        "min16float", "min10float", "min16int", "min12int", "min16uint", "dword",
+        "float1x1", "float2x1", "float3x1", "float4x1", "float1x2", "float1x3", "float1x4",
+        "float2x3", "float2x4", "float3x2",
+        "Texture2DMS", "Texture2DMSArray", "RWTexture1DArray", "RWTexture2DArray",
+        "RasterizerOrderedTexture2D", "RasterizerOrderedBuffer", "RasterizerOrderedStructuredBuffer",
+        "RaytracingAccelerationStructure", "RayDesc", "RayQuery",
+        "BuiltInTriangleIntersectionAttributes", "TriangleStream", "LineStream", "PointStream",
+        "InputPatch", "OutputPatch",
     )
 }
