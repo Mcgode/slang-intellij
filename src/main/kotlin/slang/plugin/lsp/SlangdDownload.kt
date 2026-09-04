@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 object SlangdDownload {
 
     /** Slang release used for the plugin-managed download. Bump alongside plugin releases. */
-    const val VERSION: String = "2026.16.1"
+    const val VERSION: String = "2026.17"
 
     private val LOG = logger<SlangdDownload>()
     private val inProgress = AtomicBoolean(false)

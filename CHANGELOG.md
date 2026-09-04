@@ -10,6 +10,10 @@
   `__target_switch` and `spirv_asm` keywords, and `$` in operator tokens for SPIRV asm
   interpolation.
 
+### Changes
+
+- Bumped the bundled Slang release to `2026.17`.
+
 ### Fixed
 
 - Rider (and CLion Nova) no longer report the plugin as conflicting with the IDE at startup. The
@@ -21,6 +25,9 @@
   "Cannot find declaration to go to". Those IDEs never sent the LSP `textDocument/definition`
   request from that action ([CPP-51642](https://youtrack.jetbrains.com/issue/CPP-51642)); the
   plugin now resolves it directly instead of relying on the platform's built-in navigation.
+- Bumping the bundled Slang release to `2026.17` fixes the issue where `slangd` LSP response to
+  certain requests (hover, occurrence highlighting, ...) would sometimes be invalid and would crash
+  the LSP API.
 
 ## [0.2.0] - 2026-09-04
 
