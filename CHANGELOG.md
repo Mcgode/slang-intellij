@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-04
+
 ### Added
 
 - Lexer support for Slang's ASM interop: raw string literals (`R"(...)"`), the `__intrinsic_asm`,
@@ -81,6 +83,7 @@ JetBrains LSP client API.
 
 Last release built on the hand-written parser. See the `dev` branch history for its changelog.
 
-[Unreleased]: https://github.com/Mcgode/slang-intellij/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Mcgode/slang-intellij/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/Mcgode/slang-intellij/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Mcgode/slang-intellij/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Mcgode/slang-intellij/commits/v0.1.0
