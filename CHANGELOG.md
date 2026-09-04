@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- Lexer support for Slang's ASM interop: raw string literals (`R"(...)"`), the `__intrinsic_asm`,
+  `__target_switch` and `spirv_asm` keywords, and `$` in operator tokens for SPIRV asm
+  interpolation.
+
 ### Fixed
 
 - Rider (and CLion Nova) no longer report the plugin as conflicting with the IDE at startup. The
