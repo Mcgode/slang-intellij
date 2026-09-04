@@ -24,7 +24,7 @@ opened as the project.
 | `common/lighting.slang` | module declaration, `interface`, generics (`<T : ILightModel>`), `public` |
 | `shaders/mesh.slang` | `#include`, `import`, `cbuffer`/`ConstantBuffer`, HLSL semantics, `[shader(...)]`, texture sampling, cross-file completion into `lighting` |
 | `shaders/particles.slang` | compute shader, `[numthreads]`, `RWStructuredBuffer`, `SV_DispatchThreadID` |
-| `shaders/postprocess.slang` | `static const` array, `SV_VertexID`, swizzles, fullscreen-triangle idiom |
+| `shaders/postprocess.slang` | `static const` array, `SV_VertexID`, swizzles, fullscreen-triangle idiom; a deliberate typo in the header comment for the spell-checker |
 | `errors/diagnostics.slang` | **intentionally broken** — diagnostics should show squiggles + Problems entries |
 
 ### GLSL (`glsl/`)
@@ -60,8 +60,9 @@ HLSL as a superset, so these need no in-file marker.
 | `hlsl/broken.hlsl` | **intentionally broken** — misspelled sampler + type mismatch |
 
 Local (no server) features to verify: syntax highlighting, brace matching, comment toggle
-(<kbd>Cmd/Ctrl</kbd>+<kbd>/</kbd>), folding of `{ }` blocks / block comments / `#if…#endif`, and
-the `TODO` in `shaders/particles.slang` showing in the TODO tool window.
+(<kbd>Cmd/Ctrl</kbd>+<kbd>/</kbd>), folding of `{ }` blocks / block comments / `#if…#endif`, the
+`TODO` in `shaders/particles.slang` in the TODO tool window, and the typo squiggle on "traingle" in
+`shaders/postprocess.slang` (with `gHdrColor` / `SV_VertexID` left alone).
 
 Server features to verify: completion (incl. members after `.` and across `import`), hover,
 signature help, go-to-definition, diagnostics, semantic highlighting, formatting, inlay hints.

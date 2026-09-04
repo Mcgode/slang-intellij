@@ -37,6 +37,10 @@ dependencies {
         // Unified IntelliJ IDEA distribution (bundles the LSP client API).
         intellijIdea(providers.gradleProperty("platformVersion"))
 
+        // Spellchecker (a platform product module); depended on optionally in plugin.xml so a
+        // stripped IDE without it still loads.
+        bundledModule("intellij.spellchecker")
+
         pluginVerifier()
         zipSigner()
         testFramework(TestFrameworkType.Platform)

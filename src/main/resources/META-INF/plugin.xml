@@ -11,6 +11,9 @@
          inactive there. -->
     <depends optional="true" config-file="slang-lsp.xml">com.intellij.modules.lsp</depends>
 
+    <!-- Bundled everywhere in practice, but optional so a stripped IDE without it still loads. -->
+    <depends optional="true" config-file="slang-spellchecker.xml">com.intellij.modules.spellchecker</depends>
+
     <resource-bundle>messages.SlangBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">

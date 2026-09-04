@@ -12,8 +12,8 @@ JetBrains LSP client API.
 
 - Local editor support that works without a language server: syntax highlighting (with a color
   settings page), brace matching, comment toggling, `"` auto-closing, Enter-key indentation,
-  code folding for `{ }` blocks, block comments and `#if` / `#endif` regions, and TODO / FIXME
-  markers in the TODO tool window.
+  code folding for `{ }` blocks, block comments and `#if` / `#endif` regions, TODO / FIXME markers
+  in the TODO tool window, and spell-checking of comment text.
 - Highlight other occurrences of the identifier under the caret. When `slangd` is available the
   occurrences are grouped by the declaration it resolves (a local `foo` no longer lights up an
   unrelated field `foo`); otherwise it falls back to matching the name.

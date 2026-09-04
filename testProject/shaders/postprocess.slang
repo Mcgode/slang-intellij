@@ -1,4 +1,5 @@
-// Tonemapping pass drawn as a single fullscreen triangle.
+// Tonemapping pass drawn as a single fullscreen traingle (note the deliberate typo — it should be
+// spell-checked, while identifiers like gHdrColor and SV_VertexID below should not).
 
 Texture2D    gHdrColor;
 SamplerState gLinearClamp;
