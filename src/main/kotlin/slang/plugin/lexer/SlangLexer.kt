@@ -51,7 +51,7 @@ class SlangLexer : LexerBase() {
             scanBlockComment()
         } else if (isDirectiveStart()) {
             scanDirective()
-        } else if (c == '"') {
+        } else if (isStringStart(c)) {
             scanString()
         } else if (c.isDigit() || (c == '.' && peek(1).isDigit())) {
             scanNumber()
@@ -128,21 +128,35 @@ class SlangLexer : LexerBase() {
     }
 
     private fun scanString(): IElementType {
-        var i = tokenStart + 1
-        while (i < endOffset) {
-            val ch = buffer[i]
-            if (ch == '\\') {
-                i += 2
-            } else if (ch == '"') {
-                i++
-                break
-            } else if (ch == '\n') {
-                break
-            } else {
+        val isRaw = buffer[tokenStart] == 'R'
+        if (isRaw) {
+            var i = tokenStart + 3
+            while (i < endOffset) {
+                val ch = buffer[i]
+                if (ch == ')' && buffer[i + 1] == '"') {
+                    i += 2
+                    break
+                }
                 i++
             }
+            tokenEnd = i.coerceAtMost(endOffset)
+        } else {
+            var i = tokenStart + 1
+            while (i < endOffset) {
+                val ch = buffer[i]
+                if (ch == '\\') {
+                    i += 2
+                } else if (ch == '"') {
+                    i++
+                    break
+                } else if (ch == '\n') {
+                    break
+                } else {
+                    i++
+                }
+            }
+            tokenEnd = i.coerceAtMost(endOffset)
         }
-        tokenEnd = i.coerceAtMost(endOffset)
         return T.STRING
     }
 
@@ -174,6 +188,8 @@ class SlangLexer : LexerBase() {
 
     private fun isIdentifierStart(c: Char) = c == '_' || c.isLetter()
     private fun isIdentifierPart(c: Char) = c == '_' || c.isLetterOrDigit()
+
+    private fun isStringStart(c: Char) = c == '"' || (c == 'R' && peek(1) == '"' && peek(2) == '(')
 
     private fun scanIdentifier(): IElementType {
         var i = tokenStart + 1
@@ -211,6 +227,6 @@ class SlangLexer : LexerBase() {
     }
 
     private companion object {
-        private const val OPERATOR_CHARS = "+-*/%=!<>&|^~?:"
+        private const val OPERATOR_CHARS = "+-*/%=!<>&|^~?:$"
     }
 }

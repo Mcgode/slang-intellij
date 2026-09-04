@@ -16,6 +16,26 @@ static const float2 kFullscreenTriangle[3] = {
     float2( 3.0, -1.0),
 };
 
+uint2 GetExtent(Texture2D texture, uint mipLevel)
+{
+    __target_switch
+    {
+        case spirv:
+            return spirv_asm {
+                OpCapability ImageQuery;
+                result: $$uint2 = OpImageQuerySizeLod $texture $mipLevel;
+            };
+        default:
+        {
+            __intrinsic_asm R"(
+                uint x, y, mips;
+                texture.GetDimensions(mipLevel, x, y, mips);
+                return uint2(x, y);
+            )";
+        }
+    }
+}
+
 [shader("vertex")]
 FullscreenVertex vertexMain(uint vertexId : SV_VertexID)
 {
