@@ -104,6 +104,8 @@
             language="SlangHLSL"
             implementationClass="slang.plugin.editor.SlangFoldingBuilder" />
 
+        <gotoDeclarationHandler implementation="slang.plugin.editor.SlangGoToDeclarationHandler" />
+
         <lineIndentProvider implementation="slang.plugin.editor.SlangLineIndentProvider" />
 
         <indexPatternBuilder implementation="slang.plugin.editor.SlangIndexPatternBuilder" />
