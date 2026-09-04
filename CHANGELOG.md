@@ -4,6 +4,21 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Rider (and CLion Nova) no longer report the plugin as conflicting with the IDE at startup. The
+  GLSL and HLSL file types and languages are now registered under the internal ids `SlangGLSL` /
+  `SlangHLSL` instead of `GLSL` / `HLSL`, which collided with Rider's bundled HLSL support and the
+  standalone GLSL plugin. The file types still show as "GLSL" / "HLSL" in the UI. Existing GLSL/HLSL
+  extension associations are re-created automatically on first start.
+
+### Known issues
+
+- On CLion Nova and Rider, "Go to Declaration" via Cmd/Ctrl+B or Cmd/Ctrl+Click reports "Cannot
+  find declaration to go to" — the LSP `textDocument/definition` request is never sent
+  ([CPP-51642](https://youtrack.jetbrains.com/issue/CPP-51642)). Use **Go to > Declaration or
+  Usages** (right-click, or rebind it to Cmd/Ctrl+B) until the platform fix ships.
+
 ## [0.2.0] - 2026-09-04
 
 This version is a ground-up rewrite. The hand-written parser and the optional LSP4IJ dependency are

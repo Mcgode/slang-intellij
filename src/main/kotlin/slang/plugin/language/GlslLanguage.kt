@@ -11,7 +11,10 @@ import com.intellij.lang.Language
  * Slang dialect lets it reuse the lexer, highlighter and editor support unchanged while still
  * showing up as its own "GLSL" file type.
  */
-object GlslLanguage : Language(SlangLanguage, "GLSL") {
+// ID is "SlangGLSL", not "GLSL": a bare "GLSL" collides with the standalone GLSL plugin's language,
+// which makes the platform report this plugin as conflicting with the IDE at startup. The
+// user-facing name stays "GLSL" via getDisplayName() / the file type description.
+object GlslLanguage : Language(SlangLanguage, "SlangGLSL") {
     private fun readResolve(): Any = GlslLanguage
     override fun getDisplayName(): String = "GLSL"
 }

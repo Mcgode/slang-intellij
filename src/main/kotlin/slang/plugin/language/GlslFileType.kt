@@ -13,7 +13,10 @@ import javax.swing.Icon
  */
 class GlslFileType private constructor() : LanguageFileType(GlslLanguage) {
 
-    override fun getName(): String = "GLSL"
+    // "SlangGLSL", not "GLSL": a bare "GLSL" file type name collides with the standalone GLSL
+    // plugin and trips the IDE's startup file-type-conflict check ("conflicts with IDEA CORE").
+    // The name is an internal id; the user sees getDescription().
+    override fun getName(): String = "SlangGLSL"
 
     override fun getDescription(): String = "GLSL shader file (via slangd)"
 

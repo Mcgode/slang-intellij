@@ -26,15 +26,19 @@
 
         <!-- GLSL and HLSL, handled through slangd (see GlslLanguage / HlslLanguage). Extensions are
              associated at runtime from the settings, not declared here, to avoid clashing with the
-             standalone GLSL plugin and with Rider's built-in HLSL support. -->
+             standalone GLSL plugin and with Rider's built-in HLSL support.
+             The file type name and language id are "SlangGLSL" / "SlangHLSL", not "GLSL" / "HLSL":
+             a bare name collides with those bundled/third-party registrations and makes the IDE
+             report this plugin as conflicting at startup ("conflicts with IDEA CORE"). The
+             user-visible label comes from getDescription() / getDisplayName(), still "GLSL" / "HLSL". -->
         <fileType
-            name="GLSL"
-            language="GLSL"
+            name="SlangGLSL"
+            language="SlangGLSL"
             implementationClass="slang.plugin.language.GlslFileType"
             fieldName="INSTANCE" />
         <fileType
-            name="HLSL"
-            language="HLSL"
+            name="SlangHLSL"
+            language="SlangHLSL"
             implementationClass="slang.plugin.language.HlslFileType"
             fieldName="INSTANCE" />
 
@@ -42,20 +46,20 @@
             language="Slang"
             implementationClass="slang.plugin.lang.SlangParserDefinition" />
         <lang.parserDefinition
-            language="GLSL"
+            language="SlangGLSL"
             implementationClass="slang.plugin.lang.GlslParserDefinition" />
         <lang.parserDefinition
-            language="HLSL"
+            language="SlangHLSL"
             implementationClass="slang.plugin.lang.HlslParserDefinition" />
 
         <lang.syntaxHighlighterFactory
             language="Slang"
             implementationClass="slang.plugin.highlight.SlangSyntaxHighlighterFactory" />
         <lang.syntaxHighlighterFactory
-            language="GLSL"
+            language="SlangGLSL"
             implementationClass="slang.plugin.highlight.SlangSyntaxHighlighterFactory" />
         <lang.syntaxHighlighterFactory
-            language="HLSL"
+            language="SlangHLSL"
             implementationClass="slang.plugin.highlight.SlangSyntaxHighlighterFactory" />
 
         <colorSettingsPage implementation="slang.plugin.highlight.SlangColorSettingsPage" />
@@ -64,40 +68,40 @@
             language="Slang"
             implementationClass="slang.plugin.editor.SlangCommenter" />
         <lang.commenter
-            language="GLSL"
+            language="SlangGLSL"
             implementationClass="slang.plugin.editor.SlangCommenter" />
         <lang.commenter
-            language="HLSL"
+            language="SlangHLSL"
             implementationClass="slang.plugin.editor.SlangCommenter" />
 
         <lang.braceMatcher
             language="Slang"
             implementationClass="slang.plugin.editor.SlangBraceMatcher" />
         <lang.braceMatcher
-            language="GLSL"
+            language="SlangGLSL"
             implementationClass="slang.plugin.editor.SlangBraceMatcher" />
         <lang.braceMatcher
-            language="HLSL"
+            language="SlangHLSL"
             implementationClass="slang.plugin.editor.SlangBraceMatcher" />
 
         <lang.quoteHandler
             language="Slang"
             implementationClass="slang.plugin.editor.SlangQuoteHandler" />
         <lang.quoteHandler
-            language="GLSL"
+            language="SlangGLSL"
             implementationClass="slang.plugin.editor.SlangQuoteHandler" />
         <lang.quoteHandler
-            language="HLSL"
+            language="SlangHLSL"
             implementationClass="slang.plugin.editor.SlangQuoteHandler" />
 
         <lang.foldingBuilder
             language="Slang"
             implementationClass="slang.plugin.editor.SlangFoldingBuilder" />
         <lang.foldingBuilder
-            language="GLSL"
+            language="SlangGLSL"
             implementationClass="slang.plugin.editor.SlangFoldingBuilder" />
         <lang.foldingBuilder
-            language="HLSL"
+            language="SlangHLSL"
             implementationClass="slang.plugin.editor.SlangFoldingBuilder" />
 
         <lineIndentProvider implementation="slang.plugin.editor.SlangLineIndentProvider" />

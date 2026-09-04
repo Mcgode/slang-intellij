@@ -13,7 +13,10 @@ import javax.swing.Icon
  */
 class HlslFileType private constructor() : LanguageFileType(HlslLanguage) {
 
-    override fun getName(): String = "HLSL"
+    // "SlangHLSL", not "HLSL": a bare "HLSL" file type name collides with the HLSL support bundled
+    // in Rider / CLion Nova and trips the IDE's startup file-type-conflict check ("conflicts with
+    // IDEA CORE"). The name is an internal id; the user sees getDescription().
+    override fun getName(): String = "SlangHLSL"
 
     override fun getDescription(): String = "HLSL shader file (via slangd)"
 
