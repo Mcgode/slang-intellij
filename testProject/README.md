@@ -60,7 +60,8 @@ HLSL as a superset, so these need no in-file marker.
 | `hlsl/broken.hlsl` | **intentionally broken** — misspelled sampler + type mismatch |
 
 Local (no server) features to verify: syntax highlighting, brace matching, comment toggle
-(<kbd>Cmd/Ctrl</kbd>+<kbd>/</kbd>), folding of `{ }` blocks / block comments / `#if…#endif`.
+(<kbd>Cmd/Ctrl</kbd>+<kbd>/</kbd>), folding of `{ }` blocks / block comments / `#if…#endif`, and
+the `TODO` in `shaders/particles.slang` showing in the TODO tool window.
 
 Server features to verify: completion (incl. members after `.` and across `import`), hover,
 signature help, go-to-definition, diagnostics, semantic highlighting, formatting, inlay hints.

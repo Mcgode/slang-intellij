@@ -99,6 +99,8 @@
 
         <lineIndentProvider implementation="slang.plugin.editor.SlangLineIndentProvider" />
 
+        <indexPatternBuilder implementation="slang.plugin.editor.SlangIndexPatternBuilder" />
+
         <postStartupActivity implementation="slang.plugin.language.ShaderFileTypeStartup" />
 
         <highlightUsagesHandlerFactory

@@ -1,4 +1,5 @@
 // GPU particle simulation — compute entry point.
+// TODO: spawn new particles when life runs out instead of resetting in place
 
 struct Particle
 {
