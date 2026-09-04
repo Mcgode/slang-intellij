@@ -114,7 +114,7 @@ jobs:
 
       # The verifier downloads several recommended IDEs; cache them across runs.
       - name: Cache Plugin Verifier IDEs
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.pluginVerifier/ides
           key: plugin-verifier-ides-${{ hashFiles('gradle.properties', 'build.gradle.kts') }}
