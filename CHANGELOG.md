@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-04
+
 This version is a ground-up rewrite. The hand-written parser and the optional LSP4IJ dependency are
 gone; the plugin is now a thin layer over the official Slang language server (`slangd`) using the
 JetBrains LSP client API.
@@ -54,5 +56,6 @@ JetBrains LSP client API.
 
 Last release built on the hand-written parser. See the `dev` branch history for its changelog.
 
-[Unreleased]: https://github.com/Mcgode/slang-intellij/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Mcgode/slang-intellij/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Mcgode/slang-intellij/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Mcgode/slang-intellij/commits/v0.1.0
