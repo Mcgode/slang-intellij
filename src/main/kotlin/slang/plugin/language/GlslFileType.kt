@@ -9,7 +9,7 @@ import javax.swing.Icon
  * No extensions are bound to this type by default — it conflicts with the standalone GLSL plugin
  * and with Rider's built-in support. Extensions are associated at runtime, only for the ones no
  * other plugin claims, when the user turns on GLSL support in the settings
- * ([slang.plugin.language.GlslFileAssociations]).
+ * ([slang.plugin.language.ShaderFileAssociations]).
  */
 class GlslFileType private constructor() : LanguageFileType(GlslLanguage) {
 
