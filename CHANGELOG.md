@@ -11,13 +11,10 @@
   `SlangHLSL` instead of `GLSL` / `HLSL`, which collided with Rider's bundled HLSL support and the
   standalone GLSL plugin. The file types still show as "GLSL" / "HLSL" in the UI. Existing GLSL/HLSL
   extension associations are re-created automatically on first start.
-
-### Known issues
-
-- On CLion Nova and Rider, "Go to Declaration" via Cmd/Ctrl+B or Cmd/Ctrl+Click reports "Cannot
-  find declaration to go to" — the LSP `textDocument/definition` request is never sent
-  ([CPP-51642](https://youtrack.jetbrains.com/issue/CPP-51642)). Use **Go to > Declaration or
-  Usages** (right-click, or rebind it to Cmd/Ctrl+B) until the platform fix ships.
+- On CLion Nova and Rider, "Go to Declaration" via Cmd/Ctrl+B or Cmd/Ctrl+Click no longer reports
+  "Cannot find declaration to go to". Those IDEs never sent the LSP `textDocument/definition`
+  request from that action ([CPP-51642](https://youtrack.jetbrains.com/issue/CPP-51642)); the
+  plugin now resolves it directly instead of relying on the platform's built-in navigation.
 
 ## [0.2.0] - 2026-09-04
 
