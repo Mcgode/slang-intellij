@@ -21,7 +21,7 @@ jobs:
       checks: write
     steps:
       - name: Fetch Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}  # the actual PR commit, not the merge commit
           fetch-depth: 0  # full history so new problems can be attributed to their commit

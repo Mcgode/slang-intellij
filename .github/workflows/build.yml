@@ -25,7 +25,7 @@ jobs:
           large-packages: false
 
       - name: Fetch Sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Java
         uses: actions/setup-java@v6
@@ -57,7 +57,7 @@ jobs:
           large-packages: false
 
       - name: Fetch Sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Java
         uses: actions/setup-java@v6
@@ -99,7 +99,7 @@ jobs:
           large-packages: false
 
       - name: Fetch Sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Java
         uses: actions/setup-java@v6
