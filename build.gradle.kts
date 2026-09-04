@@ -175,5 +175,14 @@ intellijPlatformTesting {
                 args(testProjectPath)
             }
         }
+
+        // `./gradlew runRiderForTests` — same plugin, run in a Rider sandbox instead of IDEA.
+        register("runRiderForTests") {
+            type = IntelliJPlatformType.Rider
+            version = providers.gradleProperty("riderVersion")
+            task {
+                args(testProjectPath)
+            }
+        }
     }
 }
