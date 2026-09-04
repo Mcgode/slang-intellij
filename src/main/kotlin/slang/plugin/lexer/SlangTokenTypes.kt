@@ -57,6 +57,9 @@ object SlangTokenTypes {
         "technique", "technique10", "technique11", "pass", "compile", "globallycoherent",
         "snorm", "unorm", "line", "lineadj", "triangle", "triangleadj", "point",
         "vertexfragment", "pixelfragment",
+        // ASM
+        "__intrinsic_asm", "__require_prelude", "__target_switch",
+        "spirv_asm", "builtin", // SPIRV ASM
     )
 
     /** Built-in scalar / container type keywords, highlighted as types. */
